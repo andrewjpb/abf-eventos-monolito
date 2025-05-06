@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model address {
+  id          String   @id
+  cityId      String
+  stateId     String
+  street      String
+  number      String
+  postal_code String
+  complement  String
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  cities      cities   @relation(fields: [cityId], references: [id])
+  states      states   @relation(fields: [stateId], references: [id])
+  events      events[]
+}
+
+model attendance_list {
+  id                 String   @id
+  eventId            String
+  userId             String
+  company_cnpj       String
+  company_segment    String
+  attendee_full_name String
+  attendee_email     String
+  attendee_position  String
+  attendee_rg        String
+  attendee_cpf       String
+  checked_in         Boolean
+  created_at         DateTime @default(now())
+  updatedAt          DateTime @default(now())
+  mobile_phone       String
+  attendee_type      String
+  company            company  @relation(fields: [company_cnpj], references: [cnpj])
+  events             events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  users              users    @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, attendee_email, attendee_cpf, attendee_rg])
+}
+
+model cities {
+  id      String    @id
+  name    String
+  stateId String?
+  address address[]
+  states  states?   @relation(fields: [stateId], references: [id])
+
+  @@unique([name, stateId])
+}
+
+model company {
+  id              String            @id
+  name            String
+  cnpj            String            @unique
+  segment         String
+  active          Boolean           @default(true)
+  created_at      DateTime          @default(now())
+  updatedAt       DateTime          @default(now())
+  attendance_list attendance_list[]
+  users           users[]
+}
+
+model events {
+  id                  String            @id
+  title               String
+  slug                String            @unique
+  image_url           String            @default("")
+  thumb_url           String            @default("")
+  image_path          String            @default("")
+  thumb_path          String            @default("")
+  ticket_img_path     String            @default("")
+  summary             String
+  description         String
+  date                DateTime
+  isStreaming         Boolean           @default(false)
+  transmission_link   String            @default("")
+  vacancy_total       Int
+  vacancies_per_brand Int
+  minimum_quorum      Int
+  highlight           Boolean
+  start_time          String
+  end_time            String
+  format              String
+  addressId           String
+  created_at          DateTime          @default(now())
+  updatedAt           DateTime          @default(now())
+  schedule_link       String            @default("")
+  free_online         Boolean           @default(false)
+  attendance_list     attendance_list[]
+  address             address           @relation(fields: [addressId], references: [id])
+  speakers            speakers[]        @relation("EventToSpeaker")
+  sponsors            sponsors[]        @relation("EventToSponsor")
+  supporters          supporters[]      @relation("EventToSupporter")
+  isPublished         Boolean           @default(false)
+}
+
+model external_events {
+  id          String   @id
+  title       String
+  description String
+  date        DateTime
+  event_link  String
+  image_url   String
+  thumb_url   String
+  highlight   Boolean
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  @@map("external-events")
+}
+
+model highlight_card {
+  id            String   @id
+  title         String
+  image_url     String
+  external_link String
+  active        Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updatedAt     DateTime @default(now())
+}
+
+model permissions {
+  id          String   @id
+  name        String   @unique
+  description String
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  roles       roles[]  @relation("PermissionToRole")
+}
+
+model reset_password_token {
+  id         String   @id
+  userId     String
+  ttl        DateTime
+  used       Boolean
+  created_at DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model roles {
+  id          String        @id
+  name        String        @unique
+  description String
+  created_at  DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  permissions permissions[] @relation("PermissionToRole")
+  users       users[]       @relation("RoleToUser")
+}
+
+model speakers {
+  id          String   @id
+  description String?
+  moderatorId String   @unique
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  users       users    @relation(fields: [moderatorId], references: [id])
+  events      events[] @relation("EventToSpeaker")
+}
+
+model sponsors {
+  id          String   @id
+  name        String   @unique
+  image_url   String   @default("")
+  thumb_url   String   @default("")
+  image_path  String   @default("")
+  thumb_path  String   @default("")
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  description String?
+  events      events[] @relation("EventToSponsor")
+}
+
+model states {
+  id      String    @id
+  uf      String    @unique
+  name    String    @unique
+  address address[]
+  cities  cities[]
+}
+
+model supporters {
+  id         String   @id
+  name       String   @unique
+  image_url  String   @default("")
+  thumb_url  String   @default("")
+  image_path String   @default("")
+  thumb_path String   @default("")
+  created_at DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  events     events[] @relation("EventToSupporter")
+}
+
+model users {
+  id              String            @id
+  name            String
+  username        String            @unique
+  email           String            @unique
+  password        String
+  active          Boolean           @default(true)
+  rg              String            @unique
+  cpf             String            @unique
+  cnpj            String
+  mobile_phone    String            @unique
+  position        String
+  city            String
+  state           String
+  image_url       String            @default("")
+  thumb_url       String            @default("")
+  image_path      String            @default("")
+  thumb_path      String            @default("")
+  created_at      DateTime          @default(now())
+  updatedAt       DateTime          @default(now())
+  attendance_list attendance_list[]
+  speakers        speakers?
+  company         company           @relation(fields: [cnpj], references: [cnpj])
+  roles           roles[]           @relation("RoleToUser")
+  Session         Session[]
+  AppLog          AppLog[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  userId    String
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model AppLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  level     String // ex: "INFO", "ERROR", "WARN"
+  action    String // nome da operação ou rota, ex: "Computer.create"
+  message   String // descrição legível do evento
+  userId    String? // se houver usuário associado
+  user      users?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meta      Json? // dados adicionais (payload, duration, erros, etc.)
+
+  @@index([createdAt])
+  @@index([level])
+}

@@ -18,17 +18,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-
-type Company = {
-  id: string;
-  name: string;
-  cnpj: string;
-  segment: string;
-}
+import { Button } from "@/components/ui/button"
+import { CompanySelect } from "./company-select"
 
 type Role = {
   id: string;
@@ -38,14 +32,28 @@ type Role = {
 
 type UserUpsertFormProps = {
   user?: UserWithDetails;
-  companies: Company[];
   roles: Role[];
 }
 
-export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) {
+export function UserUpsertForm({ user, roles }: UserUpsertFormProps) {
   const router = useRouter();
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>(user?.cnpj || "");
+  const [activeTab, setActiveTab] = useState<string>("basic");
+
+  // Controle dos valores do formulário para evitar problemas de validação entre abas
+  const [formValues, setFormValues] = useState({
+    name: user?.name || "",
+    username: user?.username || "",
+    email: user?.email || "",
+    cpf: user?.cpf || "",
+    rg: user?.rg || "",
+    mobile_phone: user?.mobile_phone || "",
+    city: user?.city || "",
+    state: user?.state || "",
+    position: user?.position || "",
+    active: user?.active !== undefined ? user.active : true
+  });
 
   const [state, action] = useActionState(
     upsertUser.bind(null, user?.id),
@@ -59,6 +67,22 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
     }
     if (user?.cnpj) {
       setSelectedCompany(user.cnpj);
+    }
+
+    // Atualizar valores do formulário quando o usuário muda
+    if (user) {
+      setFormValues({
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        cpf: user.cpf || "",
+        rg: user.rg || "",
+        mobile_phone: user.mobile_phone || "",
+        city: user.city || "",
+        state: user.state || "",
+        position: user.position || "",
+        active: user.active !== undefined ? user.active : true
+      });
     }
   }, [user]);
 
@@ -80,6 +104,15 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
     setSelectedRoles(prev => prev.filter(r => r.id !== roleId));
   }
 
+  // Manipular alterações nos campos para manter o estado atualizado
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormValues(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+  };
+
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4">
@@ -87,13 +120,47 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
       </h2>
 
       <Form action={action} actionState={state} onSuccess={handleSuccess}>
-        <input
-          type="hidden"
-          name="roleIds"
-          value={JSON.stringify(selectedRoles.map(r => r.id))}
-        />
+        {/* Campos ocultos para todos os valores obrigatórios, para garantir que sejam enviados independentemente da aba ativa */}
+        <input type="hidden" name="roleIds" value={JSON.stringify(selectedRoles.map(r => r.id))} />
+        <input type="hidden" name="cnpj" value={selectedCompany} />
 
-        <Tabs defaultValue="basic" className="w-full">
+        {/* Campos ocultos para garantir que todos os valores obrigatórios sejam enviados mesmo estando em outra aba */}
+        {activeTab !== "basic" && (
+          <>
+            <input type="hidden" name="name" value={formValues.name} />
+            <input type="hidden" name="username" value={formValues.username} />
+            <input type="hidden" name="email" value={formValues.email} />
+            <input type="hidden" name="cpf" value={formValues.cpf} />
+            <input type="hidden" name="rg" value={formValues.rg} />
+          </>
+        )}
+
+        {activeTab !== "contact" && (
+          <>
+            <input type="hidden" name="mobile_phone" value={formValues.mobile_phone} />
+            <input type="hidden" name="city" value={formValues.city} />
+            <input type="hidden" name="state" value={formValues.state} />
+          </>
+        )}
+
+        {activeTab !== "company" && (
+          <>
+            <input type="hidden" name="position" value={formValues.position} />
+          </>
+        )}
+
+        {activeTab !== "access" && (
+          <>
+            <input type="hidden" name="active" value={formValues.active.toString()} />
+          </>
+        )}
+
+        <Tabs
+          defaultValue="basic"
+          className="w-full"
+          onValueChange={setActiveTab}
+          value={activeTab}
+        >
           <TabsList className="w-full justify-start mb-6">
             <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
             <TabsTrigger value="company">Empresa</TabsTrigger>
@@ -111,8 +178,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
               <Input
                 id="name"
                 name="name"
-                defaultValue={user?.name}
+                value={formValues.name}
+                onChange={handleInputChange}
                 placeholder="Nome do usuário"
+                required
               />
               <FieldError actionState={state} name="name" />
             </div>
@@ -123,8 +192,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
               <Input
                 id="username"
                 name="username"
-                defaultValue={user?.username}
+                value={formValues.username}
+                onChange={handleInputChange}
                 placeholder="nome.sobrenome"
+                required
               />
               <FieldError actionState={state} name="username" />
             </div>
@@ -136,8 +207,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
                 id="email"
                 name="email"
                 type="email"
-                defaultValue={user?.email}
+                value={formValues.email}
+                onChange={handleInputChange}
                 placeholder="email@exemplo.com"
+                required
               />
               <FieldError actionState={state} name="email" />
             </div>
@@ -149,8 +222,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
                 <Input
                   id="cpf"
                   name="cpf"
-                  defaultValue={user?.cpf}
+                  value={formValues.cpf}
+                  onChange={handleInputChange}
                   placeholder="000.000.000-00"
+                  required
                 />
                 <FieldError actionState={state} name="cpf" />
               </div>
@@ -160,8 +235,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
                 <Input
                   id="rg"
                   name="rg"
-                  defaultValue={user?.rg}
+                  value={formValues.rg}
+                  onChange={handleInputChange}
                   placeholder="00.000.000-0"
+                  required
                 />
                 <FieldError actionState={state} name="rg" />
               </div>
@@ -173,26 +250,11 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
             <Separator className="mb-4" />
 
             {/* Empresa (CNPJ) */}
-            <div className="space-y-2">
-              <Label htmlFor="cnpj">Empresa</Label>
-              <Select
-                name="cnpj"
-                value={selectedCompany}
-                onValueChange={setSelectedCompany}
-              >
-                <SelectTrigger id="cnpj">
-                  <SelectValue placeholder="Selecione uma empresa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companies.map(company => (
-                    <SelectItem key={company.id} value={company.cnpj}>
-                      {company.name} - {company.segment}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldError actionState={state} name="cnpj" />
-            </div>
+            <CompanySelect
+              selectedCnpj={selectedCompany}
+              onChange={setSelectedCompany}
+              label="Empresa"
+            />
 
             {/* Cargo */}
             <div className="space-y-2">
@@ -200,7 +262,8 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
               <Input
                 id="position"
                 name="position"
-                defaultValue={user?.position || ""}
+                value={formValues.position}
+                onChange={handleInputChange}
                 placeholder="Cargo ou função"
               />
               <FieldError actionState={state} name="position" />
@@ -216,7 +279,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
               <Switch
                 id="active"
                 name="active"
-                defaultChecked={user ? user.active : true}
+                checked={formValues.active}
+                onCheckedChange={(checked) => {
+                  setFormValues(prev => ({ ...prev, active: checked }));
+                }}
               />
               <Label htmlFor="active">Usuário Ativo</Label>
             </div>
@@ -271,8 +337,10 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
               <Input
                 id="mobile_phone"
                 name="mobile_phone"
-                defaultValue={user?.mobile_phone}
+                value={formValues.mobile_phone}
+                onChange={handleInputChange}
                 placeholder="(00) 00000-0000"
+                required
               />
               <FieldError actionState={state} name="mobile_phone" />
             </div>
@@ -284,7 +352,8 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
                 <Input
                   id="city"
                   name="city"
-                  defaultValue={user?.city}
+                  value={formValues.city}
+                  onChange={handleInputChange}
                   placeholder="Cidade"
                 />
                 <FieldError actionState={state} name="city" />
@@ -295,7 +364,8 @@ export function UserUpsertForm({ user, companies, roles }: UserUpsertFormProps) 
                 <Input
                   id="state"
                   name="state"
-                  defaultValue={user?.state}
+                  value={formValues.state}
+                  onChange={handleInputChange}
                   placeholder="Estado"
                 />
                 <FieldError actionState={state} name="state" />

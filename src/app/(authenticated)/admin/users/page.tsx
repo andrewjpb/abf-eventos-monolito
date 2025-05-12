@@ -21,7 +21,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   })
 
   return (
-    <div className="flex-1 animate-fade-in-from-top p-6">
+    <div className="flex-1 animate-fade-in-from-top ">
       <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
         <UserGrid
           initialUsers={initialUsers}

@@ -11,7 +11,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
         className="min-h-screen w-full flex-1
              overflow-y-auto overflow-x-hidden
              bg-secondary/20
-             flex flex-col ">
+             flex flex-col p-6">
         {children}
       </main>
     </div>

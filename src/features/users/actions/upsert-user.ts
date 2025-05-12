@@ -131,45 +131,52 @@ export const upsertUser = async (
     }
 
     await prisma.$transaction(async tx => {
-      // Criar ou atualizar o usuário
-      await tx.users.upsert({
-        where: { id },
-        create: {
-          id,
-          name: data.name,
-          username: data.username,
-          email: data.email,
-          password: password as string, // senha temporária para novos usuários
-          active: data.active,
-          rg: data.rg,
-          cpf: data.cpf,
-          cnpj: data.cnpj,
-          mobile_phone: data.mobile_phone,
-          position: data.position || "",
-          city: data.city || "",
-          state: data.state || "",
-          image_url: "",
-          thumb_url: "",
-          image_path: "",
-          thumb_path: "",
-          created_at: new Date(),
-          updatedAt: new Date(),
-        },
-        update: {
-          name: data.name,
-          username: data.username,
-          email: data.email,
-          active: data.active,
-          rg: data.rg,
-          cpf: data.cpf,
-          cnpj: data.cnpj,
-          mobile_phone: data.mobile_phone,
-          position: data.position || "",
-          city: data.city || "",
-          state: data.state || "",
-          updatedAt: new Date(),
-        }
-      })
+      // MODIFICAÇÃO AQUI: Separar a lógica entre criar e atualizar
+      if (userId) {
+        // ATUALIZAR usuário existente
+        await tx.users.update({
+          where: { id },
+          data: {
+            name: data.name,
+            username: data.username,
+            email: data.email,
+            active: data.active,
+            rg: data.rg,
+            cpf: data.cpf,
+            cnpj: data.cnpj,
+            mobile_phone: data.mobile_phone,
+            position: data.position || "",
+            city: data.city || "",
+            state: data.state || "",
+            updatedAt: new Date(),
+          }
+        });
+      } else {
+        // CRIAR novo usuário
+        await tx.users.create({
+          data: {
+            id,
+            name: data.name,
+            username: data.username,
+            email: data.email,
+            password: password as string, // senha temporária para novos usuários
+            active: data.active,
+            rg: data.rg,
+            cpf: data.cpf,
+            cnpj: data.cnpj,
+            mobile_phone: data.mobile_phone,
+            position: data.position || "",
+            city: data.city || "",
+            state: data.state || "",
+            image_url: "",
+            thumb_url: "",
+            image_path: "",
+            thumb_path: "",
+            created_at: new Date(),
+            updatedAt: new Date(),
+          }
+        });
+      }
 
       // Atualizar relações com roles
       if (userId) {

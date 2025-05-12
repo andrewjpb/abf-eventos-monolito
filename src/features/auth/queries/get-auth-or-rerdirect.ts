@@ -25,7 +25,6 @@ export const getAuthOrRedirect = async () => {
 
 export const getAdminOrRedirect = async () => {
   const auth = await getAuth();
-  const user = await auth.user;
   const headersInstance = await headers();
 
   if (!auth.user) {
@@ -38,12 +37,15 @@ export const getAdminOrRedirect = async () => {
     redirect(signInPath());
   }
 
-  if (user && !user?.roles.includes('admin')) {
+  // Agora isAdmin é um booleano, não uma função
+  if (!auth.user.isAdmin) {
     const referer = headersInstance.get("referer");
+    const roleNames = auth.user.roles ? auth.user.roles.map((r: any) => r.name).join(', ') : 'none';
+
     const logData = {
-      userId: user.id,
-      userName: user.username,
-      roles: user.roles,
+      userId: auth.user.id,
+      userName: auth.user.username,
+      roles: roleNames,
       path: referer ? (new URL(referer)).pathname : "URL desconhecida"
     };
 

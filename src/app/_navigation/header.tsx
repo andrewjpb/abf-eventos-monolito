@@ -8,7 +8,7 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AccountDropdown } from "./account-dropdown";
 import Image from "next/image";
 import { Mail, Menu, X } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 export function Header() {
   const { isFetched, user } = useAuth();
@@ -20,6 +20,8 @@ export function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+
+  console.log(user)
   // Criando duas versões de navItems - uma para desktop e outra para mobile
   const desktopNavItems = user ? (
     <AccountDropdown user={user} />

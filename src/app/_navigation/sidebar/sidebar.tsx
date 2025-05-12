@@ -22,14 +22,16 @@ import { getActivePath } from "@/utils/get-active-path"
 
 export async function AppSidebar() {
   const auth = await getAuth();
-  const user = await auth.user;
+  const user = auth.user;
 
-  const isAdmin = user?.roles.includes('admin') || false;
+  // Usar a propriedade isAdmin do usuário que agora é um booleano
+  const isAdmin = user?.isAdmin || false;
 
   // Obter o caminho atual da URL
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "/";
 
+  // Se não for admin, não renderiza a sidebar
   if (!isAdmin) {
     return null;
   }
@@ -139,6 +141,6 @@ export async function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter />
-    </Sidebar>
+    </Sidebar >
   );
 }

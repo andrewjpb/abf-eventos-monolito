@@ -6,7 +6,7 @@ import { homePath } from "@/app/paths"
 
 export const acessAuthAdmin = async () => {
   const auth = await getAuth()
-  if (!auth.user?.roles.includes('admin')) redirect(homePath())
+  // isAdmin agora é um booleano, não uma função
+  if (!auth.user?.isAdmin) redirect(homePath())
   return auth
-
 }

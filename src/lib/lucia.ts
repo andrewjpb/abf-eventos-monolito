@@ -76,6 +76,7 @@ interface DatabaseUserAttributes {
   created_at: Date
   updatedAt: Date
   roles: any[]
+
 }
 
 // Helper type for the attributes that will be available on the user object

@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { lucia } from "@/lib/lucia"
+import { prisma } from "@/lib/prisma"
 
 export const getAuth = async () => {
   const cookieStore = await cookies()
@@ -13,7 +14,30 @@ export const getAuth = async () => {
       session: null
     }
   }
+
   const result = await lucia.validateSession(sessionId)
+
+  // Se o usuário existir, vamos enriquecer com os relacionamentos
+  if (result.user) {
+    // Buscar todas as roles do usuário
+    const userWithRoles = await prisma.users.findUnique({
+      where: { id: result.user.id },
+      include: {
+        roles: true  // Incluir todas as roles
+      }
+    })
+
+    if (userWithRoles) {
+      // Adicionar apenas os dados de roles, sem funções
+      const roles = userWithRoles.roles || [];
+      result.user.roles = roles;
+
+      // Computar valores booleanos ao invés de funções
+      const roleNames = roles.map(role => role.name);
+      // Corrigido: não usamos o operador de acesso opcional no lado esquerdo
+      result.user.isAdmin = roleNames.includes('admin');
+    }
+  }
 
   try {
     if (result.session && result.session.fresh) {
@@ -23,13 +47,10 @@ export const getAuth = async () => {
     if (!result.session) {
       const sessionCookie = lucia.createBlankSessionCookie()
       cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-
     }
-
   } catch (error) {
     console.log(error)
   }
+
   return result
-
-
 }

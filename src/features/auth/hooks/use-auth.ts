@@ -1,5 +1,6 @@
 "use client"
 
+// Hook de autenticação (useAuth.ts)
 import { useEffect, useState } from "react"
 import { User as AuthUser } from "lucia"
 import { usePathname } from "next/navigation"
@@ -11,19 +12,26 @@ const useAuth = () => {
 
   const pathname = usePathname()
 
-
   useEffect(() => {
     const fetchUser = async () => {
       const { user } = await getAuth()
-
       setUser(user)
       setIsFetched(true)
     }
     fetchUser()
   }, [pathname])
 
-  return { user, isFetched }
+  // Adicione utilitários aqui
+  const hasRole = (roleName: string) => {
+    if (!user || !user.roles) return false;
+    return user.roles.some((role: any) => role.name === roleName);
+  }
 
+  const isAdmin = () => {
+    return hasRole('admin');
+  }
+
+  return { user, isFetched, hasRole, isAdmin }
 }
 
 export { useAuth }

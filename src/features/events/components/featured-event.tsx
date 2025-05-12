@@ -65,7 +65,7 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
       {/* Container principal */}
       <div className="relative">
         {/* Imagem de fundo */}
-        <div className="relative h-[200px] md:h-[500px] bg-muted">
+        <div className="relative h-[180px] sm:h-[220px] md:h-[280px] lg:h-[240px] xl:h-[480px] bg-muted">
           {event.image_url ? (
             <Image
               src={event.image_url}

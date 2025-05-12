@@ -21,22 +21,50 @@ export function EventsSection({
   const [currentPage, setCurrentPage] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const [maxPages, setMaxPages] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(eventsPorPagina)
 
   // Verificar se recebemos uma lista vazia ou não inicializada
   const temEventos = Array.isArray(events) && events.length > 0
 
+  // Ajustar eventos por página com base no tamanho da tela
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth
+      if (width < 640) { // Mobile
+        setItemsPerPage(1)
+      } else if (width < 768) { // Small tablet
+        setItemsPerPage(2)
+      } else if (width < 1024) { // Tablet
+        setItemsPerPage(2)
+      } else if (width < 1280) { // Small desktop
+        setItemsPerPage(3)
+      } else { // Large desktop
+        setItemsPerPage(3)
+      }
+    }
+
+    // Inicializar
+    handleResize()
+
+    // Adicionar listener para redimensionamento
+    window.addEventListener('resize', handleResize)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Calcular o número máximo de páginas com base nos eventos disponíveis
   useEffect(() => {
     if (temEventos) {
-      setMaxPages(Math.ceil(events.length / eventsPorPagina))
+      setMaxPages(Math.ceil(events.length / itemsPerPage))
     }
-  }, [events, eventsPorPagina, temEventos])
+  }, [events, itemsPerPage, temEventos])
 
   // Eventos da página atual
   const currentEvents = temEventos
     ? events.slice(
-      currentPage * eventsPorPagina,
-      (currentPage + 1) * eventsPorPagina
+      currentPage * itemsPerPage,
+      (currentPage + 1) * itemsPerPage
     )
     : []
 
@@ -55,10 +83,10 @@ export function EventsSection({
   }
 
   return (
-    <div className="py-8" ref={containerRef}>
+    <div className="py-4 sm:py-6 md:py-8" ref={containerRef}>
       {/* Cabeçalho com título e controles de navegação */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">{title}</h2>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
 
         {temEventos && maxPages > 1 && (
           <div className="flex items-center gap-2">
@@ -67,10 +95,10 @@ export function EventsSection({
               size="icon"
               onClick={goToPrevPage}
               disabled={currentPage === 0}
-              className="h-8 w-8 rounded-full"
+              className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
               aria-label="Página anterior"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
 
             <Button
@@ -78,10 +106,10 @@ export function EventsSection({
               size="icon"
               onClick={goToNextPage}
               disabled={currentPage >= maxPages - 1}
-              className="h-8 w-8 rounded-full"
+              className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
               aria-label="Próxima página"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         )}
@@ -89,13 +117,13 @@ export function EventsSection({
 
       {/* Conteúdo: Grid de eventos ou mensagem "Nenhum evento" */}
       {temEventos ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
           {currentEvents.map(event => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 text-gray-500">
+        <div className="text-center py-10 sm:py-16 text-gray-500">
           Nenhum evento disponível no momento.
         </div>
       )}

@@ -64,16 +64,22 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
     return event.format || "Evento"
   }
 
+  // Altura adaptável com base no variant e tamanho da tela
+  const imageHeight = variant === "compact"
+    ? "h-40 sm:h-44 md:h-48"
+    : "h-48 sm:h-52 md:h-56 lg:h-58";
+
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg shadow-md border border-border bg-card">
+    <div className="flex flex-col overflow-hidden rounded-lg shadow-md border border-border bg-card h-full hover:shadow-lg transition-shadow">
       {/* Imagem do evento com badge de tipo */}
-      <div className="relative h-58 bg-muted">
+      <div className={`relative ${imageHeight} bg-muted`}>
         {event.image_url ? (
           <Image
             src={event.image_url}
             alt={event.title}
             fill
-            className="object-fill"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -88,43 +94,43 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
         )}
 
         {/* Badge Premium, Técnico, etc */}
-        <div className="absolute right-3 top-3">
-          <Badge variant="outline" className="bg-background text-foreground py-1 px-4 rounded-full">
+        <div className="absolute right-2 sm:right-3 top-2 sm:top-3">
+          <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-foreground py-0.5 px-2 sm:py-1 sm:px-4 rounded-full text-xs sm:text-sm">
             {obterTextoFormato()}
           </Badge>
         </div>
       </div>
 
       {/* Informações do evento */}
-      <div className="flex flex-col p-4">
+      <div className="flex flex-col p-3 sm:p-4 flex-grow">
         {/* Tipo de evento e duração */}
-        <div className="flex gap-3 mb-2">
-          <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground">
+        <div className="flex gap-2 sm:gap-3 mb-2">
+          <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground text-xs">
             {obterFormato()}
           </Badge>
 
-          <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground">
+          <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground text-xs">
             {calcularDias()}
           </Badge>
         </div>
 
         {/* Título */}
         <Link href={eventPath(event.id)}>
-          <h3 className="text-xl font-bold text-card-foreground mb-3">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-card-foreground mb-2 sm:mb-3 line-clamp-2">
             {event.title}
           </h3>
         </Link>
 
         {/* Data */}
-        <div className="flex items-center gap-2 text-muted-foreground mb-2">
-          <CalendarIcon className="h-4 w-4" />
-          <span>{formatarPeriodo()}</span>
+        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground mb-1.5 sm:mb-2 mt-auto">
+          <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+          <span className="truncate">{formatarPeriodo()}</span>
         </div>
 
         {/* Local */}
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <MapPinIcon className="h-4 w-4" />
-          <span>
+        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+          <MapPinIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+          <span className="truncate">
             {event.address?.cities?.name && event.address?.states?.uf
               ? `${event.address.cities.name} - ${event.address.states.uf}`
               : event.isStreaming

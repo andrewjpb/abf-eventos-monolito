@@ -18,7 +18,11 @@ import {
   supportersPath,
   supporterCreatePath,
   usersPath,
-  userCreatePath
+  userCreatePath,
+  permissionsPath,
+  permissionCreatePath,
+  rolesPath,
+  roleCreatePath
 } from "@/app/paths"
 import { NavItem } from "./types"
 import {
@@ -34,7 +38,8 @@ import {
   ExternalLink,
   Image,
   FileText,
-  Building
+  Building,
+  Shield
 } from "lucide-react";
 
 export const navItems: NavItem[] = [
@@ -194,6 +199,42 @@ export const navItems: NavItem[] = [
     icon: <FileText />,
     href: logsPath(),
     role: "admin"
+  },
+  {
+    title: "Grupos de Usuários",
+    icon: <Shield />,
+    href: rolesPath(),
+    role: "admin",
+    subItems: [
+      {
+        title: "Lista de Grupos",
+        href: rolesPath(),
+        role: "admin"
+      },
+      {
+        title: "Novo Grupo",
+        href: roleCreatePath(),
+        role: "admin"
+      }
+    ]
+  },
+  {
+    title: "Permissões",
+    icon: <Key />,
+    href: permissionsPath(),
+    role: "admin",
+    subItems: [
+      {
+        title: "Lista de Permissões",
+        href: permissionsPath(),
+        role: "admin"
+      },
+      {
+        title: "Nova Permissão",
+        href: permissionCreatePath(),
+        role: "admin"
+      }
+    ]
   },
   {
     title: "Configurações",

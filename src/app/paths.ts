@@ -69,3 +69,15 @@ export const bannersPath = () => "/admin/banners";
 export const bannerPath = (id: string) => `/admin/banners/${id}`;
 export const bannerCreatePath = () => "/admin/banners/create";
 export const bannerEditPath = (id: string) => `/admin/banners/${id}/edit`;
+
+
+// Rotas de Roles e Permissions
+export const rolesPath = () => "/admin/roles";                          // Listagem de roles
+export const rolePath = (id: string) => `/admin/roles/${id}`;           // Detalhes da role
+export const roleEditPath = (id: string) => `/admin/roles/${id}/edit`;  // Edição de role
+export const roleCreatePath = () => "/admin/roles/create";              // Criação de role
+
+export const permissionsPath = () => "/admin/permissions";              // Listagem de permissions
+export const permissionPath = (id: string) => `/admin/permissions/${id}`; // Detalhes da permission
+export const permissionEditPath = (id: string) => `/admin/permissions/${id}/edit`; // Edição de permission
+export const permissionCreatePath = () => "/admin/permissions/create";  // Criação de permission

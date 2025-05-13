@@ -187,12 +187,14 @@ model states {
 }
 
 model supporters {
-  id         String   @id
-  name       String   @unique
-  image_url  String   @default("")
-  thumb_url  String   @default("")
-  image_path String   @default("")
-  thumb_path String   @default("")
+  id         String  @id
+  name       String  @unique
+  image_url  String  @default("")
+  thumb_url  String  @default("")
+  image_path String  @default("")
+  thumb_path String  @default("")
+  active     Boolean @default(true)
+
   created_at DateTime @default(now())
   updatedAt  DateTime @default(now())
   events     events[] @relation("EventToSupporter")

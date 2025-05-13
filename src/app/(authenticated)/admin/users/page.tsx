@@ -4,7 +4,6 @@ import { Spinner } from "@/components/spinner"
 import { searchParamsCache } from "@/features/users/search-params"
 import { UserGrid } from "@/features/users/components/user-grid"
 import { getUsers } from "@/features/users/queries/get-users"
-import { redirect } from "next/navigation"
 
 type UsersPageProps = {
   searchParams: Promise<SearchParams>

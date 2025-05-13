@@ -63,3 +63,7 @@ export const highlightCardEditPath = (id: string) => `/admin/highlights/${id}/ed
 export const highlightCardCreatePath = () => "/admin/highlights/create"; // Criação de destaque
 
 export const logsPath = () => "/admin/logs";                            // Logs do sistema
+
+
+
+

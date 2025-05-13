@@ -1,7 +1,7 @@
 import * as Minio from 'minio';
 
 const minioClient = new Minio.Client({
-  endPoint: '10.0.0.23',
+  endPoint: 'https://s3.abfti.com.br',
   port: 9001,
   useSSL: false,
   accessKey: process.env.S3_ACCESS_KEY_ID,
@@ -15,7 +15,7 @@ const uploadFileTicket = async (file: File, id: string,) => {
 
   // Fazer upload do arquivo usando putObject
   const uploadFileTicket = await minioClient.putObject(
-    "abf-ti",  // nome do bucket
+    "eventos",  // nome do bucket
     "tickets/" + id + "/" + file.name, // objeto key (nome do arquivo no S3)
     Buffer.from(buffer), // Converter ArrayBuffer para Buffer
     file.size, // tamanho do arquivo
@@ -25,11 +25,7 @@ const uploadFileTicket = async (file: File, id: string,) => {
   );
 
   // Retornar a URL ou o caminho para o arquivo
-  return {
-    fileKey: "tickets/" + id + "/" + file.name,
-    fileUrl: `https://s3.abfti.com.br/abf-ti/${"tickets/" + id + "/" + file.name}`,
-    ...uploadFileTicket
-  };
+  return uploadFileTicket
 }
 
 export { uploadFileTicket }

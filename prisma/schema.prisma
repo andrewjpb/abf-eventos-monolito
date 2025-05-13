@@ -175,6 +175,7 @@ model sponsors {
   updatedAt   DateTime @default(now())
   description String?
   events      events[] @relation("EventToSponsor")
+  active      Boolean  @default(true)
 }
 
 model states {

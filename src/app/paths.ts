@@ -64,6 +64,8 @@ export const highlightCardCreatePath = () => "/admin/highlights/create"; // Cria
 
 export const logsPath = () => "/admin/logs";                            // Logs do sistema
 
-
-
-
+// Banners
+export const bannersPath = () => "/admin/banners";
+export const bannerPath = (id: string) => `/admin/banners/${id}`;
+export const bannerCreatePath = () => "/admin/banners/create";
+export const bannerEditPath = (id: string) => `/admin/banners/${id}/edit`;

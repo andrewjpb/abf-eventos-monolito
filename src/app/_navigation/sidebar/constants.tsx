@@ -1,4 +1,25 @@
-import { homePath, signInPath } from "@/app/paths"
+import {
+  adminDashboardPath,
+  bannersPath,
+  bannerCreatePath,
+  companiesPath,
+  companyCreatePath,
+  eventsAdminPath,
+  eventCreatePath,
+  externalEventsPath,
+  externalEventCreatePath,
+  highlightCardsPath,
+  highlightCardCreatePath,
+  logsPath,
+  speakersPath,
+  speakerCreatePath,
+  sponsorsPath,
+  sponsorCreatePath,
+  supportersPath,
+  supporterCreatePath,
+  usersPath,
+  userCreatePath
+} from "@/app/paths"
 import { NavItem } from "./types"
 import {
   Home,
@@ -6,48 +27,109 @@ import {
   Key,
   Briefcase,
   Settings,
-  Handshake
+  Handshake,
+  Calendar,
+  UserCheck,
+  Layout,
+  ExternalLink,
+  Image,
+  FileText,
+  Building
 } from "lucide-react";
 
 export const navItems: NavItem[] = [
   {
     title: "Dashboard",
     icon: <Home />,
-    href: homePath(),
+    href: adminDashboardPath(),
     role: "admin"
   },
   {
     title: "Usuários",
     icon: <Users />,
-    href: "/admin/users",
+    href: usersPath(),
     role: "admin",
     subItems: [
       {
         title: "Lista de Usuários",
-        href: "/admin/users",
+        href: usersPath(),
         role: "admin"
       },
       {
         title: "Novo Usuário",
-        href: "/admin/users/new",
+        href: userCreatePath(),
         role: "admin"
       }
     ]
   },
   {
-    title: "Permissões",
-    icon: <Key />,
-    href: "/admin/permissions",
+    title: "Empresas",
+    icon: <Building />,
+    href: companiesPath(),
     role: "admin",
     subItems: [
       {
-        title: "Perfis de Acesso",
-        href: "/admin/roles",
+        title: "Lista de Empresas",
+        href: companiesPath(),
         role: "admin"
       },
       {
-        title: "Permissões",
-        href: "/admin/permissions",
+        title: "Nova Empresa",
+        href: companyCreatePath(),
+        role: "admin"
+      }
+    ]
+  },
+  {
+    title: "Eventos",
+    icon: <Calendar />,
+    href: eventsAdminPath(),
+    role: "admin",
+    subItems: [
+      {
+        title: "Lista de Eventos",
+        href: eventsAdminPath(),
+        role: "admin"
+      },
+      {
+        title: "Novo Evento",
+        href: eventCreatePath(),
+        role: "admin"
+      }
+    ]
+  },
+  {
+    title: "Eventos Externos",
+    icon: <ExternalLink />,
+    href: externalEventsPath(),
+    role: "admin",
+    subItems: [
+      {
+        title: "Lista de Eventos Externos",
+        href: externalEventsPath(),
+        role: "admin"
+      },
+      {
+        title: "Novo Evento Externo",
+        href: externalEventCreatePath(),
+        role: "admin"
+      }
+    ]
+  },
+  {
+    title: "Palestrantes",
+    icon: <UserCheck />,
+    href: speakersPath(),
+    role: "admin",
+    subItems: [
+      {
+        title: "Lista de Palestrantes",
+        href: speakersPath(),
+        role: "admin"
+      },
+      {
+        title: "Novo Palestrante",
+        href: speakerCreatePath(),
         role: "admin"
       }
     ]
@@ -55,17 +137,17 @@ export const navItems: NavItem[] = [
   {
     title: "Patrocinadores",
     icon: <Briefcase />,
-    href: "/admin/sponsors",
+    href: sponsorsPath(),
     role: "admin",
     subItems: [
       {
         title: "Lista de Patrocinadores",
-        href: "/admin/sponsors",
+        href: sponsorsPath(),
         role: "admin"
       },
       {
         title: "Novo Patrocinador",
-        href: "/admin/sponsors/new",
+        href: sponsorCreatePath(),
         role: "admin"
       }
     ]
@@ -73,20 +155,45 @@ export const navItems: NavItem[] = [
   {
     title: "Apoiadores",
     icon: <Handshake />,
-    href: "/admin/supporters",
+    href: supportersPath(),
     role: "admin",
     subItems: [
       {
         title: "Lista de Apoiadores",
-        href: "/admin/supporters",
+        href: supportersPath(),
         role: "admin"
       },
       {
         title: "Novo Apoiador",
-        href: "/admin/supporters/new",
+        href: supporterCreatePath(),
         role: "admin"
       }
     ]
+  },
+  {
+    title: "Banners",
+    icon: <Image />,
+    href: bannersPath(),
+    role: "admin",
+    subItems: [
+      {
+        title: "Lista de Banners",
+        href: bannersPath(),
+        role: "admin"
+      },
+      {
+        title: "Novo Banner",
+        href: bannerCreatePath(),
+        role: "admin"
+      }
+    ]
+  },
+
+  {
+    title: "Logs do Sistema",
+    icon: <FileText />,
+    href: logsPath(),
+    role: "admin"
   },
   {
     title: "Configurações",

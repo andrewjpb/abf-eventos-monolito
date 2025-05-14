@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User as AuthUser } from "lucia"
 import { Avatar, AvatarFallback } from "../../components/ui/avatar"
-import { LucideLock, LucideLogOut, LucideShield, LucideUser } from "lucide-react"
+import { LucideLock, LucideLogOut, LucideUser } from "lucide-react"
 import { SignOut } from "@/features/auth/actions/sign-out"
 import Link from "next/link"
 import { accountPasswordPath, accountProfilePath } from "@/app/paths"
@@ -23,7 +23,8 @@ type AccountDropdownProps = {
 }
 
 const AccountDropdown = ({ user }: AccountDropdownProps) => {
-  const isAdmin = user?.isAdmin || false;
+
+
   const [actionState, action] = useActionState(SignOut, EMPTY_ACTION_STATE)
 
   return (
@@ -54,14 +55,6 @@ const AccountDropdown = ({ user }: AccountDropdownProps) => {
             <span>Senha</span>
           </Link>
         </DropdownMenuItem>
-        {isAdmin && (
-          <DropdownMenuItem>
-            <Link href="/admin" className="flex items-center gap-2">
-              <LucideShield className="w-4 h-4" />
-              <span>Administrativo</span>
-            </Link>
-          </DropdownMenuItem>
-        )}
 
         <DropdownMenuSeparator />
         <DropdownMenuItem className="flex flex-col w-full">

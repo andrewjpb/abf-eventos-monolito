@@ -1,18 +1,25 @@
 "use client"
 
-import { homePath, signInPath } from "@/app/paths";
+import { homePath, signInPath, adminDashboardPath } from "@/app/paths";
 import Link from "next/link";
 import { buttonVariants } from "../../components/ui/button";
 import { ThemeSwitcher } from "../../components/theme/theme-swicher";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AccountDropdown } from "./account-dropdown";
 import Image from "next/image";
-import { Mail, Menu, X } from "lucide-react";
+import { Mail, Menu, X, Layout } from "lucide-react";
 import { useState } from "react";
+import { useCheckPermission } from "@/features/permissions/hooks/use-check-permission";
 
 export function Header() {
   const { isFetched, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Verificar se o usuário tem permissão para acessar o painel
+  const { hasPermission: canAccessPanel } = useCheckPermission(
+    user?.id,
+    "panel.access"
+  );
 
   if (!isFetched) return null;
 
@@ -20,11 +27,19 @@ export function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-
-  console.log(user)
   // Criando duas versões de navItems - uma para desktop e outra para mobile
   const desktopNavItems = user ? (
-    <AccountDropdown user={user} />
+    <>
+      {/* Botão de painel admin (mostrado apenas se o usuário tem permissão) */}
+      {canAccessPanel && (
+        <Link href={adminDashboardPath()} className={buttonVariants({ variant: "outline", className: "mr-2" })}>
+          <Layout className="mr-2 h-4 w-4" />
+          Painel Admin
+        </Link>
+      )}
+
+      <AccountDropdown user={user} />
+    </>
   ) : (
     <Link href={signInPath()} className={buttonVariants({ variant: "outline" })}>
       Acessar
@@ -33,37 +48,57 @@ export function Header() {
 
   // Versão mobile com melhor UX/UI para a foto do usuário
   const mobileNavItems = user ? (
-    <div className="flex items-center justify-between w-full py-2">
-      <div className="flex items-center gap-x-3">
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
-          {user?.picture ? (
-            <Image
-              src={user.picture}
-              alt={user.username || "Usuário"}
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center text-lg font-medium">
-              {user.username ? user.username.charAt(0).toUpperCase() : "U"}
-            </div>
-          )}
+    <div className="flex flex-col w-full gap-y-4">
+      <div className="flex items-center justify-between w-full py-2">
+        <div className="flex items-center gap-x-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+            {user?.picture ? (
+              <Image
+                src={user.picture}
+                alt={user.username || "Usuário"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center text-lg font-medium">
+                {user.username ? user.username.charAt(0).toUpperCase() : "U"}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="font-medium">{user.username || "Usuário"}</p>
+            <p className="text-sm text-muted-foreground">{user.email}</p>
+          </div>
         </div>
-        <div>
-          <p className="font-medium">{user.username || "Usuário"}</p>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
-        </div>
+        <button
+          className={buttonVariants({
+            variant: "ghost",
+            className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+          })}
+          onClick={() => {
+            // Função para sair - você pode adicionar a lógica aqui
+            setMobileMenuOpen(false);
+          }}
+        >
+          Sair
+        </button>
       </div>
-      <button
-        className={buttonVariants({ variant: "ghost", className: "text-destructive hover:text-destructive hover:bg-destructive/10" })}
-        onClick={() => {
-          // Função para sair - você pode adicionar a lógica aqui
-          setMobileMenuOpen(false);
-        }}
-      >
-        Sair
-      </button>
+
+      {/* Botão do painel para mobile (mostrado apenas se o usuário tem permissão) */}
+      {user && canAccessPanel && (
+        <Link
+          href={adminDashboardPath()}
+          className={buttonVariants({
+            variant: "outline",
+            className: "w-full justify-center"
+          })}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <Layout className="mr-2 h-4 w-4" />
+          Acessar Painel Administrativo
+        </Link>
+      )}
     </div>
   ) : (
     <Link

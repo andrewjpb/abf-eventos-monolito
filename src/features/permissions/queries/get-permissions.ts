@@ -2,6 +2,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
+import { PermissionWithRoles } from "../types"
 
 type GetPermissionsOptions = {
   cursor?: string;
@@ -10,7 +11,7 @@ type GetPermissionsOptions = {
 
 export async function getPermissions(options: GetPermissionsOptions = {}) {
   const { cursor, search } = options
-  const take = 15 // Número de itens por página
+  const take = 9 // Número de itens por página
 
   // Construir condições de filtro
   const where: any = {}
@@ -36,19 +37,22 @@ export async function getPermissions(options: GetPermissionsOptions = {}) {
   // Condição de cursor para paginação
   if (cursor) {
     where.id = {
-      lt: cursor
+      lt: cursor // Usar "lt" (less than) com ordenação "desc"
     }
   }
 
   // Consultas usando transação para garantir consistência
-  const [permissions, count, totalPermissions, unusedPermissions] = await prisma.$transaction([
+  const [permissions, count] = await prisma.$transaction([
     // 1. Consulta principal para obter as permissões desta página
     prisma.permissions.findMany({
       where,
       take,
       orderBy: [
-        { name: "asc" }
-      ]
+        { id: "desc" } // Usar ordenação "desc" para funcionar com cursor "lt"
+      ],
+      include: {
+        roles: true // Incluir roles associadas para mostrar nas permissões
+      }
     }),
 
     // 2. Contagem total de permissões com os mesmos filtros (exceto cursor)
@@ -57,18 +61,6 @@ export async function getPermissions(options: GetPermissionsOptions = {}) {
         ...where,
         id: cursor ? undefined : where.id // Remover condição de cursor para contar todos
       }
-    }),
-
-    // 3. Contagem total de permissões no sistema
-    prisma.permissions.count(),
-
-    // 4. Contagem de permissões não utilizadas por nenhuma role
-    prisma.permissions.count({
-      where: {
-        roles: {
-          none: {}
-        }
-      }
     })
   ])
 
@@ -76,17 +68,18 @@ export async function getPermissions(options: GetPermissionsOptions = {}) {
   const hasNextPage = permissions.length === take && count > permissions.length
 
   // Se há mais páginas, use o último ID como cursor
-  const nextCursor = hasNextPage ? permissions[permissions.length - 1]?.id : undefined
+  const nextCursor = hasNextPage && permissions.length > 0 ? permissions[permissions.length - 1]?.id : undefined
 
   return {
-    permissions,
+    permissions: permissions as PermissionWithRoles[],
     metadata: {
       count,
       hasNextPage,
       cursor: nextCursor,
       countByStatus: {
-        TOTAL: totalPermissions,
-        UNUSED: unusedPermissions
+        ACTIVE: 0,
+        INACTIVE: 0,
+        WITH_EVENTS: 0
       }
     }
   }

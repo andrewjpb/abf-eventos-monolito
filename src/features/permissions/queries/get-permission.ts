@@ -1,10 +1,9 @@
-// /features/permissions/queries/get-permission.ts
+import { PermissionWithRoles } from "../types"// /features/permissions/queries/get-permission.ts
 "use server"
 
 import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 import { getAuth } from "@/features/auth/queries/get-auth"
-import { Permission } from "@/features/roles/types"
 
 export const getPermission = cache(async (id: string) => {
   const { user } = await getAuth()
@@ -14,24 +13,12 @@ export const getPermission = cache(async (id: string) => {
     return null
   }
 
-  // Verificar se o usuário é admin
-  const isAdmin = user.roles.some(role => role.name === "admin")
-  if (!isAdmin) {
-    return null
-  }
-
   const permission = await prisma.permissions.findUnique({
     where: {
       id
     },
     include: {
-      roles: {
-        select: {
-          id: true,
-          name: true,
-          description: true
-        }
-      }
+      roles: true // Incluir as roles associadas
     }
   })
 
@@ -39,11 +26,5 @@ export const getPermission = cache(async (id: string) => {
     return null
   }
 
-  return {
-    ...permission,
-    isAuthorized: isAdmin
-  } as Permission & {
-    roles: { id: string; name: string; description: string }[],
-    isAuthorized: boolean
-  }
+  return permission as PermissionWithRoles
 })

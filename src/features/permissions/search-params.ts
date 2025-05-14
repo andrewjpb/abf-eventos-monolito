@@ -1,4 +1,4 @@
-// /features/roles/search-params.ts
+// /features/permissions/search-params.ts
 import { createSearchParamsCache, parseAsString } from "nuqs/server"
 
 export const searchParse = parseAsString.withDefault("").withOptions({

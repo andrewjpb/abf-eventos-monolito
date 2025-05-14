@@ -24,7 +24,6 @@ import {
   rolesPath,
   roleCreatePath
 } from "@/app/paths"
-import { NavItem } from "./types"
 import {
   Home,
   Users,
@@ -41,29 +40,44 @@ import {
   Building,
   Shield
 } from "lucide-react";
+import { ReactElement } from "react";
+
+export interface NavItem {
+  title: string
+  href: string
+  icon?: ReactElement
+  role?: string  // Mantido para compatibilidade
+  requiredPermission?: string  // Propriedade para verificação de permissão
+  subItems?: {
+    title: string
+    href: string
+    role?: string  // Mantido para compatibilidade
+    requiredPermission?: string  // Propriedade para verificação de permissão
+  }[]
+}
 
 export const navItems: NavItem[] = [
   {
     title: "Dashboard",
     icon: <Home />,
     href: adminDashboardPath(),
-    role: "admin"
+    requiredPermission: "panel.access"  // Permissão geral para acesso ao painel
   },
   {
     title: "Usuários",
     icon: <Users />,
     href: usersPath(),
-    role: "admin",
+    requiredPermission: "users.view",
     subItems: [
       {
         title: "Lista de Usuários",
         href: usersPath(),
-        role: "admin"
+        requiredPermission: "users.view"
       },
       {
         title: "Novo Usuário",
         href: userCreatePath(),
-        role: "admin"
+        requiredPermission: "users.create"
       }
     ]
   },
@@ -71,17 +85,17 @@ export const navItems: NavItem[] = [
     title: "Empresas",
     icon: <Building />,
     href: companiesPath(),
-    role: "admin",
+    requiredPermission: "companies.view",
     subItems: [
       {
         title: "Lista de Empresas",
         href: companiesPath(),
-        role: "admin"
+        requiredPermission: "companies.view"
       },
       {
         title: "Nova Empresa",
         href: companyCreatePath(),
-        role: "admin"
+        requiredPermission: "companies.create"
       }
     ]
   },
@@ -89,17 +103,17 @@ export const navItems: NavItem[] = [
     title: "Eventos",
     icon: <Calendar />,
     href: eventsAdminPath(),
-    role: "admin",
+    requiredPermission: "events.view",
     subItems: [
       {
         title: "Lista de Eventos",
         href: eventsAdminPath(),
-        role: "admin"
+        requiredPermission: "events.view"
       },
       {
         title: "Novo Evento",
         href: eventCreatePath(),
-        role: "admin"
+        requiredPermission: "events.create"
       }
     ]
   },
@@ -107,17 +121,17 @@ export const navItems: NavItem[] = [
     title: "Eventos Externos",
     icon: <ExternalLink />,
     href: externalEventsPath(),
-    role: "admin",
+    requiredPermission: "external_events.view",
     subItems: [
       {
         title: "Lista de Eventos Externos",
         href: externalEventsPath(),
-        role: "admin"
+        requiredPermission: "external_events.view"
       },
       {
         title: "Novo Evento Externo",
         href: externalEventCreatePath(),
-        role: "admin"
+        requiredPermission: "external_events.create"
       }
     ]
   },
@@ -125,17 +139,17 @@ export const navItems: NavItem[] = [
     title: "Palestrantes",
     icon: <UserCheck />,
     href: speakersPath(),
-    role: "admin",
+    requiredPermission: "speakers.view",
     subItems: [
       {
         title: "Lista de Palestrantes",
         href: speakersPath(),
-        role: "admin"
+        requiredPermission: "speakers.view"
       },
       {
         title: "Novo Palestrante",
         href: speakerCreatePath(),
-        role: "admin"
+        requiredPermission: "speakers.create"
       }
     ]
   },
@@ -143,17 +157,17 @@ export const navItems: NavItem[] = [
     title: "Patrocinadores",
     icon: <Briefcase />,
     href: sponsorsPath(),
-    role: "admin",
+    requiredPermission: "sponsors.view",
     subItems: [
       {
         title: "Lista de Patrocinadores",
         href: sponsorsPath(),
-        role: "admin"
+        requiredPermission: "sponsors.view"
       },
       {
         title: "Novo Patrocinador",
         href: sponsorCreatePath(),
-        role: "admin"
+        requiredPermission: "sponsors.create"
       }
     ]
   },
@@ -161,17 +175,17 @@ export const navItems: NavItem[] = [
     title: "Apoiadores",
     icon: <Handshake />,
     href: supportersPath(),
-    role: "admin",
+    requiredPermission: "supporters.view",
     subItems: [
       {
         title: "Lista de Apoiadores",
         href: supportersPath(),
-        role: "admin"
+        requiredPermission: "supporters.view"
       },
       {
         title: "Novo Apoiador",
         href: supporterCreatePath(),
-        role: "admin"
+        requiredPermission: "supporters.create"
       }
     ]
   },
@@ -179,42 +193,41 @@ export const navItems: NavItem[] = [
     title: "Banners",
     icon: <Image />,
     href: bannersPath(),
-    role: "admin",
+    requiredPermission: "banners.view",
     subItems: [
       {
         title: "Lista de Banners",
         href: bannersPath(),
-        role: "admin"
+        requiredPermission: "banners.view"
       },
       {
         title: "Novo Banner",
         href: bannerCreatePath(),
-        role: "admin"
+        requiredPermission: "banners.create"
       }
     ]
   },
-
   {
     title: "Logs do Sistema",
     icon: <FileText />,
     href: logsPath(),
-    role: "admin"
+    requiredPermission: "logs.view"
   },
   {
     title: "Grupos de Usuários",
     icon: <Shield />,
     href: rolesPath(),
-    role: "admin",
+    requiredPermission: "roles.view",
     subItems: [
       {
         title: "Lista de Grupos",
         href: rolesPath(),
-        role: "admin"
+        requiredPermission: "roles.view"
       },
       {
         title: "Novo Grupo",
         href: roleCreatePath(),
-        role: "admin"
+        requiredPermission: "roles.create"
       }
     ]
   },
@@ -222,17 +235,17 @@ export const navItems: NavItem[] = [
     title: "Permissões",
     icon: <Key />,
     href: permissionsPath(),
-    role: "admin",
+    requiredPermission: "permissions.view",
     subItems: [
       {
         title: "Lista de Permissões",
         href: permissionsPath(),
-        role: "admin"
+        requiredPermission: "permissions.view"
       },
       {
         title: "Nova Permissão",
         href: permissionCreatePath(),
-        role: "admin"
+        requiredPermission: "permissions.create"
       }
     ]
   },
@@ -240,6 +253,6 @@ export const navItems: NavItem[] = [
     title: "Configurações",
     icon: <Settings />,
     href: "/admin/settings",
-    role: "admin"
+    requiredPermission: "settings.view"
   }
 ]

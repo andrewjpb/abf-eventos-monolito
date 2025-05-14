@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "docker:build": "docker build -t andrewjpb/abf-eventos-monolito .",
-    "docker:push": "docker push andrewjpb/abf-eventos-monolito"
+    "docker:push": "docker push andrewjpb/abf-eventos-monolito",
+    "seed:permissions": "tsx scripts/seed-permissions-and-roles.ts"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.4.2",

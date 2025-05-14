@@ -4,7 +4,7 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useQueryState } from "nuqs"
-import { searchParse } from "@/features/roles/search-params"
+import { searchParse } from "../search-params"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"

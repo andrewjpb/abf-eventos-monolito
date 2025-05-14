@@ -4,23 +4,17 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
-  ShieldCheck,
+  Shield,
   ExternalLink,
   ChevronRight,
   ChevronDown,
-  Shield
+  Users
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { PermissionCardProps } from "../types"
 import Link from "next/link"
 import { permissionPath } from "@/app/paths"
-import { Permission } from "@/features/roles/types"
-
-export interface PermissionCardProps {
-  permission: Permission & { roles?: { id: string; name: string }[] }
-  expanded: boolean
-  onToggleExpand: (id: string) => void
-}
 
 export function PermissionCard({ permission, expanded, onToggleExpand }: PermissionCardProps) {
   const hasRoles = permission.roles && permission.roles.length > 0
@@ -54,38 +48,38 @@ export function PermissionCard({ permission, expanded, onToggleExpand }: Permiss
           </div>
 
           {/* Resumo - sempre visível */}
-          <div className="px-4 py-3 bg-muted/20">
-            <p className="text-sm text-muted-foreground">{permission.description}</p>
+          <div className="px-4 py-3 bg-muted/20 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <div className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>{hasRoles ? `${permission.roles.length} função(ões)` : 'Nenhuma função'}</span>
+            </div>
           </div>
 
           {/* Detalhes expandidos */}
           <CollapsibleContent>
             <div className="p-4 space-y-4 bg-gradient-to-b from-muted/10 to-transparent">
+              {permission.description && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Descrição</p>
+                  <p className="text-sm">{permission.description}</p>
+                </div>
+              )}
+
               {hasRoles && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Funções com esta permissão ({permission.roles?.length || 0})
-                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">Funções</p>
                   <div className="flex flex-wrap gap-2">
-                    {permission.roles?.slice(0, 5).map(role => (
+                    {permission.roles.slice(0, 3).map(role => (
                       <Badge key={role.id} variant="outline" className="bg-primary/5">
                         {role.name}
                       </Badge>
                     ))}
-                    {permission.roles && permission.roles.length > 5 && (
+                    {permission.roles.length > 3 && (
                       <Badge variant="outline">
-                        +{permission.roles.length - 5} mais
+                        +{permission.roles.length - 3} mais
                       </Badge>
                     )}
                   </div>
-                </div>
-              )}
-
-              {!hasRoles && (
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    Esta permissão não está associada a nenhuma função
-                  </p>
                 </div>
               )}
 

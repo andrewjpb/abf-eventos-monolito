@@ -4,14 +4,15 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { setCoookieByKey } from "@/actions/cookies"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { sponsorsPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
+import { getPermissionOrRedirect } from "@/features/auth/queries/get-permission-or-redirect"
 
 export const deleteSponsor = async (id: string) => {
-  const { user } = await getAuthOrRedirect()
+  // Verificar se o usuário tem permissão para excluir patrocinadores
+  const { user } = await getPermissionOrRedirect("sponsors.delete")
 
   try {
     // Verificar se o patrocinador existe
@@ -24,23 +25,12 @@ export const deleteSponsor = async (id: string) => {
       }
     })
 
-    // Se não existe ou o usuário não tem permissão
+    // Se não existe
     if (!sponsor) {
       await logWarn("Sponsor.delete", `Tentativa de excluir patrocinador inexistente #${id}`, user.id, {
         sponsorId: id
       })
       return toActionState("ERROR", "Patrocinador não encontrado")
-    }
-
-    // Verificar se o usuário é admin
-    const isAdmin = user.roles.some(role => role.name === "admin")
-    if (!isAdmin) {
-      await logWarn("Sponsor.delete", `Acesso negado: usuário não-admin tentou excluir patrocinador`, user.id, {
-        sponsorId: id,
-        sponsorName: sponsor.name,
-        isAdmin
-      })
-      return toActionState("ERROR", "Você não tem permissão para excluir este patrocinador")
     }
 
     // Verificar se o patrocinador está associado a algum evento

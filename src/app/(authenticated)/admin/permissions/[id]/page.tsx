@@ -5,13 +5,14 @@ import { Separator } from "@/components/ui/separator"
 import { permissionsPath } from "@/app/paths"
 import { PermissionDetail } from "@/features/permissions/components/permission-detail"
 import { getPermission } from "@/features/permissions/queries/get-permission"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
+import { getPermissionOrRedirect } from "@/features/auth/queries/get-permission-or-redirect"
+import { PermissionWithRoles } from "@/features/permissions/types"
 
 type PermissionPageProps = Promise<{ id: string }>
 
 export default async function PermissionPage({ params }: { params: PermissionPageProps }) {
-  // Verificar autenticação
-  await getAuthOrRedirect()
+  // Verificar se o usuário tem permissão para visualizar permissões
+  await getPermissionOrRedirect("permissions.view")
 
   const { id } = await params
 
@@ -31,7 +32,7 @@ export default async function PermissionPage({ params }: { params: PermissionPag
 
       <Separator />
       <div className="animate-fade-in-from-top">
-        <PermissionDetail permission={permission} />
+        <PermissionDetail permission={permission as PermissionWithRoles} />
       </div>
     </div>
   )

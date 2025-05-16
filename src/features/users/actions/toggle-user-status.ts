@@ -2,14 +2,16 @@
 "use server"
 
 import { ActionState, toActionState } from "@/components/form/utils/to-action-state"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { usersPath } from "@/app/paths"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 export const toggleUserStatus = async (userId: string): Promise<ActionState> => {
-  const { user } = await getAuthOrRedirect()
+  const { user, error } = await getAuthWithPermission("users.update")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   // Verificar admin através da relação com roles
   const isAdmin = await checkIfUserIsAdmin(user.id)

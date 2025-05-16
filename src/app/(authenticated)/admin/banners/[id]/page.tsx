@@ -5,14 +5,13 @@ import { Separator } from "@/components/ui/separator"
 import { bannersPath } from "@/app/paths"
 import { BannerDetail } from "@/features/banners/components/banner-detail"
 import { getBanner } from "@/features/banners/queries/get-banner"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 type BannerPageProps = Promise<{ id: string }>
 
 export default async function BannerPage({ params }: { params: BannerPageProps }) {
   // Verificar autenticação
-  await getAuthOrRedirect()
-
+  await getAuthWithPermissionOrRedirect("banners.view")
   const { id } = await params
 
   const banner = await getBanner(id)

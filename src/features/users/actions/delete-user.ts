@@ -8,9 +8,13 @@ import { revalidatePath } from "next/cache"
 import { usersPath } from "@/app/paths"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 export const deleteUser = async (userId: string): Promise<ActionState> => {
-  const { user } = await getAuthOrRedirect()
+
+  const { user, error } = await getAuthWithPermission("users.delete")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   // Verificar admin através da relação com roles que têm permissões administrativas
   const isAdmin = await checkIfUserIsAdmin(user.id)

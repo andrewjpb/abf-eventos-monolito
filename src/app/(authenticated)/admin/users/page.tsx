@@ -4,12 +4,15 @@ import { Spinner } from "@/components/spinner"
 import { searchParamsCache } from "@/features/users/search-params"
 import { UserGrid } from "@/features/users/components/user-grid"
 import { getUsers } from "@/features/users/queries/get-users"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 type UsersPageProps = {
   searchParams: Promise<SearchParams>
 }
 
 export default async function UsersPage({ searchParams }: UsersPageProps) {
+  await getAuthWithPermissionOrRedirect("users.view")
+
   const parsedParams = await searchParamsCache.parse(searchParams)
 
   // Buscar usuários iniciais com os filtros da URL

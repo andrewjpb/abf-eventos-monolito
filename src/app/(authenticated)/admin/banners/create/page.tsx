@@ -4,11 +4,11 @@ import { CardCompact } from "@/components/cardCompact"
 import { Separator } from "@/components/ui/separator"
 import { bannersPath } from "@/app/paths"
 import { BannerUpsertForm } from "@/features/banners/components/banner-upsert-form"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 export default async function CreateBannerPage() {
   // Verificar autenticação
-  await getAuthOrRedirect()
+  await getAuthWithPermissionOrRedirect("banners.create")
 
   return (
     <div className="flex-1 flex flex-col gap-y-8">

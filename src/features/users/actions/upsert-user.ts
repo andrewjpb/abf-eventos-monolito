@@ -4,13 +4,12 @@
 import { ActionState, fromErrorToActionState, toActionState } from "@/components/form/utils/to-action-state"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { revalidatePath } from "next/cache"
 import { usersPath } from "@/app/paths"
 import { nanoid } from "nanoid"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
 import { hash } from "bcryptjs"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 // Schema para validação usando Zod
 const userSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }).max(191),
@@ -35,7 +34,10 @@ export const upsertUser = async (
   _actionState: ActionState,
   formData: FormData
 ) => {
-  const { user } = await getAuthOrRedirect()
+  const { user, error } = await getAuthWithPermission("users.create")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   // Verificar se o usuário é admin
   const isAdmin = await checkIfUserIsAdmin(user.id)

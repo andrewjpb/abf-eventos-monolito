@@ -8,9 +8,14 @@ import { bannersPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 
 export const deleteBanner = async (id: string) => {
-  const { user } = await getAuthOrRedirect()
+  const { user, error } = await getAuthWithPermission("banners.delete")
+  // Se houver erro de permissão, retornar o erro
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     // Verificar se o banner existe

@@ -4,10 +4,11 @@ import { Separator } from "@/components/ui/separator"
 import { usersPath } from "@/app/paths"
 import { UserDetail } from "@/features/users/components/user-detail"
 import { getUser } from "@/features/users/queries/get-user"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 type UserPageProps = Promise<{ id: string }>
 
 export default async function UserPage({ params }: { params: UserPageProps }) {
+  await getAuthWithPermissionOrRedirect("users.view")
   const { id } = await params
 
   const user = await getUser(id)

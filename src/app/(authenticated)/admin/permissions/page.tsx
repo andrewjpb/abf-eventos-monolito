@@ -2,7 +2,7 @@
 import { PermissionsList } from "@/features/permissions/components/permissions-list"
 import { searchParamsCache } from "@/features/permissions/search-params"
 import { SearchParams } from "nuqs"
-import { getPermissionOrRedirect } from "@/features/auth/queries/get-permission-or-redirect"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 export default async function PermissionsPage({
   searchParams
@@ -10,7 +10,7 @@ export default async function PermissionsPage({
   searchParams: Promise<SearchParams>
 }) {
   // Verificar se o usuário tem permissão para visualizar permissões
-  await getPermissionOrRedirect("permissions.view")
+  await getAuthWithPermissionOrRedirect("permissions.view")
 
   const parsedParams = await searchParamsCache.parse(searchParams)
 

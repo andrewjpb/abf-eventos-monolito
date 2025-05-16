@@ -1,15 +1,17 @@
 // /features/sponsors/actions/update-sponsor-status.ts
 "use server"
 
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { sponsorPath, sponsorsPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 export async function updateSponsorStatus(sponsorId: string, active: boolean) {
-  const { user } = await getAuthOrRedirect()
+  const { user, error } = await getAuthWithPermission("sponsors.update")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   // Verificar se o usuário é admin
   const isAdmin = user.roles.some(role => role.name === "admin")

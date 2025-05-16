@@ -11,6 +11,7 @@ import { bannerPath, bannersPath } from "@/app/paths"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
 import * as Minio from 'minio'
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 
 // Cliente MinIO
 const minioClient = new Minio.Client({
@@ -83,7 +84,10 @@ export const upsertBanner = async (
   _actionState: ActionState,
   formData: FormData
 ) => {
-  const { user } = await getAuthOrRedirect()
+  const { user, error } = await getAuthWithPermission("banners.create")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   // Verificar se o usuário é admin
   const isAdmin = user.roles.some(role => role.name === "admin")

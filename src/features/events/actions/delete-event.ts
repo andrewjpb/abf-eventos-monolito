@@ -4,14 +4,16 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { setCoookieByKey } from "@/actions/cookies"
-import { getAdminOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { eventsPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 export const deleteEvent = async (id: string) => {
-  const { user } = await getAdminOrRedirect()
+  const { user, error } = await getAuthWithPermission("events.delete")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     // Verificar se o evento existe

@@ -4,8 +4,9 @@ import { CardCompact } from "@/components/cardCompact"
 import { Separator } from "@/components/ui/separator"
 import { supportersPath } from "@/app/paths"
 import { SupporterUpsertForm } from "@/features/supporters/components/supporter-upsert-form"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 export default async function CreateSupporterPage() {
+  await getAuthWithPermissionOrRedirect("supporters.create")
   return (
     <div className="flex-1 flex flex-col gap-y-8">
       <Breadcrumbs

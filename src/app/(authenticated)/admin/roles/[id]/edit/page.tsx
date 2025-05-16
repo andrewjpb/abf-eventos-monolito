@@ -6,10 +6,11 @@ import { rolesPath, rolePath } from "@/app/paths"
 import { notFound } from "next/navigation"
 import { RoleUpsertForm } from "@/features/roles/components/role-upsert-form"
 import { getRole } from "@/features/roles/queries/get-role"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 type EditRolePageProps = Promise<{ id: string }>
 
 export default async function EditRolePage({ params }: { params: EditRolePageProps }) {
+  await getAuthWithPermissionOrRedirect("roles.update")
   const { id } = await params
 
   const role = await getRole(id)

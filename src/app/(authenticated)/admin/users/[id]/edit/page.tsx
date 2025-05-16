@@ -7,10 +7,11 @@ import { notFound } from "next/navigation"
 import { UserUpsertForm } from "@/features/users/components/user-upsert-form"
 import { prisma } from "@/lib/prisma"
 import { getUser } from "@/features/users/queries/get-user"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 type EditUserPageProps = Promise<{ id: string }>
 
 export default async function EditUserPage({ params }: { params: EditUserPageProps }) {
+  await getAuthWithPermissionOrRedirect("users.update")
   const { id } = await params
 
   const user = await getUser(id)

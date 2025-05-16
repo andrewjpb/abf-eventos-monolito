@@ -5,12 +5,11 @@ import { ActionState, fromErrorToActionState, toActionState } from "@/components
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { nanoid } from "nanoid"
-import { getAdminOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { revalidatePath } from "next/cache"
 import { eventsPath, eventPath } from "@/app/paths"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 // Schema para validação
 const eventSchema = z.object({
   title: z.string().min(1, { message: "Título do evento é obrigatório" }),
@@ -37,7 +36,10 @@ export const upsertEvent = async (
   _actionState: ActionState,
   formData: FormData
 ) => {
-  const { user } = await getAdminOrRedirect()
+  const { user, error } = await getAuthWithPermission("events.create")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     const data = eventSchema.parse(Object.fromEntries(formData))
@@ -189,5 +191,4 @@ export const upsertEvent = async (
     return fromErrorToActionState(error, formData)
   }
 
-  return toActionState("SUCCESS", `Evento ${eventId ? 'atualizado' : 'criado'} com sucesso`)
 }

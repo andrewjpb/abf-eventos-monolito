@@ -6,10 +6,11 @@ import { supportersPath, supporterPath } from "@/app/paths"
 import { notFound } from "next/navigation"
 import { SupporterUpsertForm } from "@/features/supporters/components/supporter-upsert-form"
 import { getSupporter } from "@/features/supporters/queries/get-supporter"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 type EditSupporterPageProps = Promise<{ id: string }>
 
 export default async function EditSupporterPage({ params }: { params: EditSupporterPageProps }) {
+  await getAuthWithPermissionOrRedirect("supporters.update")
   const { id } = await params
 
   const supporter = await getSupporter(id)

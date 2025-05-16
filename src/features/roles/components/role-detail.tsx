@@ -107,10 +107,18 @@ export function RoleDetail({ role }: RoleDetailProps) {
         {/* Permissões Associadas */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-primary" />
-              Permissões Associadas
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center">
+                <Shield className="h-5 w-5 mr-2 text-primary" />
+                Permissões Associadas
+              </CardTitle>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={roleEditPath(role.id)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Permissões
+                </Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {hasPermissions ? (

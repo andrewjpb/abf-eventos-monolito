@@ -2,12 +2,13 @@
 import { RolesList } from "@/features/roles/components/roles-list"
 import { searchParamsCache } from "@/features/roles/search-params"
 import { SearchParams } from "nuqs"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 export default async function RolesPage({
   searchParams
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await getAuthWithPermissionOrRedirect("roles.view")
   const parsedParams = await searchParamsCache.parse(searchParams)
 
   return (

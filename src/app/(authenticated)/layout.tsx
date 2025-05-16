@@ -1,9 +1,7 @@
-import { getPanelAccessOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { ReactQueryProvider } from "../_providers/react-query/react-query-provider"
 import { AppSidebar } from "../_navigation/sidebar/sidebar"
 
 export default async function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  await getPanelAccessOrRedirect()
   return <ReactQueryProvider>
     <div className="flex h-screen w-screen overflow-hidden border-collapse">
       <AppSidebar />

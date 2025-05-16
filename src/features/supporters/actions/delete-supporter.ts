@@ -4,15 +4,17 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { setCoookieByKey } from "@/actions/cookies"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { supportersPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 
 export const deleteSupporter = async (id: string) => {
-  const { user } = await getAuthOrRedirect()
-
+  const { user, error } = await getAuthWithPermission("supporters.delete")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
   try {
     // Verificar se o apoiador existe
     const supporter = await prisma.supporters.findUnique({

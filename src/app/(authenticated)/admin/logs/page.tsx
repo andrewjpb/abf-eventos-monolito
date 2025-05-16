@@ -7,13 +7,13 @@ import { redirect } from "next/navigation"
 import { SearchParams } from "nuqs/server"
 import { searchParamsCache } from "@/features/logs/search-params"
 import { LogsList } from "@/features/logs/components/logs-list"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 export default async function LogsPage({
   searchParams
 }: {
   searchParams: Promise<SearchParams>
 }) {
-
+  await getAuthWithPermissionOrRedirect("logs.view")
   // Processar parâmetros de busca
   const parsedParams = await searchParamsCache.parse(searchParams)
 

@@ -10,7 +10,7 @@ import clsx from "clsx"
 type SubmitButtonProps = {
   label: string
   icon?: React.ReactElement<{ className: string }>
-  variant?: "default" | "outline" | "ghost" | "link"
+  variant?: "default" | "outline" | "ghost" | "link" | "destructive"
   size?: "default" | "sm" | "lg" | "icon"
 }
 

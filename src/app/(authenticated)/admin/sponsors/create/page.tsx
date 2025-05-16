@@ -4,9 +4,10 @@ import { CardCompact } from "@/components/cardCompact"
 import { Separator } from "@/components/ui/separator"
 import { sponsorsPath } from "@/app/paths"
 import { SponsorUpsertForm } from "@/features/sponsors/components/sponsor-upsert-form"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 export default async function CreateSponsorPage() {
-
+  await getAuthWithPermissionOrRedirect("sponsors.create")
 
   return (
     <div className="flex-1 flex flex-col gap-y-8">

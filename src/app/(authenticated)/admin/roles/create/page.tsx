@@ -4,8 +4,10 @@ import { CardCompact } from "@/components/cardCompact"
 import { Separator } from "@/components/ui/separator"
 import { rolesPath } from "@/app/paths"
 import { RoleUpsertForm } from "@/features/roles/components/role-upsert-form"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 export default async function CreateRolePage() {
+  await getAuthWithPermissionOrRedirect("roles.create")
+
   return (
     <div className="flex-1 flex flex-col gap-y-8">
       <Breadcrumbs

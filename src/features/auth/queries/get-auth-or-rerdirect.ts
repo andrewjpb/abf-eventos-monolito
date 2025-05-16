@@ -1,15 +1,24 @@
+// /features/auth/queries/get-auth-or-redirect.ts
 "use server"
 
-import { redirect } from "next/navigation"
-import { getAuth } from "../queries/get-auth"
-import { signInPath } from "@/app/paths"
-import { logWarn } from "@/features/logs/queries/add-log"
 import { headers } from "next/headers"
+import { redirect } from "next/navigation"
+import { getAuth } from "./get-auth"
+import { signInPath, homePath } from "@/app/paths"
+import { logWarn } from "@/features/logs/queries/add-log"
 import { prisma } from "@/lib/prisma"
 
-export const getAuthOrRedirect = async () => {
+/**
+ * Verifica se o usuário está autenticado e opcionalmente se possui uma permissão específica
+ * Redireciona para a página de login se não estiver autenticado
+ * Redireciona para a página inicial se não tiver a permissão necessária
+ * 
+ * @param permission Nome opcional da permissão necessária
+ * @returns Dados de autenticação do usuário
+ */
+export const getAuthOrRedirect = async (permission?: string) => {
   const auth = await getAuth()
-  const headersInstance = await headers() // Headers não é uma Promise em Server Components
+  const headersInstance = await headers()
 
   if (!auth.user) {
     const referer = headersInstance.get("referer")
@@ -21,9 +30,59 @@ export const getAuthOrRedirect = async () => {
     redirect(signInPath())
   }
 
+  // Se uma permissão específica foi solicitada, verificar se o usuário a possui
+  if (permission) {
+    // Verificar se o usuário é admin (admins têm todas as permissões)
+    const isAdmin = auth.user.roles.some(role => role.name === "admin")
+
+    // Se não for admin, verificar se tem a permissão específica
+    if (!isAdmin) {
+      // Carrega o usuário com suas permissões
+      const userWithPermissions = await prisma.users.findUnique({
+        where: { id: auth.user.id },
+        include: {
+          roles: {
+            include: {
+              permissions: {
+                select: { id: true, name: true }
+              }
+            }
+          }
+        }
+      });
+
+      if (!userWithPermissions) {
+        redirect(signInPath());
+      }
+
+      // Verificar se o usuário tem a permissão solicitada
+      const hasPermission = userWithPermissions.roles.some(role =>
+        role.permissions.some(perm => perm.name === permission)
+      );
+
+      // Se não tiver a permissão necessária, redirecionar para a página inicial
+      if (!hasPermission) {
+        const referer = headersInstance.get("referer")
+        const roleNames = auth.user.roles ? auth.user.roles.map((r: any) => r.name).join(', ') : 'none';
+
+        const logData = {
+          path: referer ? (new URL(referer)).pathname : "URL desconhecida",
+          requiredPermission: permission,
+          userId: auth.user.id,
+          userName: auth.user.username,
+          roles: roleNames
+        }
+
+        await logWarn("Auth", `Acesso negado: usuário sem permissão "${permission}"`, auth.user.id, logData)
+        redirect(homePath())
+      }
+    }
+  }
+
   return auth
 }
 
+// Mantendo as funções existentes para compatibilidade
 export const getAdminOrRedirect = async () => {
   const auth = await getAuth();
   const headersInstance = await headers();
@@ -56,21 +115,6 @@ export const getAdminOrRedirect = async () => {
 
   return auth;
 };
-
-// Lista de permissões que dão acesso ao painel administrativo
-const PANEL_ACCESS_PERMISSIONS = [
-  "panel.access", // Permissão geral de acesso ao painel
-  "users.view",
-  "roles.view",
-  "permissions.view",
-  "events.view",
-  "events.create",
-  "events.update",
-  "sponsors.view",
-  "sponsors.create",
-  "logs.view"
-  // Adicione outras permissões que dão acesso ao painel
-]
 
 export const getPanelAccessOrRedirect = async () => {
   const auth = await getAuth();

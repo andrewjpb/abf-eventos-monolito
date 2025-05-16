@@ -2,9 +2,10 @@
 "use server"
 
 import { nanoid } from "nanoid"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { logError, logInfo } from "@/features/logs/queries/add-log"
 import * as Minio from 'minio'
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
+import { toActionState } from "@/components/form/utils/to-action-state"
 
 // Usar o cliente MinIO existente
 const minioClient = new Minio.Client({
@@ -31,7 +32,10 @@ const generateUniqueFileName = (originalFileName: string): string => {
  * Faz upload da imagem para o bucket do MinIO
  */
 export async function uploadSupporterImage(formData: FormData) {
-  const { user } = await getAuthOrRedirect()
+  const { user, error } = await getAuthWithPermission("supporters.update")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     // Verificar se o usuário é admin

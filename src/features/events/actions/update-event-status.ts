@@ -7,10 +7,13 @@ import { revalidatePath } from "next/cache"
 import { eventPath, eventsPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 // Função para publicar ou despublicar um evento
 export async function updateEventPublishStatus(eventId: string, isPublished: boolean) {
-  const { user } = await getAdminOrRedirect()
+  const { user, error } = await getAuthWithPermission("events.update")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     // Verificar se o evento existe
@@ -88,7 +91,10 @@ export async function updateEventPublishStatus(eventId: string, isPublished: boo
 
 // Função para destacar ou remover destaque de um evento
 export async function updateEventHighlightStatus(eventId: string, highlight: boolean) {
-  const { user } = await getAdminOrRedirect()
+  const { user, error } = await getAuthWithPermission("events.update")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     // Verificar se o evento existe

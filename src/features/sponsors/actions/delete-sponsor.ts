@@ -8,11 +8,14 @@ import { sponsorsPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-import { getPermissionOrRedirect } from "@/features/auth/queries/get-permission-or-redirect"
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 
 export const deleteSponsor = async (id: string) => {
   // Verificar se o usuário tem permissão para excluir patrocinadores
-  const { user } = await getPermissionOrRedirect("sponsors.delete")
+  const { user, error } = await getAuthWithPermission("sponsors.delete")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
 
   try {
     // Verificar se o patrocinador existe

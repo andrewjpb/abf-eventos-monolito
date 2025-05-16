@@ -5,14 +5,14 @@ import { Separator } from "@/components/ui/separator"
 import { permissionsPath } from "@/app/paths"
 import { PermissionDetail } from "@/features/permissions/components/permission-detail"
 import { getPermission } from "@/features/permissions/queries/get-permission"
-import { getPermissionOrRedirect } from "@/features/auth/queries/get-permission-or-redirect"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 import { PermissionWithRoles } from "@/features/permissions/types"
 
 type PermissionPageProps = Promise<{ id: string }>
 
 export default async function PermissionPage({ params }: { params: PermissionPageProps }) {
   // Verificar se o usuário tem permissão para visualizar permissões
-  await getPermissionOrRedirect("permissions.view")
+  await getAuthWithPermissionOrRedirect("permissions.view")
 
   const { id } = await params
 

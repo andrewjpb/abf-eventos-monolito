@@ -6,13 +6,13 @@ import { bannersPath, bannerPath } from "@/app/paths"
 import { notFound } from "next/navigation"
 import { BannerUpsertForm } from "@/features/banners/components/banner-upsert-form"
 import { getBanner } from "@/features/banners/queries/get-banner"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 type EditBannerPageProps = Promise<{ id: string }>
 
 export default async function EditBannerPage({ params }: { params: EditBannerPageProps }) {
   // Verificar autenticação
-  await getAuthOrRedirect()
+  await getAuthWithPermissionOrRedirect("banners.update")
 
   const { id } = await params
 

@@ -6,10 +6,7 @@ import {
   companyCreatePath,
   eventsAdminPath,
   eventCreatePath,
-  externalEventsPath,
-  externalEventCreatePath,
-  highlightCardsPath,
-  highlightCardCreatePath,
+
   logsPath,
   speakersPath,
   speakerCreatePath,
@@ -33,8 +30,6 @@ import {
   Handshake,
   Calendar,
   UserCheck,
-  Layout,
-  ExternalLink,
   Image,
   FileText,
   Building,
@@ -117,24 +112,7 @@ export const navItems: NavItem[] = [
       }
     ]
   },
-  {
-    title: "Eventos Externos",
-    icon: <ExternalLink />,
-    href: externalEventsPath(),
-    requiredPermission: "external_events.view",
-    subItems: [
-      {
-        title: "Lista de Eventos Externos",
-        href: externalEventsPath(),
-        requiredPermission: "external_events.view"
-      },
-      {
-        title: "Novo Evento Externo",
-        href: externalEventCreatePath(),
-        requiredPermission: "external_events.create"
-      }
-    ]
-  },
+
   {
     title: "Palestrantes",
     icon: <UserCheck />,

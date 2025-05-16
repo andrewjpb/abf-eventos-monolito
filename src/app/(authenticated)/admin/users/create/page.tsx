@@ -7,8 +7,10 @@ import { UserUpsertForm } from "@/features/users/components/user-upsert-form"
 import { prisma } from "@/lib/prisma"
 import { getAuth } from "@/features/auth/queries/get-auth"
 import { notFound } from "next/navigation"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 export default async function CreateUserPage() {
+  await getAuthWithPermissionOrRedirect("users.create")
+
   const { user } = await getAuth()
 
   if (!user) {

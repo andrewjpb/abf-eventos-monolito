@@ -1,15 +1,15 @@
 // /app/(admin)/banners/page.tsx
 import { BannersList } from "@/features/banners/components/banners-list"
 import { searchParamsCache } from "@/features/banners/search-params"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { SearchParams } from "nuqs"
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 
 export default async function BannersPage({
   searchParams
 }: {
   searchParams: Promise<SearchParams>
 }) {
-
+  await getAuthWithPermissionOrRedirect("banners.view")
   // Analisar parâmetros de busca
   const parsedParams = await searchParamsCache.parse(searchParams)
 

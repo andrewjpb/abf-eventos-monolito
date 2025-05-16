@@ -5,10 +5,12 @@ import { Separator } from "@/components/ui/separator"
 import { sponsorsPath } from "@/app/paths"
 import { SponsorDetail } from "@/features/sponsors/components/sponsor-detail"
 import { getSponsor } from "@/features/sponsors/queries/get-sponsor"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 type SponsorPageProps = Promise<{ id: string }>
 
 export default async function SponsorPage({ params }: { params: SponsorPageProps }) {
+  await getAuthWithPermissionOrRedirect("sponsors.view")
+
   const { id } = await params
 
   const sponsor = await getSponsor(id)

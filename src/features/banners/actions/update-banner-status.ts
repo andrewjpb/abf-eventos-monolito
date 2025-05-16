@@ -1,24 +1,17 @@
 // /features/banners/actions/update-banner-status.ts
 "use server"
 
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { bannerPath, bannersPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 
 export async function updateBannerStatus(bannerId: string, active: boolean) {
-  const { user } = await getAuthOrRedirect()
-
-  // Verificar se o usuário é admin
-  const isAdmin = user.roles.some(role => role.name === "admin")
-  if (!isAdmin) {
-    await logWarn("Banner.updateStatus", `Acesso negado: usuário não-admin tentou alterar status de banner`, user.id, {
-      bannerId,
-      targetStatus: active ? "ACTIVE" : "INACTIVE",
-      isAdmin
-    })
+  const { user, error } = await getAuthWithPermission("banners.update")
+  // Se houver erro de permissão, retornar o erro
+  if (error) {
     return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
   }
 

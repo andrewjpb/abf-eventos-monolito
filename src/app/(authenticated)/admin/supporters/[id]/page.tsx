@@ -5,10 +5,11 @@ import { Separator } from "@/components/ui/separator"
 import { supportersPath } from "@/app/paths"
 import { SupporterDetail } from "@/features/supporters/components/supporter-detail"
 import { getSupporter } from "@/features/supporters/queries/get-supporter"
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 type SupporterPageProps = Promise<{ id: string }>
 
 export default async function SupporterPage({ params }: { params: SupporterPageProps }) {
+  await getAuthWithPermissionOrRedirect("supporters.view")
   const { id } = await params
 
   const supporter = await getSupporter(id)

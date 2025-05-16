@@ -24,13 +24,14 @@ import {
   highlightCardsPath,
   logsPath
 } from "@/app/paths";
-
+import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect";
 export const metadata: Metadata = {
   title: "Dashboard | Painel Administrativo",
   description: "Painel de controle administrativo da plataforma",
 };
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await getAuthWithPermissionOrRedirect("panel.access")
   return (
     <div className=" p-6">
       <h1 className="text-2xl font-bold mb-2">Painel Administrativo</h1>

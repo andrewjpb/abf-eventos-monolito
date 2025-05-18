@@ -8,7 +8,6 @@ import { signInPath } from "@/app/paths"
 import { logWarn } from "@/features/logs/queries/add-log"
 import { prisma } from "@/lib/prisma"
 import { toActionState } from "@/components/form/utils/to-action-state"
-import { ActionState } from "@/components/form/utils/to-action-state"
 
 /**
  * Verifica se o usuário está autenticado e redireciona para a página de login se não estiver

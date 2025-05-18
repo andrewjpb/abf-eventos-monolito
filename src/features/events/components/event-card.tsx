@@ -66,9 +66,8 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
 
   // Altura adaptável com base no variant e tamanho da tela
   const imageHeight = variant === "compact"
-    ? "h-40 sm:h-44 md:h-48"
-    : "h-48 sm:h-52 md:h-56 lg:h-58";
-
+    ? "h-42 sm:h-46 md:h-50 lg:h-54"
+    : "h-54 sm:h-58 md:h-62 lg:h-66";
   return (
     <div className="flex flex-col overflow-hidden rounded-lg shadow-md border border-border bg-card h-full hover:shadow-lg transition-shadow">
       {/* Imagem do evento com badge de tipo */}
@@ -88,7 +87,7 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
               alt="Imagem não disponível"
               width={80}
               height={80}
-              className="opacity-30"
+              className="opacity-30 object-cover"
             />
           </div>
         )}

@@ -12,6 +12,7 @@ import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-per
 
 export const deleteSupporter = async (id: string) => {
   const { user, error } = await getAuthWithPermission("supporters.delete")
+
   if (error) {
     return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
   }

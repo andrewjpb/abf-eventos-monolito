@@ -14,6 +14,7 @@ import { CompanyWithRelations } from "../types"
 import { ParsedSearchParams } from "../search-params"
 import { useState } from "react"
 import { CompanySearchInput } from "./company-search-input"
+import { CompanyDashboardMetrics } from "./company-dashboard-metrics"
 
 type CompaniesListProps = {
   searchParams: ParsedSearchParams,
@@ -87,7 +88,12 @@ export function CompaniesList({
         </div>
       </Card>
 
-      {/* Resultados da busca - header */}
+
+
+      <div className="mb-6">
+        <CompanyDashboardMetrics />
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -96,7 +102,6 @@ export function CompaniesList({
           </span>
         </div>
       </div>
-
       <Separator />
 
       {/* Lista de empresas */}

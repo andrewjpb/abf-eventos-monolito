@@ -9,6 +9,19 @@ export type CompanyWithRelations = company & {
   users?: users[];
 }
 
+// Dashboard metrics types
+export interface CompanyDashboardMetrics {
+  companyStats: {
+    active: number;
+    inactive: number;
+    total: number;
+  };
+  segmentDistribution: {
+    segment: string;
+    count: number;
+  }[];
+}
+
 // Props para componentes
 export interface CompaniesSectionProps {
   companies: CompanyWithRelations[]

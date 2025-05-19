@@ -1,0 +1,291 @@
+# Documentação do Estilo de Trabalho e Padrões do Projeto - Sistema de Eventos
+
+## Visão Geral da Arquitetura
+
+Este projeto é uma aplicação web desenvolvida com Next.js utilizando arquitetura baseada em módulos (features), onde cada funcionalidade do sistema de eventos é encapsulada em sua própria estrutura de diretórios. Utiliza Prisma como ORM para interação com um banco de dados PostgreSQL e implementa o padrão Server Actions do Next.js para operações no servidor.
+
+## Estrutura de Diretórios
+
+```
+src/
+├── actions/          # Ações globais do sistema (ex: cookies)
+├── app/              # Estrutura de rotas do Next.js
+│   ├── paths.ts      # Arquivo centralizado de definição de rotas
+│   └── [feature]/    # Rotas por funcionalidades (ex: /events, /speakers)
+├── components/       # Componentes globais compartilhados
+│   ├── ui/           # Componentes de UI básicos (botões, cards, etc)
+│   ├── form/         # Componentes e utilidades para formulários
+│   └── ...
+└── features/         # Módulos funcionais do sistema
+    ├── [feature-name]/  # Ex: events, speakers, companies
+    │   ├── actions/     # Server actions específicas do módulo 
+    │   ├── components/  # Componentes React específicos do módulo
+    │   ├── queries/     # Funções de consulta ao banco de dados
+    │   ├── types.ts     # Tipos TypeScript específicos do módulo
+    │   └── search-params.ts # Parâmetros de busca/filtro
+```
+
+## Padrões de Implementação
+
+### 1. Módulos de Recursos (Features)
+
+Cada recurso principal do sistema (events, speakers, companies, etc.) é implementado como um módulo separado dentro da pasta `features/`. Um módulo típico inclui:
+
+- **types.ts**: Define tipos e interfaces específicos do módulo
+- **search-params.ts**: Define parâmetros de URL para busca/filtragem
+- **Pasta actions/**: Contém server actions para operações CRUD
+- **Pasta components/**: Contém componentes React específicos do módulo
+- **Pasta queries/**: Contém funções para consulta ao banco de dados
+
+### 2. Nomenclatura de Arquivos
+
+- **Componentes React**: `kebab-case.tsx` (ex: `speaker-card.tsx`, `event-detail.tsx`)
+- **Server Actions**: `verb-noun.ts` (ex: `update-speaker-events.ts`, `delete-event.ts`)
+- **Queries**: `get-entity.ts` ou `get-entities.ts` (ex: `get-speaker.ts`, `get-events.ts`)
+- **Tipos**: `PascalCase` para interfaces e tipos (ex: `SpeakerWithEvents`, `EventWithDetails`)
+- **Variáveis**: `camelCase` para variáveis e funções
+
+### 3. Server Actions
+
+As server actions seguem um padrão específico:
+
+- São arquivos com diretiva `"use server"` no topo
+- Implementam verificação de permissões com `getAuthWithPermission`
+- Utilizam validação de entrada com Zod
+- Usam sistema de logs para registrar operações
+- Retornam um objeto padronizado via `toActionState`
+- Fazem revalidação de paths afetados
+
+Exemplo típico:
+```typescript
+"use server"
+
+import { ActionState, toActionState } from "@/components/form/utils/to-action-state"
+import { prisma } from "@/lib/prisma"
+import { z } from "zod"
+import { nanoid } from "nanoid"
+import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
+import { revalidatePath } from "next/cache"
+import { logInfo, logError, logWarn } from "@/features/logs/queries/add-log"
+
+// Schema para validação
+const entitySchema = z.object({...})
+
+export const upsertEntity = async (
+  entityId: string | undefined,
+  _actionState: ActionState,
+  formData: FormData
+) => {
+  const { user, error } = await getAuthWithPermission("entity.create")
+  if (error) {
+    return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
+  }
+  
+  try {
+    // Processamento de FormData
+    const formEntries = {...}
+    
+    // Validação com Zod
+    const data = entitySchema.parse(formEntries)
+    
+    // Operação principal (create/update)
+    if (entityId) {
+      // Update
+    } else {
+      // Create com nanoid()
+    }
+    
+    // Logs
+    await logInfo("Entity.action", `Mensagem descritiva`, user.id, {...})
+    
+    // Revalidação de caminhos
+    revalidatePath("/path-to-revalidate")
+    
+    // Retorno padronizado
+    return toActionState("SUCCESS", "Mensagem de sucesso")
+  } catch (error) {
+    await logError("Entity.action", `Erro ao executar ação`, user.id, {...})
+    return toActionState("ERROR", "Mensagem de erro")
+  }
+}
+```
+
+### 4. Componentes React
+
+Os componentes React seguem um padrão consistente:
+
+- Sempre iniciados com a diretiva `"use client"`
+- Props tipadas explicitamente com interfaces do TypeScript
+- Utilizam componentes UI da pasta `/components/ui`
+- Formulários utilizam componentes da pasta `/components/form`
+- Componentes de módulos são agrupados funcionalmente:
+  - `entity-list.tsx`: Lista paginada de entidades (ex: `speakers-list.tsx`)
+  - `entity-card.tsx`: Cartão individual para entidade (ex: `speaker-card.tsx`)
+  - `entity-detail.tsx`: Exibição detalhada de uma entidade (ex: `speaker-detail.tsx`)
+  - `entity-upsert-form.tsx`: Formulário para criar/editar entidade (ex: `speaker-upsert-form.tsx`)
+  - `entity-section.tsx`: Seção para exibir em outra página (ex: `event-speakers-section.tsx`)
+
+### 5. Queries
+
+As funções de consulta ao banco de dados:
+
+- Usam o cliente Prisma
+- São marcadas como `cache` quando apropriado
+- Implementam paginação via cursor para listas
+- Utilizam transações quando precisam de múltiplas consultas relacionadas
+- Retornam dados com tipos bem definidos e metadados
+
+Exemplo:
+```typescript
+"use server"
+
+import { cache } from "react"
+import { prisma } from "@/lib/prisma"
+import { getAuth } from "@/features/auth/queries/get-auth"
+import { EntityWithDetails } from "../types"
+
+export const getEntity = cache(async (id: string) => {
+  const { user } = await getAuth()
+  
+  const entity = await prisma.entity.findUnique({
+    where: { id },
+    include: { ... }
+  })
+  
+  if (!entity) return null
+  
+  // Verificar se o usuário tem permissão
+  const isAuthorized = user.roles.some(role => role.name === "admin")
+  
+  return {
+    ...entity,
+    isAuthorized
+  } as EntityWithDetails & { isAuthorized: boolean }
+})
+```
+
+### 6. Páginas
+
+As páginas são componentes React no diretório `app/` seguindo a estrutura de rotas do Next.js:
+
+- Geralmente são componentes server-side
+- Utilizam a função `getAuth()` para verificação de permissões
+- Fazem consultas iniciais necessárias
+- Renderizam componentes do módulo correspondente
+
+## Autenticação e Autorização
+
+- Autenticação feita via `getAuth()` 
+- Autorização específica usando `getAuthWithPermission([permissionName])`
+- Verificação de admin e papéis do usuário
+- Proteção de rotas no servidor e restrição de UI baseada em permissões
+- Sistema de permissões e papéis (roles) integrado
+
+## Validação e Tratamento de Erros
+
+- Validação de dados de entrada com biblioteca Zod
+- Erros tratados e convertidos para formato amigável via `toActionState`
+- Sistema de logs para rastreamento de erros e auditoria de operações
+- Restrições a nível de banco de dados respeitadas (ex: relações únicas)
+
+## Estilização e UI
+
+- Utiliza TailwindCSS para estilização
+- Componentes UI da pasta `components/ui` seguem o padrão shadcn/ui
+- Classes de utilidade personalizadas para padrões comuns:
+  - `cn()` para composição de classes condicionais
+  - Cores semânticas e tokens consistentes
+
+## Gestão de Estado e Dados
+
+- React Query (TanStack Query) para gerenciamento de estado do servidor
+- Paginação infinita com `useInfiniteQuery`
+- Parâmetros de busca e filtros usando biblioteca nuqs
+- Invalidação seletiva de queries após mutações
+
+## Features Típicas de um Módulo
+
+Um módulo completo geralmente inclui:
+
+1. **Listagem** - Exibição paginada com busca/filtro
+2. **Detalhes** - Visualização completa de uma entidade
+3. **Criação/Edição** - Formulários para gerenciar entidades 
+4. **Exclusão** - Com confirmação via dialog
+5. **Ações Específicas** - Operações como associações, mudança de status, etc.
+
+## Padrões de Extensão e Manutenção
+
+Ao adicionar uma nova funcionalidade ou estender um módulo:
+
+1. Crie primeiro os tipos necessários em `types.ts`
+2. Implemente as server actions necessárias
+3. Crie ou atualize as queries para fornecer os dados
+4. Implemente os componentes UI específicos
+5. Atualize as páginas para utilizar os novos componentes
+6. Atualize o arquivo `paths.ts` se necessário
+7. Siga o padrão de outros módulos similares para manter consistência
+
+## Esquema de Banco de Dados
+
+O esquema do banco de dados é gerenciado via Prisma, definido no arquivo `schema.prisma`. O sistema de eventos inclui entidades principais como:
+
+- `events`: Eventos do sistema com data, local, formato, etc.
+- `attendance_list`: Lista de presença para cada evento
+- `speakers`: Palestrantes associados aos eventos
+- `sponsors`: Patrocinadores de eventos
+- `companies`: Empresas participantes
+- `users`: Usuários do sistema com papéis e permissões
+
+Relacionamentos principais:
+- Eventos podem ter múltiplos palestrantes (`events <-> speakers`)
+- Eventos podem ter múltiplos patrocinadores (`events <-> sponsors`)
+- Eventos têm um local/endereço associado (`events -> address`)
+- Usuários podem estar em listas de presença para eventos (`users -> attendance_list`)
+
+## Padrões de UI para Eventos
+
+1. **Cards de Evento**
+   - Thumb/imagem com aspecto padronizado
+   - Dados principais (título, data, local)
+   - Indicadores de status (lotado, online, destaque)
+   - Botões de ação contextual
+
+2. **Detalhes do Evento**
+   - Seções bem definidas (info básica, descrição, palestrantes, lista de presença)
+   - Imagens otimizadas
+   - Componentes específicos por tipo (presencial vs. online)
+
+3. **Formulários**
+   - Validação em tempo real
+   - Feedback visual claro
+   - Campos agrupados logicamente
+   - Uploads de imagem com preview
+
+## Padrões de Commit
+
+Os commits seguem o padrão Conventional Commits:
+
+- `feat`: Nova funcionalidade (ex: `feat(speakers): adicionar filtro por evento`)
+- `fix`: Correção de bug (ex: `fix(events): corrigir contagem de vagas`)
+- `refactor`: Refatoração de código (ex: `refactor(attendance): melhorar performance`)
+- `style`: Alterações de estilo/formatação
+- `docs`: Documentação
+- `chore`: Manutenção geral
+
+## Boas Práticas Específicas
+
+1. **Manipulação de Datas**
+   - Usar funções helper consistentes para formatação
+   - Armazenar datas no banco no formato UTC
+   - Exibir datas no formato local do usuário (pt-BR)
+
+2. **Upload de Imagens**
+   - Validação de tipo e tamanho
+   - Geração de thumbnails
+   - Caminhos padronizados para armazenamento
+   - URLs otimizadas para CDN
+
+3. **SEO para Eventos**
+   - Uso de slugs amigáveis nas URLs
+   - Metadados completos por evento
+   - Dados estruturados para eventos (Schema.org)

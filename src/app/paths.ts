@@ -81,3 +81,12 @@ export const permissionsPath = () => "/admin/permissions";              // Lista
 export const permissionPath = (id: string) => `/admin/permissions/${id}`; // Detalhes da permission
 export const permissionEditPath = (id: string) => `/admin/permissions/${id}/edit`; // Edição de permission
 export const permissionCreatePath = () => "/admin/permissions/create";  // Criação de permission
+
+
+
+export const enrollmentsPath = () => "/admin/enrollments";                    // Dashboard de inscrições
+export const enrollmentsByEventPath = (eventId: string) => `/admin/enrollments/event/${eventId}`; // Inscrições por evento
+export const enrollmentsStatsPath = () => "/admin/enrollments/stats";        // Estatísticas gerais
+export const enrollmentsExportPath = () => "/admin/enrollments/export";      // Exportar dados// Rotas para inscrições
+export const enrollmentsDashboardPath = () => `/admin/enrollments/dashboard`
+export const enrollmentsListPath = () => `/admin/enrollments/stats`

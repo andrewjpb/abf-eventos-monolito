@@ -60,6 +60,12 @@ async function main() {
     { name: "banners.update", description: "Atualizar banners existentes" },
     { name: "banners.delete", description: "Excluir banners" },
 
+    // Inscrições/Matrículas - NOVAS PERMISSÕES
+    { name: "enrollments.view", description: "Visualizar dashboard e dados de inscrições" },
+    { name: "enrollments.stats", description: "Acessar estatísticas avançadas de inscrições" },
+    { name: "enrollments.export", description: "Exportar dados de inscrições" },
+    { name: "enrollments.analytics", description: "Acessar análises detalhadas por evento" },
+
     // Listas de presença
     { name: "attendance.view", description: "Visualizar listas de presença" },
     { name: "attendance.manage", description: "Gerenciar listas de presença" },
@@ -127,6 +133,7 @@ async function main() {
         "events.view", "events.create", "events.update", "events.publish",
         "external_events.view", "external_events.create", "external_events.update",
         "speakers.view", "speakers.create", "speakers.update",
+        "enrollments.view", "enrollments.stats", "enrollments.analytics", // Acesso às inscrições
         "attendance.view", "attendance.manage", "attendance.register", "attendance.checkin"
       ]
     },
@@ -137,6 +144,7 @@ async function main() {
         "panel.access",
         "events.view",
         "external_events.view",
+        "enrollments.view", "enrollments.stats", // Acesso para análise de dados
         "sponsors.view", "sponsors.create", "sponsors.update",
         "supporters.view", "supporters.create", "supporters.update",
         "banners.view", "banners.create", "banners.update"
@@ -148,7 +156,18 @@ async function main() {
       permissionNames: [
         "panel.access",
         "events.view",
+        "enrollments.view", // Visualizar inscrições
         "attendance.view", "attendance.register", "attendance.checkin"
+      ]
+    },
+    {
+      name: "enrollment_analyst",
+      description: "Analista de inscrições com acesso especializado em dados", // NOVO PAPEL
+      permissionNames: [
+        "panel.access",
+        "events.view",
+        "enrollments.view", "enrollments.stats", "enrollments.analytics", "enrollments.export",
+        "attendance.view"
       ]
     },
     {
@@ -158,7 +177,7 @@ async function main() {
         "panel.access",
         "events.view", "external_events.view",
         "speakers.view", "sponsors.view", "supporters.view",
-        "banners.view", "attendance.view", "logs.view"
+        "banners.view", "enrollments.view", "attendance.view", "logs.view"
       ]
     }
   ];

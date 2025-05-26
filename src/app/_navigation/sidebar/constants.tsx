@@ -6,7 +6,8 @@ import {
   companyCreatePath,
   eventsAdminPath,
   eventCreatePath,
-
+  enrollmentsDashboardPath, // Nova rota para dashboard de inscrições
+  enrollmentsListPath,      // Nova rota para lista de inscrições
   logsPath,
   speakersPath,
   speakerCreatePath,
@@ -33,7 +34,9 @@ import {
   Image,
   FileText,
   Building,
-  Shield
+  Shield,
+  ClipboardList,
+  BarChart3
 } from "lucide-react";
 import { ReactElement } from "react";
 
@@ -58,6 +61,26 @@ export const navItems: NavItem[] = [
     href: adminDashboardPath(),
     requiredPermission: "panel.access"  // Permissão geral para acesso ao painel
   },
+
+  {
+    title: "Inscrições",
+    icon: <ClipboardList />,
+    href: enrollmentsListPath(),
+    requiredPermission: "enrollments.view",
+    subItems: [
+      {
+        title: "Dashboard de Inscrições",
+        href: enrollmentsDashboardPath(),
+        requiredPermission: "enrollments.view"
+      },
+      {
+        title: "Lista de Inscrições",
+        href: enrollmentsListPath(),
+        requiredPermission: "enrollments.view"
+      }
+    ]
+  },
+
   {
     title: "Usuários",
     icon: <Users />,

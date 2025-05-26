@@ -113,7 +113,7 @@ export default function RootLayout({
         <ThemeProvider>
           <NuqsAdapter>
             <Header />
-            <main className="flex w-full h-screen bg-background pt-20">
+            <main className="flex w-full bg-background pt-20 min-h-[calc(100vh-5rem)]">
               {children}
             </main>
           </NuqsAdapter>

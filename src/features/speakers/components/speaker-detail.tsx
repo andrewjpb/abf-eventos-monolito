@@ -52,7 +52,7 @@ export function SpeakerDetail({ speaker }: SpeakerDetailProps) {
   const hasEvents = speaker.events && speaker.events.length > 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 flex flex-col">
       {/* Cartão de visualização rápida */}
       <SpeakerCard
         speaker={speaker}
@@ -61,9 +61,9 @@ export function SpeakerDetail({ speaker }: SpeakerDetailProps) {
       />
 
       {/* Informações detalhadas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
         {/* Detalhes do Palestrante */}
-        <Card>
+        <Card className="flex justify-start">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <User className="h-5 w-5 mr-2 text-primary" />
@@ -126,29 +126,12 @@ export function SpeakerDetail({ speaker }: SpeakerDetailProps) {
               </div>
             </div>
 
-            {/* Mostrar imagem se disponível */}
-            {speaker.users.image_url && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Imagem</p>
-                  <div className="rounded overflow-hidden border p-2 flex justify-center">
-                    <Image
-                      src={speaker.users.image_url}
-                      alt={speaker.users.name}
-                      width={150}
-                      height={150}
-                      className="object-contain rounded-full"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+
           </CardContent>
         </Card>
 
         {/* Eventos do Palestrante */}
-        <Card>
+        <Card className="flex justify-start">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <CalendarDays className="h-5 w-5 mr-2 text-primary" />
@@ -195,7 +178,7 @@ export function SpeakerDetail({ speaker }: SpeakerDetailProps) {
 
       {/* Ações para administradores */}
       {speaker.isAuthorized && (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 ">
           <Button variant="outline" size="sm" asChild>
             <Link href={speakerEditPath(speaker.id)}>
               <Edit className="mr-2 h-4 w-4" />

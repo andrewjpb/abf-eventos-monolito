@@ -17,7 +17,7 @@ const minioClient = new Minio.Client({
   secretKey: process.env.S3_SECRET_ACCESS_KEY,
 })
 
-const BUCKET_NAME = "abf-ti"
+const BUCKET_NAME = "eventos"
 const SPONSORS_PREFIX = "sponsors/"
 
 /**

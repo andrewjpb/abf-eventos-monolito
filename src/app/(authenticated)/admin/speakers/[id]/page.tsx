@@ -9,6 +9,7 @@ import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-aut
 import { SpeakerWithAuth } from "@/features/speakers/types"
 import { SpeakerEventsSelect } from "@/features/speakers/components/speaker-events-select"
 import { getAvailableEvents } from "@/features/speakers/components/get-available-events"
+import { SpeakerImageUpload } from "@/features/speakers/components/speaker-image-upload"
 
 type SpeakerPageProps = Promise<{ id: string }>
 
@@ -42,15 +43,13 @@ export default async function SpeakerPage({ params }: { params: SpeakerPageProps
           <SpeakerDetail speaker={speaker as SpeakerWithAuth} />
         </div>
 
-        {speaker.isAuthorized && (
-          <div className="lg:col-span-1 animate-fade-in-from-right">
-            <SpeakerEventsSelect
-              speakerId={speaker.id}
-              currentEvents={speaker.events}
-              allEvents={availableEvents}
-            />
-          </div>
-        )}
+        <div>
+          <SpeakerImageUpload
+            speakerId={speaker.id}
+            currentImageUrl={speaker.users.image_url || null}
+            userName={speaker.users.name}
+          />
+        </div>
       </div>
     </div>
   )

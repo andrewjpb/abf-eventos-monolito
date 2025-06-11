@@ -5,13 +5,16 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { getEnrollments } from "../queries/get-enrollments"
 import { getEnrollmentCounters } from "../queries/get-enrollment-counters"
 import { Button } from "@/components/ui/button"
-import { Search, LucideLoaderCircle, Download } from "lucide-react"
+import { Search, LucideLoaderCircle, Download, FileSpreadsheet } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ParsedSearchParams } from "../search-params"
 import { EnrollmentFilters } from "./enrollment-filters"
 import { EnrollmentListItem } from "./enrollment-list-item"
+import { exportEnrollmentsToXLSX } from "../utils/export-enrollments"
+import { useState } from "react"
+import { toast } from "sonner"
 
 type EnrollmentsListProps = {
   searchParams: ParsedSearchParams
@@ -30,6 +33,8 @@ export function EnrollmentsList({
   fixedEventId,
   fixedEventTitle
 }: EnrollmentsListProps) {
+  const [isExporting, setIsExporting] = useState(false)
+
   // Query para buscar as inscrições (com paginação)
   const {
     data,
@@ -38,7 +43,7 @@ export function EnrollmentsList({
     isFetchingNextPage,
     isLoading,
   } = useInfiniteQuery({
-    queryKey: ["enrollments", searchParams.search, searchParams.eventId, searchParams.segment, searchParams.status, searchParams.type],
+    queryKey: ["enrollments", searchParams.search, searchParams.eventId, searchParams.segment, searchParams.status, searchParams.type, searchParams.dateFrom, searchParams.dateTo],
     queryFn: ({ pageParam }) => getEnrollments({
       cursor: pageParam as string,
       limit: 20,
@@ -47,6 +52,8 @@ export function EnrollmentsList({
       segment: searchParams.segment === "ALL" ? undefined : searchParams.segment,
       status: searchParams.status === "ALL" ? undefined : searchParams.status,
       type: searchParams.type === "ALL" ? undefined : searchParams.type,
+      dateFrom: searchParams.dateFrom || undefined,
+      dateTo: searchParams.dateTo || undefined,
     }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) =>
@@ -55,13 +62,15 @@ export function EnrollmentsList({
 
   // Query separada para buscar os contadores globais (sem paginação)
   const { data: counters, isLoading: isLoadingCounters } = useQuery({
-    queryKey: ["enrollment-counters", searchParams.search, searchParams.eventId, searchParams.segment, searchParams.status, searchParams.type],
+    queryKey: ["enrollment-counters", searchParams.search, searchParams.eventId, searchParams.segment, searchParams.status, searchParams.type, searchParams.dateFrom, searchParams.dateTo],
     queryFn: () => getEnrollmentCounters({
       search: searchParams.search,
       eventId: searchParams.eventId === "ALL" ? undefined : searchParams.eventId,
       segment: searchParams.segment === "ALL" ? undefined : searchParams.segment,
       status: searchParams.status === "ALL" ? undefined : searchParams.status,
       type: searchParams.type === "ALL" ? undefined : searchParams.type,
+      dateFrom: searchParams.dateFrom || undefined,
+      dateTo: searchParams.dateTo || undefined,
     }),
   })
 
@@ -76,6 +85,39 @@ export function EnrollmentsList({
   const presentialCount = counters?.presentialCount || 0
   const onlineCount = counters?.onlineCount || 0
 
+  // Função para exportar as inscrições
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      
+      // Buscar todos os registros com os filtros atuais
+      const allEnrollments = await getEnrollments({
+        limit: 10000, // Limite alto para pegar todos os registros
+        search: searchParams.search,
+        eventId: searchParams.eventId === "ALL" ? undefined : searchParams.eventId,
+        segment: searchParams.segment === "ALL" ? undefined : searchParams.segment,
+        status: searchParams.status === "ALL" ? undefined : searchParams.status,
+        type: searchParams.type === "ALL" ? undefined : searchParams.type,
+        dateFrom: searchParams.dateFrom || undefined,
+        dateTo: searchParams.dateTo || undefined,
+      })
+
+      if (allEnrollments.enrollments.length === 0) {
+        toast.error("Nenhuma inscrição encontrada para exportar")
+        return
+      }
+
+      // Exportar para XLSX
+      exportEnrollmentsToXLSX(allEnrollments.enrollments)
+      toast.success(`${allEnrollments.enrollments.length} inscrições exportadas com sucesso!`)
+    } catch (error) {
+      console.error("Erro ao exportar:", error)
+      toast.error("Erro ao exportar inscrições")
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -87,9 +129,22 @@ export function EnrollmentsList({
           </p>
         </div>
 
-        <Button variant="outline" disabled>
-          <Download className="mr-2 h-4 w-4" />
-          Exportar
+        <Button 
+          variant="outline" 
+          onClick={handleExport}
+          disabled={isExporting || isLoading || totalCount === 0}
+        >
+          {isExporting ? (
+            <>
+              <LucideLoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+              Exportando...
+            </>
+          ) : (
+            <>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Exportar XLSX
+            </>
+          )}
         </Button>
       </div>
 

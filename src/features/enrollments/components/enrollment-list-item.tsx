@@ -33,7 +33,7 @@ export function EnrollmentListItem({ enrollment }: EnrollmentListItemProps) {
               {enrollment.checked_in ? "Check-in feito" : "Pendente"}
             </Badge>
             <Badge variant="outline">
-              {enrollment.attendee_type || "Não informado"}
+              {enrollment.attendee_type === 'in_person' ? 'Presencial' : (enrollment.attendee_type === 'online' ? 'Online' : enrollment.attendee_type || 'Não informado')}
             </Badge>
           </div>
         </div>

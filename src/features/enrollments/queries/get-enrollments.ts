@@ -14,6 +14,8 @@ type GetEnrollmentsOptions = {
   segment?: string;
   status?: string;
   type?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export const getEnrollments = cache(async (options: GetEnrollmentsOptions = {}) => {
@@ -37,7 +39,9 @@ export const getEnrollments = cache(async (options: GetEnrollmentsOptions = {}) 
     eventId,
     segment,
     status,
-    type
+    type,
+    dateFrom,
+    dateTo
   } = options
 
   try {
@@ -90,6 +94,24 @@ export const getEnrollments = cache(async (options: GetEnrollmentsOptions = {}) 
           }
         }
       ]
+    }
+
+    // Filtro por data
+    const dateFilters: any = {}
+    if (dateFrom) {
+      // Criar data no início do dia considerando o fuso horário do Brasil
+      const [year, month, day] = dateFrom.split('-').map(Number)
+      const startDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+      dateFilters.gte = startDate
+    }
+    if (dateTo) {
+      // Criar data no final do dia considerando o fuso horário do Brasil
+      const [year, month, day] = dateTo.split('-').map(Number)
+      const endDate = new Date(year, month - 1, day, 23, 59, 59, 999)
+      dateFilters.lte = endDate
+    }
+    if (Object.keys(dateFilters).length > 0) {
+      where.created_at = dateFilters
     }
 
     // Condição de cursor para paginação - usando skip/take approach

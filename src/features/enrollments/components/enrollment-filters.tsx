@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQueryState } from "nuqs"
-import { searchParse, eventIdParse, segmentParse, statusParse, typeParse } from "../search-params"
-import { Search, Filter } from "lucide-react"
+import { searchParse, eventIdParse, segmentParse, statusParse, typeParse, dateFromParse, dateToParse } from "../search-params"
+import { Search, Filter, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
@@ -32,6 +32,8 @@ export function EnrollmentFilters({
   const [segment, setSegment] = useQueryState("segment", segmentParse)
   const [status, setStatus] = useQueryState("status", statusParse)
   const [type, setType] = useQueryState("type", typeParse)
+  const [dateFrom, setDateFrom] = useQueryState("dateFrom", dateFromParse)
+  const [dateTo, setDateTo] = useQueryState("dateTo", dateToParse)
 
   const [inputValue, setInputValue] = useState(search || "")
 
@@ -54,6 +56,8 @@ export function EnrollmentFilters({
     setSegment("ALL")
     setStatus("ALL")
     setType("ALL")
+    setDateFrom("")
+    setDateTo("")
     setInputValue("")
   }
 
@@ -66,8 +70,8 @@ export function EnrollmentFilters({
         </div>
 
         <div className={`grid gap-4 ${fixedEventId
-          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4" // Sem o campo de evento
-          : "grid-cols-1 md:grid-cols-2 lg:grid-cols-5" // Com o campo de evento
+          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" // Sem o campo de evento
+          : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7" // Com o campo de evento
           }`}>
           {/* Busca por texto */}
           <div className="space-y-2">
@@ -181,6 +185,36 @@ export function EnrollmentFilters({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Filtro por data de início */}
+          <div className="space-y-2">
+            <Label htmlFor="dateFrom">Data de Início</Label>
+            <div className="relative">
+              <Input
+                id="dateFrom"
+                type="date"
+                value={dateFrom || ""}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full pl-10"
+              />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Filtro por data de fim */}
+          <div className="space-y-2">
+            <Label htmlFor="dateTo">Data de Fim</Label>
+            <div className="relative">
+              <Input
+                id="dateTo"
+                type="date"
+                value={dateTo || ""}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full pl-10"
+              />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
           </div>
         </div>
 

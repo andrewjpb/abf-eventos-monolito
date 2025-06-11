@@ -26,12 +26,24 @@ export const typeParse = parseAsString.withDefault("ALL").withOptions({
   clearOnDefault: true,
 })
 
+export const dateFromParse = parseAsString.withDefault("").withOptions({
+  shallow: false,
+  clearOnDefault: true,
+})
+
+export const dateToParse = parseAsString.withDefault("").withOptions({
+  shallow: false,
+  clearOnDefault: true,
+})
+
 export const searchParamsCache = createSearchParamsCache({
   eventId: eventIdParse,
   segment: segmentParse,
   status: statusParse,
   search: searchParse,
   type: typeParse,
+  dateFrom: dateFromParse,
+  dateTo: dateToParse,
 })
 
 export type ParsedSearchParams = {
@@ -40,4 +52,6 @@ export type ParsedSearchParams = {
   readonly status: string;
   readonly search: string;
   readonly type: string;
+  readonly dateFrom: string;
+  readonly dateTo: string;
 }

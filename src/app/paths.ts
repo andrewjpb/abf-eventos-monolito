@@ -89,4 +89,4 @@ export const enrollmentsByEventPath = (eventId: string) => `/admin/enrollments/e
 export const enrollmentsStatsPath = () => "/admin/enrollments/stats";        // Estatísticas gerais
 export const enrollmentsExportPath = () => "/admin/enrollments/export";      // Exportar dados// Rotas para inscrições
 export const enrollmentsDashboardPath = () => `/admin/enrollments/dashboard`
-export const enrollmentsListPath = () => `/admin/enrollments/stats`
+export const enrollmentsListPath = () => `/admin/enrollments`

@@ -5,7 +5,10 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(npm install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(docker build:*)",
+      "Bash(sed:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

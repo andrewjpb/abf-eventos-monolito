@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
-import { addLog } from "@/features/logs/queries/add-log"
+import { logInfo } from "@/features/logs/queries/add-log"
 
 // Associar patrocinador ao evento
 export async function associateEventSponsor(
@@ -15,7 +15,7 @@ export async function associateEventSponsor(
 ) {
   try {
     // Verificar permissões
-    const { user } = await getAuthWithPermissionOrRedirect("events.update")
+    const user = await getAuthWithPermissionOrRedirect("events.update")
 
     // Verificar se o evento existe
     const event = await prisma.events.findUnique({
@@ -24,9 +24,9 @@ export async function associateEventSponsor(
     })
 
     if (!event) {
-      return { 
-        success: false, 
-        message: "Evento não encontrado" 
+      return {
+        success: false,
+        message: "Evento não encontrado"
       }
     }
 
@@ -37,69 +37,73 @@ export async function associateEventSponsor(
     })
 
     if (!sponsor) {
-      return { 
-        success: false, 
-        message: "Patrocinador não encontrado" 
+      return {
+        success: false,
+        message: "Patrocinador não encontrado"
       }
     }
 
     if (!sponsor.active) {
-      return { 
-        success: false, 
-        message: "Não é possível associar um patrocinador inativo" 
+      return {
+        success: false,
+        message: "Não é possível associar um patrocinador inativo"
       }
     }
 
     // Verificar se já existe associação
-    const existingAssociation = await prisma.eventSponsors.findFirst({
-      where: {
-        eventId,
-        sponsorId
+    const existingEvent = await prisma.events.findUnique({
+      where: { id: eventId },
+      include: {
+        sponsors: {
+          where: { id: sponsorId }
+        }
       }
     })
 
-    if (existingAssociation) {
-      return { 
-        success: false, 
-        message: "Patrocinador já está associado a este evento" 
+    if (existingEvent && existingEvent.sponsors.length > 0) {
+      return {
+        success: false,
+        message: "Patrocinador já está associado a este evento"
       }
     }
 
     // Criar associação
-    await prisma.eventSponsors.create({
+    await prisma.events.update({
+      where: { id: eventId },
       data: {
-        eventId,
-        sponsorId
+        sponsors: {
+          connect: { id: sponsorId }
+        }
       }
     })
 
     // Log da ação
-    await addLog({
-      userId: user.id,
-      action: "ASSOCIATE_EVENT_SPONSOR",
-      entity: "events",
-      entityId: eventId,
-      details: {
+    await logInfo(
+      "ASSOCIATE_EVENT_SPONSOR",
+      `Patrocinador "${sponsor.name}" associado ao evento "${event.title}"`,
+      user.id,
+      {
+        eventId,
         eventTitle: event.title,
-        sponsorName: sponsor.name,
-        sponsorId
+        sponsorId,
+        sponsorName: sponsor.name
       }
-    })
+    )
 
     // Revalidar as páginas relevantes
     revalidatePath(`/admin/events/${eventId}`)
     revalidatePath(`/admin/events/${eventId}/sponsors`)
 
-    return { 
-      success: true, 
-      message: `Patrocinador "${sponsor.name}" associado com sucesso` 
+    return {
+      success: true,
+      message: `Patrocinador "${sponsor.name}" associado com sucesso`
     }
 
   } catch (error) {
     console.error("Erro ao associar patrocinador:", error)
-    return { 
-      success: false, 
-      message: "Erro interno do servidor" 
+    return {
+      success: false,
+      message: "Erro interno do servidor"
     }
   }
 }
@@ -113,7 +117,7 @@ export async function disassociateEventSponsor(
 ) {
   try {
     // Verificar permissões
-    const { user } = await getAuthWithPermissionOrRedirect("events.update")
+    const user = await getAuthWithPermissionOrRedirect("events.update")
 
     // Verificar se o evento existe
     const event = await prisma.events.findUnique({
@@ -122,9 +126,9 @@ export async function disassociateEventSponsor(
     })
 
     if (!event) {
-      return { 
-        success: false, 
-        message: "Evento não encontrado" 
+      return {
+        success: false,
+        message: "Evento não encontrado"
       }
     }
 
@@ -135,61 +139,66 @@ export async function disassociateEventSponsor(
     })
 
     if (!sponsor) {
-      return { 
-        success: false, 
-        message: "Patrocinador não encontrado" 
+      return {
+        success: false,
+        message: "Patrocinador não encontrado"
       }
     }
 
     // Verificar se existe associação
-    const association = await prisma.eventSponsors.findFirst({
-      where: {
-        eventId,
-        sponsorId
+    const eventWithSponsor = await prisma.events.findUnique({
+      where: { id: eventId },
+      include: {
+        sponsors: {
+          where: { id: sponsorId }
+        }
       }
     })
 
-    if (!association) {
-      return { 
-        success: false, 
-        message: "Patrocinador não está associado a este evento" 
+    if (!eventWithSponsor || eventWithSponsor.sponsors.length === 0) {
+      return {
+        success: false,
+        message: "Patrocinador não está associado a este evento"
       }
     }
 
     // Remover associação
-    await prisma.eventSponsors.delete({
-      where: {
-        id: association.id
+    await prisma.events.update({
+      where: { id: eventId },
+      data: {
+        sponsors: {
+          disconnect: { id: sponsorId }
+        }
       }
     })
 
     // Log da ação
-    await addLog({
-      userId: user.id,
-      action: "DISASSOCIATE_EVENT_SPONSOR",
-      entity: "events",
-      entityId: eventId,
-      details: {
+    await logInfo(
+      "DISASSOCIATE_EVENT_SPONSOR",
+      `Patrocinador "${sponsor.name}" removido do evento "${event.title}"`,
+      user.id,
+      {
+        eventId,
         eventTitle: event.title,
-        sponsorName: sponsor.name,
-        sponsorId
+        sponsorId,
+        sponsorName: sponsor.name
       }
-    })
+    )
 
     // Revalidar as páginas relevantes
     revalidatePath(`/admin/events/${eventId}`)
     revalidatePath(`/admin/events/${eventId}/sponsors`)
 
-    return { 
-      success: true, 
-      message: `Patrocinador "${sponsor.name}" removido com sucesso` 
+    return {
+      success: true,
+      message: `Patrocinador "${sponsor.name}" removido com sucesso`
     }
 
   } catch (error) {
     console.error("Erro ao desassociar patrocinador:", error)
-    return { 
-      success: false, 
-      message: "Erro interno do servidor" 
+    return {
+      success: false,
+      message: "Erro interno do servidor"
     }
   }
 }

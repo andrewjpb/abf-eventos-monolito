@@ -83,7 +83,7 @@ export async function getEvents(options: GetEventsOptions = {}) {
 
   // Mostrar apenas eventos publicados (a menos que seja admin)
   if (!isAdmin) {
-    where.isPublished = false
+    where.isPublished = true
   }
 
   // Condição de cursor para paginação

@@ -136,6 +136,38 @@ export function EventDetail({
             </div>
           </CardContent>
         </Card>
+
+        {/* Card de Endereço */}
+        {event.address && (
+          <Card className="w-full border-0 shadow-sm bg-gray-50 mt-4">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                {/* Lado Esquerdo */}
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-primary/10 rounded-lg">
+                    <MapPinIcon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-medium">
+                      {event.address.street}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {event.address.postal_code} - {event.address.cities.name}/{event.address.states.uf}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Lado Direito */}
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
+                    <MapPinIcon className="w-5 h-5" />
+                    <span className="text-sm font-medium">Ver no mapa</span>
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

@@ -18,8 +18,7 @@ export async function generateMetadata({ params }: EventSupportersPageProps): Pr
 
   return {
     title: `Apoiadores - ${event.title} - Admin`,
-    description: `Gerenciar apoiadores do evento ${event.title}`,
-    viewport: "width=device-width, initial-scale=1"
+    description: `Gerenciar apoiadores do evento ${event.title}`
   }
 }
 

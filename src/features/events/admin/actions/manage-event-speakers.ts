@@ -30,23 +30,27 @@ export async function associateEventSpeaker(
       }
     }
 
-    // Verificar se o palestrante existe e está ativo
+    // Verificar se o palestrante existe
     const speaker = await prisma.speakers.findUnique({
       where: { id: speakerId },
-      select: { id: true, name: true, active: true }
+      include: {
+        users: {
+          select: { id: true, name: true, active: true }
+        }
+      }
     })
 
-    if (!speaker) {
+    if (!speaker || !speaker.users) {
       return { 
         success: false, 
         message: "Palestrante não encontrado" 
       }
     }
 
-    if (!speaker.active) {
+    if (!speaker.users.active) {
       return { 
         success: false, 
-        message: "Não é possível associar um palestrante inativo" 
+        message: "Não é possível associar um palestrante com usuário inativo" 
       }
     }
 
@@ -80,13 +84,13 @@ export async function associateEventSpeaker(
     // Log da ação
     await logInfo(
       "ASSOCIATE_EVENT_SPEAKER",
-      `Palestrante "${speaker.name}" associado ao evento "${event.title}"`,
+      `Palestrante "${speaker.users.name}" associado ao evento "${event.title}"`,
       user.id,
       {
         eventId,
         eventTitle: event.title,
         speakerId,
-        speakerName: speaker.name
+        speakerName: speaker.users.name
       }
     )
 
@@ -96,7 +100,7 @@ export async function associateEventSpeaker(
 
     return { 
       success: true, 
-      message: `Palestrante "${speaker.name}" associado com sucesso` 
+      message: `Palestrante "${speaker.users.name}" associado com sucesso` 
     }
 
   } catch (error) {
@@ -135,10 +139,14 @@ export async function disassociateEventSpeaker(
     // Buscar informações do palestrante
     const speaker = await prisma.speakers.findUnique({
       where: { id: speakerId },
-      select: { id: true, name: true }
+      include: {
+        users: {
+          select: { id: true, name: true }
+        }
+      }
     })
 
-    if (!speaker) {
+    if (!speaker || !speaker.users) {
       return { 
         success: false, 
         message: "Palestrante não encontrado" 
@@ -175,13 +183,13 @@ export async function disassociateEventSpeaker(
     // Log da ação
     await logInfo(
       "DISASSOCIATE_EVENT_SPEAKER",
-      `Palestrante "${speaker.name}" removido do evento "${event.title}"`,
+      `Palestrante "${speaker.users.name}" removido do evento "${event.title}"`,
       user.id,
       {
         eventId,
         eventTitle: event.title,
         speakerId,
-        speakerName: speaker.name
+        speakerName: speaker.users.name
       }
     )
 
@@ -191,7 +199,7 @@ export async function disassociateEventSpeaker(
 
     return { 
       success: true, 
-      message: `Palestrante "${speaker.name}" removido com sucesso` 
+      message: `Palestrante "${speaker.users.name}" removido com sucesso` 
     }
 
   } catch (error) {

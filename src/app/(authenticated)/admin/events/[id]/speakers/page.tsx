@@ -18,8 +18,7 @@ export async function generateMetadata({ params }: EventSpeakersPageProps): Prom
 
   return {
     title: `Palestrantes - ${event.title} - Admin`,
-    description: `Gerenciar palestrantes do evento ${event.title}`,
-    viewport: "width=device-width, initial-scale=1"
+    description: `Gerenciar palestrantes do evento ${event.title}`
   }
 }
 

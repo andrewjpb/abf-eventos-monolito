@@ -23,7 +23,8 @@ import {
   Monitor,
   Tag,
   FileText,
-  Hash
+  Hash,
+  Plus
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -407,7 +408,14 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
                 <Users className="h-5 w-5" />
                 Palestrantes
               </span>
-              <Badge variant="outline">{event._count.speakers}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{event._count.speakers}</Badge>
+                <Link href={`/admin/events/${event.id}/speakers`}>
+                  <Button size="sm" variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -454,7 +462,14 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
                 <Building className="h-5 w-5" />
                 Patrocinadores
               </span>
-              <Badge variant="outline">{event._count.sponsors}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{event._count.sponsors}</Badge>
+                <Link href={`/admin/events/${event.id}/sponsors`}>
+                  <Button size="sm" variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -482,7 +497,14 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
                 <Tag className="h-5 w-5" />
                 Apoiadores
               </span>
-              <Badge variant="outline">{event._count.supporters}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{event._count.supporters}</Badge>
+                <Link href={`/admin/events/${event.id}/supporters`}>
+                  <Button size="sm" variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>

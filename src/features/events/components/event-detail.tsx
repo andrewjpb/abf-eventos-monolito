@@ -26,6 +26,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { EventRegistrationCard } from "@/components/event-registration-card"
+import { EventsSection } from "./events-section"
 
 interface EventDetailProps {
   event: EventWithDetails
@@ -37,6 +38,7 @@ interface EventDetailProps {
   occupationPercentage: number
   user?: any
   canRegister?: { canRegister: boolean; reason?: string } | null
+  upcomingEvents?: EventWithDetails[]
 }
 
 export function EventDetail({
@@ -48,7 +50,8 @@ export function EventDetail({
   companyRemainingVacancies,
   occupationPercentage,
   user,
-  canRegister
+  canRegister,
+  upcomingEvents = []
 }: EventDetailProps) {
   const pathname = usePathname()
   const [showFullDescription, setShowFullDescription] = useState(false)
@@ -500,6 +503,19 @@ export function EventDetail({
           </div>
         </div>
       </div>
+
+      {/* Seção de Próximos Eventos */}
+      {upcomingEvents.length > 0 && (
+        <div className="bg-white w-full py-8">
+          <div className="container mx-auto px-4">
+            <EventsSection
+              events={upcomingEvents}
+              title="Próximos eventos"
+              eventsPorPagina={3}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

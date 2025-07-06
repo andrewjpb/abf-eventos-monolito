@@ -1,6 +1,7 @@
 // /app/eventos/[id]/page.tsx
 import { Suspense } from "react"
 import { getEvent } from "@/features/events/queries/get-event"
+import { getEvents } from "@/features/events/queries/get-events"
 import { Spinner } from "@/components/spinner"
 import { notFound } from "next/navigation"
 import { EventDetail } from "@/features/events/components/event-detail"
@@ -14,6 +15,15 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
     return notFound()
   }
   const { event, isRegistered, attendanceId, isAdmin, user, canRegister, remainingVacancies, companyRemainingVacancies, occupationPercentage } = eventData
+
+  // Buscar próximos eventos (excluindo o evento atual)
+  const upcomingEventsData = await getEvents({
+    past: false,
+    limit: 6
+  })
+  
+  // Filtrar para remover o evento atual
+  const upcomingEvents = upcomingEventsData.events.filter(e => e.id !== event.id)
 
   return (
     <div className="flex-1 flex flex-col gap-y-8 mt-10">
@@ -29,6 +39,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
             remainingVacancies={remainingVacancies}
             companyRemainingVacancies={companyRemainingVacancies}
             occupationPercentage={occupationPercentage}
+            upcomingEvents={upcomingEvents}
           />
         </Suspense>
       </div>

@@ -83,12 +83,14 @@ export function EventDetail({
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2 mb-2">
           <Badge variant="outline" className="bg-gray-100">
-            {event.format === "in-person" ? "Presencial" : "Online"}
+            {event.format === "PRESENCIAL" ? "Presencial" : 
+             event.format === "ONLINE" ? "Online" : 
+             event.format === "HIBRIDO" ? "Híbrido" : "Presencial"}
           </Badge>
 
-          {event.isStreaming && (
+          {event.isStreaming && event.format !== "ONLINE" && (
             <Badge variant="outline" className="bg-blue-100 text-blue-800">
-              Online
+              Com transmissão
             </Badge>
           )}
 

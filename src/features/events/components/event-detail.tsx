@@ -14,7 +14,10 @@ import {
   Users2Icon,
   LinkIcon,
   ExternalLinkIcon,
-  CalendarPlus
+  CalendarPlus,
+  Radio,
+  Wifi,
+  PlayCircle
 } from "lucide-react"
 import Image from "next/image"
 import { Progress } from "@/components/ui/progress"
@@ -146,6 +149,139 @@ export function EventDetail({
             </CardContent>
           </Card>
         )}
+
+        {/* Card de Status do Evento - Transmissão/Início */}
+        <Card className="w-full border-0 shadow-sm bg-gray-50 mt-4">
+          <CardContent className="p-5">
+            {(() => {
+              const agora = new Date()
+              const dataEvento = new Date(event.date)
+              
+              // Criar datetime do evento combinando data e horário
+              const [horaInicio, minutoInicio] = event.start_time.split(':').map(Number)
+              const [horaFim, minutoFim] = event.end_time.split(':').map(Number)
+              
+              const inicioEvento = new Date(dataEvento)
+              inicioEvento.setHours(horaInicio, minutoInicio, 0, 0)
+              
+              const fimEvento = new Date(dataEvento)
+              fimEvento.setHours(horaFim, minutoFim, 0, 0)
+              
+              // Calcular status do evento
+              const eventoComecou = agora >= inicioEvento
+              const eventoTerminou = agora >= fimEvento
+              const eventoOcorrendo = eventoComecou && !eventoTerminou
+              
+              // Calcular tempo até o início
+              const minutosAteInicio = Math.floor((inicioEvento.getTime() - agora.getTime()) / (1000 * 60))
+              const horasAteInicio = Math.floor(minutosAteInicio / 60)
+              const diasAteInicio = Math.floor(horasAteInicio / 24)
+              
+              // Determinar se tem transmissão online
+              const temTransmissao = event.format === "ONLINE" || event.format === "HIBRIDO" || event.isStreaming
+              
+              if (eventoTerminou) {
+                // Evento finalizado
+                return (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-gray-100 rounded-lg">
+                        <CheckCircleIcon className="w-6 h-6 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-gray-900 font-medium">
+                          Evento realizado
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {formatarDataEvento(event.date)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              } else if (eventoOcorrendo) {
+                // Evento acontecendo agora
+                return (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-green-100 rounded-lg">
+                        <Radio className="w-6 h-6 text-green-600 animate-pulse" />
+                      </div>
+                      <div>
+                        <p className="text-gray-900 font-medium">
+                          {temTransmissao ? "Transmissão ao vivo" : "Evento em andamento"}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Até às {event.end_time}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {temTransmissao && event.transmission_link ? (
+                      <div className="p-3 bg-green-100 rounded-lg">
+                        <a
+                          href={event.transmission_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-700 hover:text-green-900 transition-colors"
+                        >
+                          <PlayCircle className="w-5 h-5" />
+                          <span className="text-sm font-medium">Assistir agora</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <Radio className="w-3 h-3 mr-1 animate-pulse" />
+                        Ao vivo
+                      </Badge>
+                    )}
+                  </div>
+                )
+              } else {
+                // Evento futuro
+                let tempoRestante = ""
+                if (diasAteInicio > 0) {
+                  tempoRestante = `${diasAteInicio} ${diasAteInicio === 1 ? 'dia' : 'dias'}`
+                } else if (horasAteInicio > 0) {
+                  tempoRestante = `${horasAteInicio} ${horasAteInicio === 1 ? 'hora' : 'horas'}`
+                } else if (minutosAteInicio > 0) {
+                  tempoRestante = `${minutosAteInicio} ${minutosAteInicio === 1 ? 'minuto' : 'minutos'}`
+                } else {
+                  tempoRestante = "Em breve"
+                }
+                
+                return (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        {temTransmissao ? (
+                          <Wifi className="w-6 h-6 text-primary" />
+                        ) : (
+                          <CalendarIcon className="w-6 h-6 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-gray-900 font-medium">
+                          {temTransmissao ? "Transmissão ao vivo" : "Evento presencial"}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Começaremos em {tempoRestante}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors cursor-not-allowed opacity-60" disabled>
+                        <ClockIcon className="w-5 h-5" />
+                        <span className="text-sm font-medium">Aguardando início</span>
+                      </button>
+                    </div>
+                  </div>
+                )
+              }
+            })()}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Container Direito - Card de Data e Hora */}

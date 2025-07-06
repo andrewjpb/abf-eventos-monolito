@@ -104,6 +104,41 @@ export function EventDetail({
             {event.title}
           </h1>
         </div>
+
+        {/* Card de Patrocinadores */}
+        {event.sponsors && event.sponsors.length > 0 && (
+          <Card className="w-full border-0 shadow-sm bg-gray-50">
+            <CardContent className="px-4">
+              {/* Header */}
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Patrocinadores
+              </h2>
+
+              {/* Body - Grid de logos */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {event.sponsors.map((sponsor) => (
+                  <div key={sponsor.id} className="flex items-center justify-center p-4 bg-white rounded-lg border">
+                    {sponsor.image_url ? (
+                      <Image
+                        src={sponsor.image_url}
+                        alt={sponsor.name}
+                        width={120}
+                        height={60}
+                        className="max-w-full max-h-12 object-contain"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-12 bg-gray-100 rounded">
+                        <span className="text-sm font-medium text-gray-600 text-center px-2">
+                          {sponsor.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Container Direito - Card de Data e Hora */}

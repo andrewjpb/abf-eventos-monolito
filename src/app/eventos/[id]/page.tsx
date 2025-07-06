@@ -13,7 +13,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
   if (!eventData) {
     return notFound()
   }
-  const { event, isRegistered, attendanceId, isAdmin, remainingVacancies, occupationPercentage } = eventData
+  const { event, isRegistered, attendanceId, isAdmin, user, canRegister, remainingVacancies, companyRemainingVacancies, occupationPercentage } = eventData
 
   return (
     <div className="flex-1 flex flex-col gap-y-8 mt-10">
@@ -24,7 +24,10 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
             isRegistered={isRegistered}
             attendanceId={attendanceId}
             isAdmin={isAdmin}
+            user={user}
+            canRegister={canRegister}
             remainingVacancies={remainingVacancies}
+            companyRemainingVacancies={companyRemainingVacancies}
             occupationPercentage={occupationPercentage}
           />
         </Suspense>

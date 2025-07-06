@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { EventRegistrationCard } from "@/components/event-registration-card"
 
 interface EventDetailProps {
   event: EventWithDetails
@@ -28,7 +29,10 @@ interface EventDetailProps {
   attendanceId?: string | null
   isAdmin: boolean
   remainingVacancies: number
+  companyRemainingVacancies?: number
   occupationPercentage: number
+  user?: any
+  canRegister?: { canRegister: boolean; reason?: string } | null
 }
 
 export function EventDetail({
@@ -37,7 +41,10 @@ export function EventDetail({
   attendanceId,
   isAdmin,
   remainingVacancies,
-  occupationPercentage
+  companyRemainingVacancies,
+  occupationPercentage,
+  user,
+  canRegister
 }: EventDetailProps) {
   const pathname = usePathname()
   const [showFullDescription, setShowFullDescription] = useState(false)
@@ -203,6 +210,18 @@ export function EventDetail({
             </CardContent>
           </Card>
         )}
+
+        {/* Card de Registro */}
+        <div className="mt-4">
+          <EventRegistrationCard
+            event={event}
+            user={user}
+            isRegistered={isRegistered}
+            remainingVacancies={remainingVacancies}
+            companyRemainingVacancies={companyRemainingVacancies}
+            canRegister={canRegister}
+          />
+        </div>
       </div>
     </div>
   )

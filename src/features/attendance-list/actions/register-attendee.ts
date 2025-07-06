@@ -14,7 +14,7 @@ import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
 const attendeeSchema = z.object({
   eventId: z.string().min(1, { message: "ID do evento é obrigatório" }),
   userId: z.string().min(1, { message: "ID do usuário é obrigatório" }),
-  company_cnpj: z.string().min(14, { message: "CNPJ da empresa é obrigatório" }).max(14),
+  company_cnpj: z.string().min(1, { message: "CNPJ da empresa é obrigatório" }),
   company_segment: z.string().min(1, { message: "Segmento da empresa é obrigatório" }),
   attendee_full_name: z.string().min(1, { message: "Nome completo é obrigatório" }),
   attendee_email: z.string().email({ message: "E-mail inválido" }),

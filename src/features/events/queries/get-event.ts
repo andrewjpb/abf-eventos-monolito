@@ -4,6 +4,7 @@
 import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 import { getAuth } from "@/features/auth/queries/get-auth"
+import { canUserRegister } from "@/features/attendance-list/actions/can-user-register"
 import { notFound } from "next/navigation"
 
 export const getEvent = cache(async (id: string) => {
@@ -90,11 +91,45 @@ export const getEvent = cache(async (id: string) => {
     const userWithRoles = await prisma.users.findUnique({
       where: { id: user.id },
       include: {
-        roles: true
+        roles: true,
+        company: true
       }
     })
 
     isAdmin = userWithRoles?.roles.some(role => role.name === "ADMIN") || false
+    
+    // Garantir que o usuário tenha os dados da empresa
+    if (userWithRoles?.company) {
+      user.company = userWithRoles.company
+    }
+  }
+
+  // Calcular vagas restantes por empresa (se o usuário estiver logado)
+  let companyRemainingVacancies = 0
+  if (user && user.companyId) {
+    // Contar quantos inscritos da mesma empresa já estão cadastrados
+    const companyAttendees = await prisma.attendance_list.count({
+      where: {
+        eventId: id,
+        company_cnpj: user.companyId
+      }
+    })
+    
+    companyRemainingVacancies = Math.max(0, event.vacancies_per_brand - companyAttendees)
+  }
+
+  // Verificar se o usuário pode se inscrever (apenas se estiver logado e não estiver registrado)
+  let canRegister = null
+  if (user && !isRegistered) {
+    try {
+      const result = await canUserRegister(id)
+      canRegister = {
+        canRegister: result.canRegister,
+        reason: result.message
+      }
+    } catch (error) {
+      canRegister = { canRegister: false, reason: "Erro ao verificar elegibilidade" }
+    }
   }
 
   return {
@@ -102,7 +137,10 @@ export const getEvent = cache(async (id: string) => {
     isRegistered,
     attendanceId,
     isAdmin,
+    user,
+    canRegister,
     remainingVacancies: Math.max(0, event.vacancy_total - event._count.attendance_list),
+    companyRemainingVacancies,
     occupationPercentage: Math.min(100, Math.round((event._count.attendance_list / event.vacancy_total) * 100))
   }
 })

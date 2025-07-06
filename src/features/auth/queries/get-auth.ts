@@ -19,11 +19,12 @@ export const getAuth = async () => {
 
   // Se o usuário existir, vamos enriquecer com os relacionamentos
   if (result.user) {
-    // Buscar todas as roles do usuário
+    // Buscar todas as roles e empresa do usuário
     const userWithRoles = await prisma.users.findUnique({
       where: { id: result.user.id },
       include: {
-        roles: true  // Incluir todas as roles
+        roles: true,  // Incluir todas as roles
+        company: true // Incluir dados da empresa
       }
     })
 
@@ -36,6 +37,11 @@ export const getAuth = async () => {
       const roleNames = roles.map(role => role.name);
       // Corrigido: não usamos o operador de acesso opcional no lado esquerdo
       result.user.isAdmin = roleNames.includes('admin');
+      
+      // Adicionar dados da empresa
+      if (userWithRoles.company) {
+        result.user.company = userWithRoles.company;
+      }
     }
   }
 

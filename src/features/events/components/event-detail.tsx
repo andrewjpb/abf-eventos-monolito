@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   CalendarIcon,
   MapPinIcon,
+  Users,
   UsersIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -367,8 +368,137 @@ export function EventDetail({
         </div>
       </div>
 
-      <div className="bg-gray-50 w-full flex h-10">
-
+      {/* Seção Sobre o Evento e Palestrantes */}
+      <div className="bg-gray-50 w-full py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Card Sobre o Evento - 70% */}
+            <div className="lg:col-span-8">
+              <Card className="w-full border-0 shadow-sm bg-white">
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    Sobre o evento
+                  </h2>
+                  
+                  {/* Resumo */}
+                  {event.summary && (
+                    <div className="mb-6">
+                      <p className="text-lg text-gray-700 leading-relaxed">
+                        {event.summary}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Descrição completa */}
+                  {event.description && (
+                    <div className="prose prose-gray max-w-none">
+                      <div 
+                        className="text-gray-600 leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: event.description }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Informações adicionais */}
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex flex-wrap gap-6">
+                      {event.minimum_quorum > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            Quórum mínimo: {event.minimum_quorum} participantes
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="w-5 h-5 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          Duração: {event.start_time} - {event.end_time}
+                        </span>
+                      </div>
+                      
+                      {event.format === "HIBRIDO" && (
+                        <div className="flex items-center gap-2">
+                          <Wifi className="w-5 h-5 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            Evento híbrido (presencial + online)
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Card Palestrantes - 30% */}
+            <div className="lg:col-span-4">
+              <Card className="w-full border-0 shadow-sm bg-white">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">
+                    Palestrantes
+                  </h2>
+                  
+                  {event.speakers && event.speakers.length > 0 ? (
+                    <div className="space-y-4">
+                      {event.speakers.map((speaker) => (
+                        <div key={speaker.id} className="flex items-center gap-3">
+                          {/* Foto do palestrante */}
+                          <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                            {speaker.users.image_url ? (
+                              <Image
+                                src={speaker.users.image_url}
+                                alt={speaker.users.name || "Palestrante"}
+                                width={48}
+                                height={48}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                <Users2Icon className="w-6 h-6 text-primary/60" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Informações */}
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 text-sm">
+                              {speaker.users.name}
+                            </h3>
+                            {speaker.users.position && (
+                              <p className="text-xs text-gray-600">
+                                {speaker.users.position}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="p-3 bg-gray-100 rounded-full mx-auto w-fit mb-3">
+                        <Users2Icon className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Palestrantes a confirmar
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Biografia expandida (se houver) */}
+                  {event.speakers && event.speakers.length === 1 && event.speakers[0].bio && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        {event.speakers[0].bio}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

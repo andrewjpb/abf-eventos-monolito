@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,7 @@ import { registerAttendee } from "@/features/attendance-list/actions/register-at
 import { toast } from "sonner"
 import { EventWithDetails } from "@/features/events/types"
 import Image from "next/image"
+import { EMPTY_ACTION_STATE } from "./form/utils/to-action-state"
 
 interface EventRegistrationCardProps {
   event: EventWithDetails
@@ -20,9 +21,9 @@ interface EventRegistrationCardProps {
   canRegister?: { canRegister: boolean; reason?: string } | null
 }
 
-export function EventRegistrationCard({ 
-  event, 
-  user, 
+export function EventRegistrationCard({
+  event,
+  user,
   isRegistered = false,
   remainingVacancies,
   companyRemainingVacancies,
@@ -30,6 +31,11 @@ export function EventRegistrationCard({
 }: EventRegistrationCardProps) {
   const [isPending, startTransition] = useTransition()
   const [registrationStatus, setRegistrationStatus] = useState<{ canRegister: boolean; reason?: string } | null>(canRegister)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleRegister = () => {
     if (!user) {
@@ -47,7 +53,7 @@ export function EventRegistrationCard({
             reason: result.message
           }
           setRegistrationStatus(canRegisterResult)
-          
+
           if (!canRegisterResult.canRegister) {
             toast.error(canRegisterResult.reason || "Não é possível se inscrever neste evento")
             return
@@ -57,10 +63,10 @@ export function EventRegistrationCard({
         // Remover formatação do CPF (manter CNPJ com formatação)
         const cleanCPF = user.cpf ? user.cpf.replace(/[.-]/g, '') : ''
         const companyCNPJ = user.companyId || ''
-        
+
         // Buscar o segmento da empresa
         const companySegment = user.company?.segment || "Não informado"
-        
+
         const formData = new FormData()
         formData.append("eventId", event.id)
         formData.append("userId", user.id)
@@ -74,8 +80,8 @@ export function EventRegistrationCard({
         formData.append("mobile_phone", user.mobilePhone || "")
         formData.append("attendee_type", "REGISTERED")
 
-        const result = await registerAttendee(null, formData)
-        
+        const result = await registerAttendee(EMPTY_ACTION_STATE, formData)
+
         if (result.status === "SUCCESS") {
           toast.success("Presença confirmada com sucesso!")
           // Recarregar a página para atualizar o status
@@ -87,6 +93,20 @@ export function EventRegistrationCard({
         toast.error("Erro interno do servidor")
       }
     })
+  }
+
+  // Evitar renderização no servidor
+  if (!mounted) {
+    return (
+      <Card className="w-full border-0 shadow-sm">
+        <CardContent className="p-4">
+          <div className="animate-pulse">
+            <div className="h-10 bg-gray-200 rounded mb-3"></div>
+            <div className="h-9 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   // Se o usuário não está logado
@@ -107,8 +127,8 @@ export function EventRegistrationCard({
               </p>
             </div>
           </div>
-          <Button 
-            className="w-full mt-3 h-9 text-sm" 
+          <Button
+            className="w-full mt-3 h-9 text-sm"
             onClick={() => window.location.href = '/sign-in'}
           >
             Fazer Login
@@ -161,7 +181,7 @@ export function EventRegistrationCard({
               Inscrito
             </Badge>
           </div>
-          
+
           <div className="mt-3 pt-3 border-t border-green-200">
             <p className="text-xs text-gray-600 text-center">
               Sua presença já está confirmada
@@ -197,7 +217,7 @@ export function EventRegistrationCard({
 
   // Pode se inscrever
   const displayVacancies = companyRemainingVacancies !== undefined ? companyRemainingVacancies : remainingVacancies
-  
+
   return (
     <Card className="w-full border-0 shadow-sm">
       <CardContent className="p-4">
@@ -244,8 +264,8 @@ export function EventRegistrationCard({
           </div>
 
           {/* Botão de confirmação */}
-          <Button 
-            className="w-full h-9 text-sm" 
+          <Button
+            className="w-full h-9 text-sm"
             onClick={handleRegister}
             disabled={isPending}
           >

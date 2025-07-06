@@ -17,7 +17,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
 
   return (
     <div className="flex-1 flex flex-col gap-y-8 mt-10">
-      <div className="container mx-auto px-4 pb-8 animate-fade-in-from-top">
+      <div className="animate-fade-in-from-top">
         <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
           <EventDetail
             event={event}

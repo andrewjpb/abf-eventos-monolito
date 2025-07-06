@@ -282,6 +282,13 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
               </Button>
             </Link>
 
+            <Link href={`/eventos/${event.id}`} target="_blank">
+              <Button variant="outline">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Visualizar Evento
+              </Button>
+            </Link>
+
             <Button
               variant="outline"
               onClick={handleTogglePublication}

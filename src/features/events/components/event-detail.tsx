@@ -91,47 +91,47 @@ export function EventDetail({
           {/* Container Esquerdo */}
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2 mb-2">
-              <Badge variant="outline" className="bg-gray-100">
+              <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                 {event.format === "PRESENCIAL" ? "Presencial" :
                   event.format === "ONLINE" ? "Online" :
                     event.format === "HIBRIDO" ? "Híbrido" : "Presencial"}
               </Badge>
 
               {event.isStreaming && event.format !== "ONLINE" && (
-                <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                   Com transmissão
                 </Badge>
               )}
 
               {event.highlight && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800">
+                <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300">
                   Destaque
                 </Badge>
               )}
 
               {eventoPassado ? (
-                <Badge variant="outline" className="bg-gray-100 text-gray-800">
+                <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
                   Evento Passado
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-green-100 text-green-800">
+                <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                   Em {calcularDiasAteEvento(event.date)} dias
                 </Badge>
               )}
             </div>
 
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 {event.title}
               </h1>
             </div>
 
             {/* Card de Patrocinadores */}
             {event.sponsors && event.sponsors.length > 0 && (
-              <Card className="w-full border-0 shadow-sm bg-gray-50">
+              <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50">
                 <CardContent className="px-4">
                   {/* Header */}
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                     Patrocinadores
                   </h2>
 
@@ -162,7 +162,7 @@ export function EventDetail({
             )}
 
             {/* Card de Status do Evento - Transmissão/Início */}
-            <Card className="w-full border-0 shadow-sm bg-gray-50 mt-4">
+            <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50 mt-4">
               <CardContent className="p-5">
                 {(() => {
                   const agora = new Date()
@@ -196,14 +196,14 @@ export function EventDetail({
                     return (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="p-3 bg-gray-100 rounded-lg">
-                            <CheckCircleIcon className="w-6 h-6 text-gray-600" />
+                          <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                            <CheckCircleIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                           </div>
                           <div>
-                            <p className="text-gray-900 font-medium">
+                            <p className="text-gray-900 dark:text-white font-medium">
                               Evento realizado
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               {formatarDataEvento(event.date)}
                             </p>
                           </div>
@@ -215,33 +215,33 @@ export function EventDetail({
                     return (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="p-3 bg-green-100 rounded-lg">
-                            <Radio className="w-6 h-6 text-green-600 animate-pulse" />
+                          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <Radio className="w-6 h-6 text-green-600 dark:text-green-400 animate-pulse" />
                           </div>
                           <div>
-                            <p className="text-gray-900 font-medium">
+                            <p className="text-gray-900 dark:text-white font-medium">
                               {temTransmissao ? "Transmissão ao vivo" : "Evento em andamento"}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               Até às {event.end_time}
                             </p>
                           </div>
                         </div>
 
                         {temTransmissao && event.transmission_link ? (
-                          <div className="p-3 bg-green-100 rounded-lg">
+                          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                             <a
                               href={event.transmission_link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-green-700 hover:text-green-900 transition-colors"
+                              className="flex items-center gap-2 text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 transition-colors"
                             >
                               <PlayCircle className="w-5 h-5" />
                               <span className="text-sm font-medium">Assistir agora</span>
                             </a>
                           </div>
                         ) : (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                             <Radio className="w-3 h-3 mr-1 animate-pulse" />
                             Ao vivo
                           </Badge>
@@ -264,7 +264,7 @@ export function EventDetail({
                     return (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="p-3 bg-primary/10 rounded-lg">
+                          <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
                             {temTransmissao ? (
                               <Wifi className="w-6 h-6 text-primary" />
                             ) : (
@@ -272,17 +272,17 @@ export function EventDetail({
                             )}
                           </div>
                           <div>
-                            <p className="text-gray-900 font-medium">
+                            <p className="text-gray-900 dark:text-white font-medium">
                               {temTransmissao ? "Transmissão ao vivo" : "Evento presencial"}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               Começaremos em {tempoRestante}
                             </p>
                           </div>
                         </div>
 
-                        <div className="p-3 bg-primary/10 rounded-lg">
-                          <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors cursor-not-allowed opacity-60" disabled>
+                        <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
+                          <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors cursor-not-allowed opacity-60" disabled>
                             <ClockIcon className="w-5 h-5" />
                             <span className="text-sm font-medium">Aguardando início</span>
                           </button>
@@ -297,27 +297,27 @@ export function EventDetail({
 
           {/* Container Direito - Card de Data e Hora */}
           <div className="w-full">
-            <Card className="w-full border-0 shadow-sm bg-gray-50">
+            <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   {/* Lado Esquerdo */}
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary/10 rounded-lg">
+                    <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
                       <CalendarIcon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <p className="text-gray-900 font-medium">
+                      <p className="text-gray-900 dark:text-white font-medium">
                         {formatarDataEvento(event.date)}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Das {event.start_time} às {event.end_time}
                       </p>
                     </div>
                   </div>
 
                   {/* Lado Direito */}
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
+                  <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
+                    <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                       <CalendarPlus className="w-5 h-5" />
                       <span className="text-sm font-medium">Adicionar à agenda</span>
                     </button>
@@ -328,27 +328,27 @@ export function EventDetail({
 
             {/* Card de Endereço */}
             {event.address && (
-              <Card className="w-full border-0 shadow-sm bg-gray-50 mt-4">
+              <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50 mt-4">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between">
                     {/* Lado Esquerdo */}
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-primary/10 rounded-lg">
+                      <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
                         <MapPinIcon className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-gray-900 font-medium">
+                        <p className="text-gray-900 dark:text-white font-medium">
                           {event.address.street}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {event.address.postal_code} - {event.address.cities.name}/{event.address.states.uf}
                         </p>
                       </div>
                     </div>
 
                     {/* Lado Direito */}
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
+                    <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
+                      <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                         <MapPinIcon className="w-5 h-5" />
                         <span className="text-sm font-medium">Ver no mapa</span>
                       </button>
@@ -406,9 +406,9 @@ export function EventDetail({
                   )}
 
                   {/* Programação do Evento */}
-                  <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                         <CalendarIcon className="w-5 h-5" />
                         Programação
                       </h3>
@@ -417,33 +417,33 @@ export function EventDetail({
                     {event.schedule && event.schedule.length > 0 ? (
                       <div className="relative">
                         {/* Linha principal da timeline */}
-                        <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent"></div>
+                        <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent dark:from-blue-400 dark:via-blue-500 dark:to-transparent"></div>
 
                         <div className="space-y-1">
                           {event.schedule.map((item, index) => (
                             <div key={item.id} className="relative flex items-start gap-4 group">
                               {/* Ponto da timeline */}
                               <div className="relative z-10 flex-shrink-0 mt-1">
-                                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+                                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm border-2 border-white dark:border-gray-800">
                                   <ClockIcon className="w-3 h-3 text-white" />
                                 </div>
                               </div>
 
                               {/* Conteúdo do item */}
-                              <div className="flex-1 min-w-0 py-2 group-hover:bg-blue-50/50 rounded-md transition-colors duration-200 px-2 -mx-2">
+                              <div className="flex-1 min-w-0 py-2 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/20 rounded-md transition-colors duration-200 px-2 -mx-2">
                                 {/* Horário e título na mesma linha */}
                                 <div className="flex items-center gap-3 mb-1">
-                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs font-medium border-blue-200">
+                                  <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium border-blue-200 dark:border-blue-700">
                                     {item.start_time.substring(0, 5)} - {item.end_time.substring(0, 5)}
                                   </Badge>
-                                  <h4 className="font-semibold text-gray-900 text-sm">
+                                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                                     {item.title}
                                   </h4>
                                 </div>
 
                                 {/* Descrição */}
                                 {item.description && (
-                                  <p className="text-sm text-gray-600 ml-0 leading-relaxed">
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 ml-0 leading-relaxed">
                                     {item.description}
                                   </p>
                                 )}
@@ -453,16 +453,16 @@ export function EventDetail({
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-6 text-center">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-6 text-center">
                         <div className="flex flex-col items-center gap-3">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <CalendarPlus className="w-6 h-6 text-blue-600" />
+                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                            <CalendarPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
-                            <p className="text-blue-900 font-medium mb-1">
+                            <p className="text-blue-900 dark:text-blue-100 font-medium mb-1">
                               Programação em desenvolvimento
                             </p>
-                            <p className="text-blue-700 text-sm">
+                            <p className="text-blue-700 dark:text-blue-300 text-sm">
                               Em breve divulgaremos todos os detalhes da programação deste evento
                             </p>
                           </div>

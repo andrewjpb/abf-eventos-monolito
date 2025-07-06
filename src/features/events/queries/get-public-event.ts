@@ -41,6 +41,13 @@ export const getPublicEvent = cache(async (id: string) => {
           active: true
         }
       },
+      schedule: {
+        orderBy: [
+          { day_date: 'asc' },
+          { order_index: 'asc' },
+          { start_time: 'asc' }
+        ]
+      },
       _count: {
         select: {
           attendance_list: true

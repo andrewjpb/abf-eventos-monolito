@@ -14,7 +14,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
   if (!eventData) {
     return notFound()
   }
-  const { event, isRegistered, attendanceId, isAdmin, user, canRegister, remainingVacancies, companyRemainingVacancies, occupationPercentage } = eventData
+  const { event, isRegistered, attendanceId, isAdmin, user, canRegister, remainingVacancies, companyRemainingVacancies, companyAttendees, occupationPercentage } = eventData
 
   // Buscar próximos eventos (excluindo o evento atual)
   const upcomingEventsData = await getEvents({
@@ -38,6 +38,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
             canRegister={canRegister}
             remainingVacancies={remainingVacancies}
             companyRemainingVacancies={companyRemainingVacancies}
+            companyAttendees={companyAttendees}
             occupationPercentage={occupationPercentage}
             upcomingEvents={upcomingEvents}
           />

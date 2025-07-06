@@ -27,6 +27,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { EventRegistrationCard } from "@/components/event-registration-card"
 import { EventsSection } from "./events-section"
+import { EventScheduleTimeline } from "./event-schedule-timeline"
 
 interface EventDetailProps {
   event: EventWithDetails
@@ -35,6 +36,7 @@ interface EventDetailProps {
   isAdmin: boolean
   remainingVacancies: number
   companyRemainingVacancies?: number
+  companyAttendees?: number
   occupationPercentage: number
   user?: any
   canRegister?: { canRegister: boolean; reason?: string } | null
@@ -48,6 +50,7 @@ export function EventDetail({
   isAdmin,
   remainingVacancies,
   companyRemainingVacancies,
+  companyAttendees = 0,
   occupationPercentage,
   user,
   canRegister,
@@ -402,14 +405,83 @@ export function EventDetail({
                     </div>
                   )}
 
+                  {/* Programação do Evento */}
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <CalendarIcon className="w-5 h-5" />
+                        Programação
+                      </h3>
+                    </div>
+                    
+                    {event.schedule && event.schedule.length > 0 ? (
+                      <div className="space-y-4">
+                        {event.schedule.map((item, index) => (
+                          <div key={item.id} className="relative flex items-start gap-4">
+                            {/* Ponto da timeline */}
+                            <div className="relative z-10 flex-shrink-0">
+                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <ClockIcon className="w-3 h-3 text-white" />
+                              </div>
+                              {/* Linha conectora (exceto no último item) */}
+                              {index < event.schedule.length - 1 && (
+                                <div className="absolute left-3 top-6 w-0.5 h-8 bg-gray-200"></div>
+                              )}
+                            </div>
+
+                            {/* Conteúdo do item */}
+                            <div className="flex-1 min-w-0 pb-2">
+                              <div className="bg-gray-50 border rounded-lg p-3">
+                                {/* Horário */}
+                                <div className="mb-2">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">
+                                    {item.start_time.substring(0, 5)} - {item.end_time.substring(0, 5)}
+                                  </Badge>
+                                </div>
+
+                                {/* Título */}
+                                <h4 className="font-medium text-gray-900 text-sm mb-1">
+                                  {item.title}
+                                </h4>
+
+                                {/* Descrição */}
+                                {item.description && (
+                                  <p className="text-xs text-gray-600">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-6 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <CalendarPlus className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-blue-900 font-medium mb-1">
+                              Programação em desenvolvimento
+                            </p>
+                            <p className="text-blue-700 text-sm">
+                              Em breve divulgaremos todos os detalhes da programação deste evento
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Informações adicionais */}
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="flex flex-wrap gap-6">
-                      {event.minimum_quorum > 0 && (
+                      {user && companyAttendees > 0 && (
                         <div className="flex items-center gap-2">
                           <Users className="w-5 h-5 text-gray-400" />
                           <span className="text-sm text-gray-600">
-                            Quórum mínimo: {event.minimum_quorum} participantes
+                            {companyAttendees} {companyAttendees === 1 ? 'pessoa' : 'pessoas'} da sua empresa já se {companyAttendees === 1 ? 'inscreveu' : 'inscreveram'} para este evento
                           </span>
                         </div>
                       )}
@@ -537,6 +609,7 @@ export function EventDetail({
           </div>
         </div>
       </div>
+
 
       {/* Seção de Próximos Eventos */}
       {upcomingEvents.length > 0 && (

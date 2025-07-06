@@ -27,6 +27,13 @@ export const getEvent = cache(async (id: string) => {
       },
       sponsors: true,
       supporters: true,
+      schedule: {
+        orderBy: [
+          { day_date: 'asc' },
+          { order_index: 'asc' },
+          { start_time: 'asc' }
+        ]
+      },
       _count: {
         select: {
           attendance_list: true

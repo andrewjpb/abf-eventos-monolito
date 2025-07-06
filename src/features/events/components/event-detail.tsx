@@ -415,45 +415,42 @@ export function EventDetail({
                     </div>
                     
                     {event.schedule && event.schedule.length > 0 ? (
-                      <div className="space-y-4">
-                        {event.schedule.map((item, index) => (
-                          <div key={item.id} className="relative flex items-start gap-4">
-                            {/* Ponto da timeline */}
-                            <div className="relative z-10 flex-shrink-0">
-                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                <ClockIcon className="w-3 h-3 text-white" />
+                      <div className="relative">
+                        {/* Linha principal da timeline */}
+                        <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent"></div>
+                        
+                        <div className="space-y-1">
+                          {event.schedule.map((item, index) => (
+                            <div key={item.id} className="relative flex items-start gap-4 group">
+                              {/* Ponto da timeline */}
+                              <div className="relative z-10 flex-shrink-0 mt-1">
+                                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+                                  <ClockIcon className="w-3 h-3 text-white" />
+                                </div>
                               </div>
-                              {/* Linha conectora (exceto no último item) */}
-                              {index < event.schedule.length - 1 && (
-                                <div className="absolute left-3 top-6 w-0.5 h-8 bg-gray-200"></div>
-                              )}
-                            </div>
 
-                            {/* Conteúdo do item */}
-                            <div className="flex-1 min-w-0 pb-2">
-                              <div className="bg-gray-50 border rounded-lg p-3">
-                                {/* Horário */}
-                                <div className="mb-2">
-                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">
+                              {/* Conteúdo do item */}
+                              <div className="flex-1 min-w-0 py-2 group-hover:bg-blue-50/50 rounded-md transition-colors duration-200 px-2 -mx-2">
+                                {/* Horário e título na mesma linha */}
+                                <div className="flex items-center gap-3 mb-1">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs font-medium border-blue-200">
                                     {item.start_time.substring(0, 5)} - {item.end_time.substring(0, 5)}
                                   </Badge>
+                                  <h4 className="font-semibold text-gray-900 text-sm">
+                                    {item.title}
+                                  </h4>
                                 </div>
-
-                                {/* Título */}
-                                <h4 className="font-medium text-gray-900 text-sm mb-1">
-                                  {item.title}
-                                </h4>
 
                                 {/* Descrição */}
                                 {item.description && (
-                                  <p className="text-xs text-gray-600">
+                                  <p className="text-sm text-gray-600 ml-0 leading-relaxed">
                                     {item.description}
                                   </p>
                                 )}
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-6 text-center">

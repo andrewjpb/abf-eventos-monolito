@@ -1,5 +1,5 @@
-import { ReactQueryProvider } from "../_providers/react-query/react-query-provider"
-import { AppSidebar } from "../_navigation/sidebar/sidebar"
+import { AppSidebar } from "@/app/_navigation/sidebar/sidebar"
+import { ReactQueryProvider } from "../../_providers/react-query/react-query-provider"
 
 export default async function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return <ReactQueryProvider>

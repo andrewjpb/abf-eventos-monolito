@@ -1,5 +1,5 @@
 // /features/events/types.tsx
-import { events, address, speakers, sponsors, supporters, attendance_list, cities, states, users } from "@prisma/client"
+import { events, address, speakers, sponsors, supporters, attendance_list, cities, states, users, event_schedule } from "@prisma/client"
 
 // Tipo de evento com todos os relacionamentos
 export type EventWithDetails = events & {
@@ -13,9 +13,24 @@ export type EventWithDetails = events & {
   sponsors?: sponsors[]
   supporters?: supporters[]
   attendance_list?: attendance_list[]
+  schedule?: event_schedule[]
   _count?: {
     attendance_list: number
   }
+}
+
+// Tipo específico para programação do evento
+export type EventSchedule = event_schedule
+
+// Tipo para formulário de programação
+export interface ScheduleFormData {
+  eventId: string
+  day_date: string // Data no formato ISO
+  start_time: string
+  end_time: string
+  title: string
+  description?: string
+  order_index?: number
 }
 
 // Função para formatar data do evento
@@ -106,3 +121,37 @@ export const podeSeInscrever = (event: EventWithDetails): boolean => {
   const status = obterStatusEvento(event.date);
   return status !== 'passado' && temVagasDisponiveis(event) && event.isPublished;
 };
+
+// Funções utilitárias para programação do evento
+export const formatarHorario = (horario: string): string => {
+  return horario.substring(0, 5) // Ex: "09:00:00" -> "09:00"
+}
+
+export const ordenarProgramacao = (schedule: EventSchedule[]): EventSchedule[] => {
+  return schedule.sort((a, b) => {
+    // Primeiro ordena por data
+    const dateCompare = new Date(a.day_date).getTime() - new Date(b.day_date).getTime()
+    if (dateCompare !== 0) return dateCompare
+    
+    // Depois por order_index
+    if (a.order_index !== b.order_index) return a.order_index - b.order_index
+    
+    // Por último por horário de início
+    return a.start_time.localeCompare(b.start_time)
+  })
+}
+
+export const agruparProgramacaoPorDia = (schedule: EventSchedule[]): { [key: string]: EventSchedule[] } => {
+  const programacaoOrdenada = ordenarProgramacao(schedule)
+  
+  return programacaoOrdenada.reduce((grupos, item) => {
+    const dataKey = new Date(item.day_date).toISOString().split('T')[0]
+    
+    if (!grupos[dataKey]) {
+      grupos[dataKey] = []
+    }
+    
+    grupos[dataKey].push(item)
+    return grupos
+  }, {} as { [key: string]: EventSchedule[] })
+}

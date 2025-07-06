@@ -99,6 +99,24 @@ model events {
   speakers            speakers[]        @relation("EventToSpeaker")
   sponsors            sponsors[]        @relation("EventToSponsor")
   supporters          supporters[]      @relation("EventToSupporter")
+  schedule            event_schedule[]
+}
+
+model event_schedule {
+  id          String   @id
+  eventId     String
+  day_date    DateTime // Data específica do dia da programação
+  start_time  String   // Horário de início (ex: "09:00")
+  end_time    String   // Horário de fim (ex: "10:30")
+  title       String   // Título da atividade
+  description String?  // Descrição da atividade (opcional)
+  order_index Int      @default(0) // Ordem na timeline
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  
+  event       events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("event_schedule")
 }
 
 model external_events {

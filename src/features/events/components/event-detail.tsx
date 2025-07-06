@@ -382,7 +382,7 @@ export function EventDetail({
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     Sobre o evento
                   </h2>
-                  
+
                   {/* Resumo */}
                   {event.summary && (
                     <div className="mb-6">
@@ -391,17 +391,17 @@ export function EventDetail({
                       </p>
                     </div>
                   )}
-                  
+
                   {/* Descrição completa */}
                   {event.description && (
                     <div className="prose prose-gray max-w-none">
-                      <div 
+                      <div
                         className="text-gray-600 leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: event.description }}
                       />
                     </div>
                   )}
-                  
+
                   {/* Informações adicionais */}
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="flex flex-wrap gap-6">
@@ -413,14 +413,14 @@ export function EventDetail({
                           </span>
                         </div>
                       )}
-                      
+
                       <div className="flex items-center gap-2">
                         <CalendarIcon className="w-5 h-5 text-gray-400" />
                         <span className="text-sm text-gray-600">
                           Duração: {event.start_time} - {event.end_time}
                         </span>
                       </div>
-                      
+
                       {event.format === "HIBRIDO" && (
                         <div className="flex items-center gap-2">
                           <Wifi className="w-5 h-5 text-gray-400" />
@@ -434,15 +434,15 @@ export function EventDetail({
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Card Palestrantes - 30% */}
             <div className="lg:col-span-4">
               <Card className="w-full border-0 shadow-sm bg-white">
-                <CardContent className="p-6">
+                <CardContent className="px-4">
                   <h2 className="text-xl font-bold text-gray-900 mb-4">
                     Palestrantes
                   </h2>
-                  
+
                   {event.speakers && event.speakers.length > 0 ? (
                     <div className="space-y-4">
                       {event.speakers.map((speaker) => (
@@ -463,7 +463,7 @@ export function EventDetail({
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Informações */}
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-900 text-sm">
@@ -488,17 +488,51 @@ export function EventDetail({
                       </p>
                     </div>
                   )}
-                  
+
                   {/* Biografia expandida (se houver) */}
-                  {event.speakers && event.speakers.length === 1 && event.speakers[0].bio && (
+                  {event.speakers && event.speakers.length === 1 && event.speakers[0].description && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <p className="text-xs text-gray-600 leading-relaxed">
-                        {event.speakers[0].bio}
+                        {event.speakers[0].description}
                       </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
+
+              {/* Card de Apoio */}
+              {event.supporters && event.supporters.length > 0 && (
+                <Card className="w-full border-0 shadow-sm bg-white mt-4">
+                  <CardContent className="px-4">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">
+                      Apoio
+                    </h2>
+
+                    {/* Grid de logos dos apoiadores */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {event.supporters.map((supporter) => (
+                        <div key={supporter.id} className="flex items-center justify-center p-3 bg-gray-50 rounded-lg border">
+                          {supporter.image_url ? (
+                            <Image
+                              src={supporter.image_url}
+                              alt={supporter.name}
+                              width={80}
+                              height={40}
+                              className="max-w-full max-h-8 object-contain"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center w-full h-8 bg-gray-100 rounded">
+                              <span className="text-xs font-medium text-gray-600 text-center px-2">
+                                {supporter.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>

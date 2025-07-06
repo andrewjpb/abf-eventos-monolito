@@ -6,5 +6,7 @@ declare module "lucia" {
     roles: any[];
     isAdmin: boolean;  // Agora é um booleano, não uma função
     company?: any;     // Adicionar propriedade company opcional
+    image_url?: string;
+    thumb_url?: string;
   }
 }

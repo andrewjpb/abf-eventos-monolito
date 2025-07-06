@@ -42,6 +42,10 @@ export const getAuth = async () => {
       if (userWithRoles.company) {
         result.user.company = userWithRoles.company;
       }
+      
+      // Adicionar URLs de imagem
+      result.user.image_url = userWithRoles.image_url;
+      result.user.thumb_url = userWithRoles.thumb_url;
     }
   }
 

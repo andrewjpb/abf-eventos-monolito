@@ -82,11 +82,6 @@ export function EventSupportersManager({ eventId, event }: EventSupportersManage
                     </div>
                     <div>
                       <h3 className="font-semibold">{supporter.name}</h3>
-                      {supporter.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-1">
-                          {supporter.description}
-                        </p>
-                      )}
                     </div>
                   </div>
                   
@@ -148,11 +143,6 @@ export function EventSupportersManager({ eventId, event }: EventSupportersManage
                     </div>
                     <div>
                       <h3 className="font-semibold">{supporter.name}</h3>
-                      {supporter.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-1">
-                          {supporter.description}
-                        </p>
-                      )}
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">
                           {supporter.events.length} evento(s)

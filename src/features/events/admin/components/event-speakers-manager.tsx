@@ -93,8 +93,8 @@ export function EventSpeakersManager({ eventId, event }: EventSpeakersManagerPro
                       )}
                     </div>
                     <div>
-                      <h3 className="font-semibold">{speaker.name}</h3>
-                      <p className="text-sm text-muted-foreground">{speaker.title}</p>
+                      <h3 className="font-semibold">{speaker.users.name}</h3>
+                      <p className="text-sm text-muted-foreground">{speaker.users.position}</p>
                       {speaker.users && (
                         <p className="text-xs text-muted-foreground">
                           {speaker.users.name} - {speaker.users.position}
@@ -171,8 +171,8 @@ export function EventSpeakersManager({ eventId, event }: EventSpeakersManagerPro
                       )}
                     </div>
                     <div>
-                      <h3 className="font-semibold">{speaker.name}</h3>
-                      <p className="text-sm text-muted-foreground">{speaker.title}</p>
+                      <h3 className="font-semibold">{speaker.users.name}</h3>
+                      <p className="text-sm text-muted-foreground">{speaker.users.position}</p>
                       {speaker.users && (
                         <p className="text-xs text-muted-foreground">
                           {speaker.users.name} - {speaker.users.position}
@@ -182,11 +182,6 @@ export function EventSpeakersManager({ eventId, event }: EventSpeakersManagerPro
                         <Badge variant="outline" className="text-xs">
                           {speaker.events.length} evento(s)
                         </Badge>
-                        {speaker.active && (
-                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                            Ativo
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>

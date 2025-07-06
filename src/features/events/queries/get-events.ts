@@ -114,14 +114,17 @@ export async function getEvents(options: GetEventsOptions = {}) {
         },
         speakers: {
           include: {
-            users: {
-              select: {
-                name: true,
-                position: true,
-                image_url: true
-              }
-            }
+            users: true
           }
+        },
+        sponsors: true,
+        supporters: true,
+        schedule: {
+          orderBy: [
+            { day_date: 'asc' },
+            { order_index: 'asc' },
+            { start_time: 'asc' }
+          ]
         },
         _count: {
           select: {

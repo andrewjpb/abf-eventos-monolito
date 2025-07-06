@@ -32,6 +32,7 @@ import { AdminEventWithDetails, getEventStatus, getEventStatusColor, getEventSta
 import { useConfirmDialog } from "@/components/confirm-dialog"
 import { deleteEvent } from "../actions/delete-event"
 import { toggleEventPublication, toggleEventHighlight } from "../actions/update-event-status"
+import { EventScheduleManager } from "./event-schedule-manager"
 
 interface AdminEventDetailProps {
   event: AdminEventWithDetails
@@ -531,6 +532,13 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Programação do Evento */}
+      <EventScheduleManager 
+        eventId={event.id}
+        eventDate={event.date}
+        schedule={event.schedule}
+      />
 
       {/* Dialog de confirmação de delete */}
       {deleteDialog}

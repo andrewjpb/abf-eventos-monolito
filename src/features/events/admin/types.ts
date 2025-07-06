@@ -1,4 +1,4 @@
-import { events, address, speakers, sponsors, supporters, attendance_list, cities, states, users } from "@prisma/client"
+import { events, address, speakers, sponsors, supporters, attendance_list, cities, states, users, event_schedule } from "@prisma/client"
 
 // Tipo completo do evento para admin com todos os relacionamentos
 export type AdminEventWithDetails = events & {
@@ -11,11 +11,13 @@ export type AdminEventWithDetails = events & {
   }>
   sponsors: sponsors[]
   supporters: supporters[]
+  schedule: event_schedule[]
   _count: {
     attendance_list: number
     speakers: number
     sponsors: number
     supporters: number
+    schedule: number
   }
 }
 

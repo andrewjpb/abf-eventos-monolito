@@ -32,12 +32,20 @@ export async function getAdminEvent(eventId: string): Promise<AdminEventWithDeta
       },
       sponsors: true,
       supporters: true,
+      schedule: {
+        orderBy: [
+          { day_date: 'asc' },
+          { order_index: 'asc' },
+          { start_time: 'asc' }
+        ]
+      },
       _count: {
         select: {
           attendance_list: true,
           speakers: true,
           sponsors: true,
-          supporters: true
+          supporters: true,
+          schedule: true
         }
       }
     }
@@ -78,12 +86,20 @@ export async function getAdminEventBySlug(slug: string): Promise<AdminEventWithD
       },
       sponsors: true,
       supporters: true,
+      schedule: {
+        orderBy: [
+          { day_date: 'asc' },
+          { order_index: 'asc' },
+          { start_time: 'asc' }
+        ]
+      },
       _count: {
         select: {
           attendance_list: true,
           speakers: true,
           sponsors: true,
-          supporters: true
+          supporters: true,
+          schedule: true
         }
       }
     }

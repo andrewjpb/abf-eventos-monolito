@@ -413,12 +413,12 @@ export function EventDetail({
                         Programação
                       </h3>
                     </div>
-                    
+
                     {event.schedule && event.schedule.length > 0 ? (
                       <div className="relative">
                         {/* Linha principal da timeline */}
                         <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent"></div>
-                        
+
                         <div className="space-y-1">
                           {event.schedule.map((item, index) => (
                             <div key={item.id} className="relative flex items-start gap-4 group">
@@ -610,8 +610,8 @@ export function EventDetail({
 
       {/* Seção de Próximos Eventos */}
       {upcomingEvents.length > 0 && (
-        <div className="bg-white w-full py-8">
-          <div className="container mx-auto px-4">
+        <div className="bg-white w-full ">
+          <div className="container mx-auto ">
             <EventsSection
               events={upcomingEvents}
               title="Próximos eventos"

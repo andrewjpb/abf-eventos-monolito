@@ -4,6 +4,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Header } from "./_navigation/header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Metadata } from "next";
+import Footer from "./_navigation/footer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -113,8 +114,10 @@ export default function RootLayout({
         <ThemeProvider>
           <NuqsAdapter>
             <Header />
-            <main className="flex w-full bg-background pt-20 min-h-[calc(100vh-5rem)]">
+            <main className="flex flex-col w-full bg-background pt-20 min-h-[calc(100vh-5rem)]">
               {children}
+              <Footer />
+
             </main>
           </NuqsAdapter>
         </ThemeProvider>

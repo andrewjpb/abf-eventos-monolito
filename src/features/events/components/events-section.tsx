@@ -83,7 +83,7 @@ export function EventsSection({
   }
 
   return (
-    <div className="py-4 sm:py-6 md:py-8" ref={containerRef}>
+    <div className="py-4 sm:py-6 md:py-4" ref={containerRef}>
       {/* Cabeçalho com título e controles de navegação */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>

@@ -86,7 +86,7 @@ export function EventsSection({
     <div className="py-4 sm:py-6 md:py-4" ref={containerRef}>
       {/* Cabeçalho com título e controles de navegação */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
 
         {temEventos && maxPages > 1 && (
           <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export function EventsSection({
           ))}
         </div>
       ) : (
-        <div className="text-center py-10 sm:py-16 text-gray-500">
+        <div className="text-center py-10 sm:py-16 text-gray-500 dark:text-gray-400">
           Nenhum evento disponível no momento.
         </div>
       )}

@@ -375,12 +375,12 @@ export function EventDetail({
       </div>
 
       {/* Seção Sobre o Evento e Palestrantes */}
-      <div className="bg-gray-100 dark:bg-gray-900 w-full py-8">
+      <div className="bg-gray-100 dark:bg-black/20 w-full py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Card Sobre o Evento - 70% */}
             <div className="lg:col-span-8">
-              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800">
+              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
                 <CardContent className="p-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                     Sobre o evento
@@ -506,7 +506,7 @@ export function EventDetail({
 
             {/* Card Palestrantes - 30% */}
             <div className="lg:col-span-4">
-              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800">
+              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
                 <CardContent className="p-6">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                     Palestrantes
@@ -571,7 +571,7 @@ export function EventDetail({
 
               {/* Card de Apoio */}
               {event.supporters && event.supporters.length > 0 && (
-                <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800 mt-4">
+                <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50 mt-4">
                   <CardContent className="p-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                       Apoio
@@ -610,8 +610,8 @@ export function EventDetail({
 
       {/* Seção de Próximos Eventos */}
       {upcomingEvents.length > 0 && (
-        <div className="bg-white w-full ">
-          <div className="container mx-auto ">
+        <div className="w-full py-8">
+          <div className="container mx-auto px-4">
             <EventsSection
               events={upcomingEvents}
               title="Próximos eventos"

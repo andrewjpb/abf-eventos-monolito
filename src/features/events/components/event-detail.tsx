@@ -375,21 +375,21 @@ export function EventDetail({
       </div>
 
       {/* Seção Sobre o Evento e Palestrantes */}
-      <div className="bg-gray-50 w-full py-8">
+      <div className="bg-gray-100 dark:bg-gray-900 w-full py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Card Sobre o Evento - 70% */}
             <div className="lg:col-span-8">
-              <Card className="w-full border-0 shadow-sm bg-white">
+              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                     Sobre o evento
                   </h2>
 
                   {/* Resumo */}
                   {event.summary && (
                     <div className="mb-6">
-                      <p className="text-lg text-gray-700 leading-relaxed">
+                      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                         {event.summary}
                       </p>
                     </div>
@@ -397,9 +397,9 @@ export function EventDetail({
 
                   {/* Descrição completa */}
                   {event.description && (
-                    <div className="prose prose-gray max-w-none">
+                    <div className="prose prose-gray dark:prose-invert max-w-none">
                       <div
-                        className="text-gray-600 leading-relaxed"
+                        className="text-gray-600 dark:text-gray-400 leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: event.description }}
                       />
                     </div>
@@ -476,24 +476,24 @@ export function EventDetail({
                     <div className="flex flex-wrap gap-6">
                       {user && companyAttendees > 0 && (
                         <div className="flex items-center gap-2">
-                          <Users className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm text-gray-600">
+                          <Users className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
                             {companyAttendees} {companyAttendees === 1 ? 'pessoa' : 'pessoas'} da sua empresa já se {companyAttendees === 1 ? 'inscreveu' : 'inscreveram'} para este evento
                           </span>
                         </div>
                       )}
 
                       <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm text-gray-600">
+                        <CalendarIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           Duração: {event.start_time} - {event.end_time}
                         </span>
                       </div>
 
                       {event.format === "HIBRIDO" && (
                         <div className="flex items-center gap-2">
-                          <Wifi className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm text-gray-600">
+                          <Wifi className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
                             Evento híbrido (presencial + online)
                           </span>
                         </div>
@@ -506,18 +506,18 @@ export function EventDetail({
 
             {/* Card Palestrantes - 30% */}
             <div className="lg:col-span-4">
-              <Card className="w-full border-0 shadow-sm bg-white">
-                <CardContent className="px-4">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                     Palestrantes
                   </h2>
 
                   {event.speakers && event.speakers.length > 0 ? (
                     <div className="space-y-4">
                       {event.speakers.map((speaker) => (
-                        <div key={speaker.id} className="flex items-center gap-3">
+                        <div key={speaker.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                           {/* Foto do palestrante */}
-                          <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                             {speaker.users.image_url ? (
                               <Image
                                 src={speaker.users.image_url}
@@ -527,7 +527,7 @@ export function EventDetail({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                              <div className="w-full h-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
                                 <Users2Icon className="w-6 h-6 text-primary/60" />
                               </div>
                             )}
@@ -535,11 +535,11 @@ export function EventDetail({
 
                           {/* Informações */}
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 text-sm">
+                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
                               {speaker.users.name}
                             </h3>
                             {speaker.users.position && (
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
                                 {speaker.users.position}
                               </p>
                             )}
@@ -549,10 +549,10 @@ export function EventDetail({
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="p-3 bg-gray-100 rounded-full mx-auto w-fit mb-3">
+                      <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full mx-auto w-fit mb-3">
                         <Users2Icon className="w-8 h-8 text-gray-400" />
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         Palestrantes a confirmar
                       </p>
                     </div>
@@ -560,8 +560,8 @@ export function EventDetail({
 
                   {/* Biografia expandida (se houver) */}
                   {event.speakers && event.speakers.length === 1 && event.speakers[0].description && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-xs text-gray-600 leading-relaxed">
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                         {event.speakers[0].description}
                       </p>
                     </div>
@@ -571,16 +571,16 @@ export function EventDetail({
 
               {/* Card de Apoio */}
               {event.supporters && event.supporters.length > 0 && (
-                <Card className="w-full border-0 shadow-sm bg-white mt-4">
-                  <CardContent className="px-4">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">
+                <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800 mt-4">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                       Apoio
                     </h2>
 
                     {/* Grid de logos dos apoiadores */}
                     <div className="grid grid-cols-2 gap-3">
                       {event.supporters.map((supporter) => (
-                        <div key={supporter.id} className="flex items-center justify-center p-3 bg-gray-50 rounded-lg border">
+                        <div key={supporter.id} className="flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                           {supporter.image_url ? (
                             <Image
                               src={supporter.image_url}
@@ -590,8 +590,8 @@ export function EventDetail({
                               className="max-w-full max-h-8 object-contain"
                             />
                           ) : (
-                            <div className="flex items-center justify-center w-full h-8 bg-gray-100 rounded">
-                              <span className="text-xs font-medium text-gray-600 text-center px-2">
+                            <div className="flex items-center justify-center w-full h-8 bg-gray-100 dark:bg-gray-600 rounded">
+                              <span className="text-xs font-medium text-gray-600 dark:text-gray-300 text-center px-2">
                                 {supporter.name}
                               </span>
                             </div>

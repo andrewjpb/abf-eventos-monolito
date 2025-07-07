@@ -8,34 +8,36 @@ import { hash } from "@node-rs/argon2"
 import { z } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 import { logInfo } from "@/features/logs/queries/add-log";
+import { checkCnpjExists } from "@/features/company/queries/check-cnpj-exists";
 
 const signUpSchema = z
   .object({
     username: z
       .string()
-      .min(1)
+      .min(1, { message: "Nome de usuário é obrigatório" })
       .max(191)
       .refine(
         (value) => !value.includes(" "),
-        "Username cannot contain spaces"
+        "Nome de usuário não pode conter espaços"
       ),
-    name: z.string().min(1, { message: "Full name is required" }).max(191),
-    email: z.string().min(1, { message: "Email is required" }).max(191).email(),
-    password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(191),
+    name: z.string().min(1, { message: "Nome completo é obrigatório" }).max(191),
+    email: z.string().min(1, { message: "E-mail é obrigatório" }).max(191).email({ message: "E-mail inválido" }),
+    password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }).max(191),
     confirmPassword: z.string().min(6).max(191),
-    rg: z.string().min(1, { message: "RG is required" }).max(20),
-    cpf: z.string().min(11, { message: "CPF is required" }).max(14),
-    cnpj: z.string().min(14, { message: "Company CNPJ is required" }).max(18),
-    mobile_phone: z.string().min(1, { message: "Mobile phone is required" }).max(20),
-    position: z.string().min(1, { message: "Position is required" }).max(100),
-    city: z.string().min(1, { message: "City is required" }).max(100),
-    state: z.string().min(1, { message: "State is required" }).max(50),
+    rg: z.string().min(1, { message: "RG é obrigatório" }).max(20),
+    cpf: z.string().min(11, { message: "CPF é obrigatório" }).max(14),
+    cnpj: z.string().min(14, { message: "CNPJ é obrigatório" }).max(18),
+    mobile_phone: z.string().min(1, { message: "Telefone é obrigatório" }).max(20),
+    position: z.string().min(1, { message: "Cargo é obrigatório" }).max(100),
+    city: z.string().min(1, { message: "Cidade é obrigatória" }).max(100),
+    state: z.string().min(1, { message: "Estado é obrigatório" }).max(50),
+    company_segment: z.string().optional(),
   })
   .superRefine(({ password, confirmPassword }, ctx) => {
     if (password !== confirmPassword) {
       ctx.addIssue({
         code: "custom",
-        message: "Passwords do not match",
+        message: "As senhas não coincidem",
         path: ["confirmPassword"],
       });
     }
@@ -48,6 +50,11 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
     const userData = signUpSchema.parse(
       Object.fromEntries(formData)
     );
+    
+    // Limpar formatação dos campos
+    const cleanCpf = userData.cpf.replace(/\D/g, '')
+    const cleanCnpj = userData.cnpj.replace(/\D/g, '')
+    const cleanPhone = userData.mobile_phone.replace(/\D/g, '')
 
     // Check if email already exists
     const existingEmail = await prisma.users.findUnique({
@@ -55,7 +62,7 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
     });
 
     if (existingEmail) {
-      return toActionState("ERROR", "Email already in use", formData);
+      return toActionState("ERROR", "E-mail já está em uso", formData);
     }
 
     // Check if username already exists
@@ -64,7 +71,7 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
     });
 
     if (existingUsername) {
-      return toActionState("ERROR", "Username already in use", formData);
+      return toActionState("ERROR", "Nome de usuário já está em uso", formData);
     }
 
     // Check if RG already exists
@@ -73,34 +80,44 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
     });
 
     if (existingRG) {
-      return toActionState("ERROR", "RG already registered", formData);
+      return toActionState("ERROR", "RG já está cadastrado", formData);
     }
 
     // Check if CPF already exists
     const existingCPF = await prisma.users.findUnique({
-      where: { cpf: userData.cpf }
+      where: { cpf: cleanCpf }
     });
 
     if (existingCPF) {
-      return toActionState("ERROR", "CPF already registered", formData);
+      return toActionState("ERROR", "CPF já está cadastrado", formData);
     }
 
     // Check if mobile phone already exists
     const existingPhone = await prisma.users.findUnique({
-      where: { mobile_phone: userData.mobile_phone }
+      where: { mobile_phone: cleanPhone }
     });
 
     if (existingPhone) {
-      return toActionState("ERROR", "Phone number already in use", formData);
+      return toActionState("ERROR", "Telefone já está em uso", formData);
     }
 
-    // Check if company exists
-    const company = await prisma.company.findUnique({
-      where: { cnpj: userData.cnpj }
-    });
-
-    if (!company) {
-      return toActionState("ERROR", "Company CNPJ not found in our database", formData);
+    // Verificar se empresa existe ou criar nova
+    let company = await checkCnpjExists(cleanCnpj);
+    
+    if (!company && userData.company_segment) {
+      // Criar nova empresa se CNPJ não existe e segmento foi fornecido
+      const companyId = uuidv4();
+      company = await prisma.company.create({
+        data: {
+          id: companyId,
+          name: "Empresa não associada", // Nome padrão para empresas não associadas
+          cnpj: cleanCnpj,
+          segment: userData.company_segment,
+          active: true
+        }
+      });
+    } else if (!company) {
+      return toActionState("ERROR", "CNPJ não encontrado. Selecione um segmento para cadastrar a empresa.", formData);
     }
 
     const passwordHash = await hash(userData.password);
@@ -114,12 +131,12 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
         email: userData.email,
         password: passwordHash,
         rg: userData.rg,
-        cpf: userData.cpf,
-        cnpj: userData.cnpj,
-        mobile_phone: userData.mobile_phone,
+        cpf: cleanCpf,
+        cnpj: cleanCnpj,
+        mobile_phone: cleanPhone,
         position: userData.position,
         city: userData.city,
-        state: userData.state,
+        state: userData.state.toUpperCase(),
         image_url: "",
         thumb_url: "",
         image_path: "",
@@ -137,11 +154,12 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
     // Log the registration
     await logInfo(
       "Auth",
-      `User registered: ${userData.username}`,
+      `Usuário cadastrado: ${userData.username}`,
       userId,
       {
         email: userData.email,
-        company: userData.cnpj
+        company: cleanCnpj,
+        newCompany: !userData.company_segment ? false : true
       }
     );
 
@@ -155,5 +173,5 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
     return fromErrorToActionState(error, formData);
   }
 
-  return toActionState("SUCCESS", "Sign up successful");
+  return toActionState("SUCCESS", "Cadastro realizado com sucesso!");
 };

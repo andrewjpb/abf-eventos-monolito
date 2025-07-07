@@ -5,18 +5,15 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 
 export default function SignUpPage() {
-  return <div className="flex-1 flex flex-col justify-center items-center">
-    <CardCompact
-      title="Sign Up"
-      description="Create an account to get started"
-      className="w-full max-w-[420px] animate-fade-in-from-top"
-      content={<SignUpForm />}
-      footer={
+  return <div className="flex-1 flex flex-col justify-center items-center p-4">
+    <div className="w-full max-w-4xl animate-fade-in-from-top">
+      <SignUpForm />
+      <div className="text-center mt-6">
         <Link href={signInPath()} className={buttonVariants({ variant: "link" })}>
-          Already have an account? Sign in
+          Já tem uma conta? Fazer login
         </Link>
-      }
-    />
+      </div>
+    </div>
   </div>
 
 }

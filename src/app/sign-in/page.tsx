@@ -4,7 +4,7 @@ import { CardCompact } from "@/components/cardCompact";
 import { buttonVariants } from "@/components/ui/button";
 import { SignInForm } from "@/features/auth/components/sign-in-form";
 import Link from "next/link";
-import { signInPath } from "../paths";
+import { signUpPath } from "../paths";
 
 export default function SignInPage() {
   return (
@@ -19,7 +19,7 @@ export default function SignInPage() {
             <p className="text-sm text-muted-foreground">
               Não tem uma conta?
             </p>
-            <Link href={signInPath()} className={buttonVariants({ variant: "link" })}>
+            <Link href={signUpPath()} className={buttonVariants({ variant: "link" })}>
               Cadastre-se
             </Link>
           </div>

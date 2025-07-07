@@ -15,6 +15,8 @@ import { useActionState } from "react"
 import { changePassword } from "../actions/change-password"
 import { EMPTY_ACTION_STATE } from "@/components/form/utils/to-action-state"
 import { cn } from "@/lib/utils"
+import { passwordForgotPath } from "@/app/paths"
+import Link from "next/link"
 
 type PasswordChangeViewProps = {
   user: User
@@ -172,13 +174,21 @@ export function PasswordChangeView({ user }: PasswordChangeViewProps) {
                   </div>
 
                   {/* Botão de Submit */}
-                  <div className="pt-4">
+                  <div className="pt-4 space-y-3">
                     <SubmitButton
                       label="Alterar Senha"
                       icon={<Save className="h-4 w-4" />}
                       className="w-full"
                       size="lg"
                     />
+                    
+                    <div className="text-center">
+                      <Button variant="link" size="sm" asChild>
+                        <Link href={passwordForgotPath()}>
+                          Esqueci minha senha atual
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Form>

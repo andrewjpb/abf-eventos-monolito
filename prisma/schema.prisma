@@ -155,11 +155,14 @@ model permissions {
 
 model reset_password_token {
   id         String   @id
+  token      String   @unique
+  otp        String
   userId     String
-  ttl        DateTime
-  used       Boolean
+  expiresAt  DateTime
+  used       Boolean  @default(false)
   created_at DateTime @default(now())
   updatedAt  DateTime @default(now())
+  users      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model roles {
@@ -218,31 +221,32 @@ model supporters {
 }
 
 model users {
-  id              String            @id
-  name            String
-  username        String            @unique
-  email           String            @unique
-  password        String
-  active          Boolean           @default(true)
-  rg              String            @unique
-  cpf             String            @unique
-  cnpj            String
-  mobile_phone    String            @unique
-  position        String
-  city            String
-  state           String
-  image_url       String            @default("")
-  thumb_url       String            @default("")
-  image_path      String            @default("")
-  thumb_path      String            @default("")
-  created_at      DateTime          @default(now())
-  updatedAt       DateTime          @default(now())
-  AppLog          AppLog[]
-  attendance_list attendance_list[]
-  Session         Session[]
-  speakers        speakers?
-  company         company           @relation(fields: [cnpj], references: [cnpj])
-  roles           roles[]           @relation("RoleToUser")
+  id                     String                  @id
+  name                   String
+  username               String                  @unique
+  email                  String                  @unique
+  password               String
+  active                 Boolean                 @default(true)
+  rg                     String                  @unique
+  cpf                    String                  @unique
+  cnpj                   String
+  mobile_phone           String                  @unique
+  position               String
+  city                   String
+  state                  String
+  image_url              String                  @default("")
+  thumb_url              String                  @default("")
+  image_path             String                  @default("")
+  thumb_path             String                  @default("")
+  created_at             DateTime                @default(now())
+  updatedAt              DateTime                @default(now())
+  AppLog                 AppLog[]
+  attendance_list        attendance_list[]
+  Session                Session[]
+  speakers               speakers?
+  reset_password_tokens  reset_password_token[]
+  company                company                 @relation(fields: [cnpj], references: [cnpj])
+  roles                  roles[]                 @relation("RoleToUser")
 }
 
 model Session {

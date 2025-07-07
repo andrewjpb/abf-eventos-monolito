@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input"
 import { useActionState } from "react"
 import { signIn } from "../actions/sign-in"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { passwordForgotPath } from "@/app/paths"
 
 const SignInForm = () => {
 
@@ -26,6 +29,15 @@ const SignInForm = () => {
     <Label>Senha</Label>
     <Input name="password" placeholder="Password" type="password" />
     <FieldError actionState={actionState} name="password" />
+    
+    <div className="flex justify-end">
+      <Button variant="link" size="sm" asChild className="px-0 h-auto">
+        <Link href={passwordForgotPath()}>
+          Esqueci minha senha
+        </Link>
+      </Button>
+    </div>
+    
     <SubmitButton label="Entrar" />
 
   </Form>

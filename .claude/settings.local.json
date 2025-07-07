@@ -9,7 +9,8 @@
       "Bash(docker build:*)",
       "Bash(sed:*)",
       "Bash(rm:*)",
-      "Bash(npm run docker:build:*)"
+      "Bash(npm run docker:build:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

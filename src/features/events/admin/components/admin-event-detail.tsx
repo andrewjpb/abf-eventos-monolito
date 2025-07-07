@@ -24,7 +24,8 @@ import {
   Tag,
   FileText,
   Hash,
-  Plus
+  Plus,
+  UserCheck
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -33,6 +34,7 @@ import { useConfirmDialog } from "@/components/confirm-dialog"
 import { deleteEvent } from "../actions/delete-event"
 import { toggleEventPublication, toggleEventHighlight } from "../actions/update-event-status"
 import { EventScheduleManager } from "./event-schedule-manager"
+import { eventCheckinPath } from "@/app/paths"
 
 interface AdminEventDetailProps {
   event: AdminEventWithDetails
@@ -280,6 +282,13 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
               <Button variant="outline">
                 <Users className="h-4 w-4 mr-2" />
                 Ver Inscrições ({event._count.attendance_list})
+              </Button>
+            </Link>
+
+            <Link href={eventCheckinPath(event.id)}>
+              <Button variant="outline">
+                <UserCheck className="h-4 w-4 mr-2" />
+                Check-in
               </Button>
             </Link>
 

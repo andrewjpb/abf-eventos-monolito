@@ -36,6 +36,7 @@ export const eventAdminPath = (id: string) => `/admin/events/${id}`;    // Detal
 export const eventEditPath = (id: string) => `/admin/events/${id}/edit`; // Edição de evento
 export const eventCreatePath = () => "/admin/events/create";            // Criação de evento
 export const eventAttendeesPath = (id: string) => `/admin/events/${id}/attendees`; // Participantes do evento
+export const eventCheckinPath = (id: string) => `/admin/events/${id}/checkin`; // Check-in do evento
 
 export const supportersPath = () => "/admin/supporters";                // Listagem de apoiadores
 export const supporterPath = (id: string) => `/admin/supporters/${id}`; // Detalhes do apoiador

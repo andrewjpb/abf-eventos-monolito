@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { EMPTY_ACTION_STATE } from "@/components/form/utils/to-action-state"
 
 type ProfileAvatarUploadProps = {
   user: {
@@ -24,7 +25,7 @@ export function ProfileAvatarUpload({ user, size = "lg", className }: ProfileAva
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(user.image_url)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(user.image_url || null)
   const [isPending, startTransition] = useTransition()
 
   const sizeClasses = {
@@ -79,7 +80,7 @@ export function ProfileAvatarUpload({ user, size = "lg", className }: ProfileAva
 
     startTransition(async () => {
       try {
-        const result = await updateProfileImage(null, formData)
+        const result = await updateProfileImage(EMPTY_ACTION_STATE, formData)
         if (result && result.status === "SUCCESS") {
           toast.success("Foto atualizada!")
           router.refresh()
@@ -87,12 +88,12 @@ export function ProfileAvatarUpload({ user, size = "lg", className }: ProfileAva
         } else if (result && result.status === "ERROR") {
           toast.error(result.message || "Erro ao atualizar foto")
           // Reverter preview
-          setPreviewUrl(user.image_url)
+          setPreviewUrl(user.image_url || null)
           setSelectedFile(null)
         }
       } catch (error) {
         toast.error("Erro ao atualizar foto")
-        setPreviewUrl(user.image_url)
+        setPreviewUrl(user.image_url || null)
         setSelectedFile(null)
       }
     })
@@ -100,7 +101,7 @@ export function ProfileAvatarUpload({ user, size = "lg", className }: ProfileAva
 
   const handleCancel = () => {
     setSelectedFile(null)
-    setPreviewUrl(user.image_url)
+    setPreviewUrl(user.image_url || null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }

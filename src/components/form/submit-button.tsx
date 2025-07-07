@@ -12,12 +12,13 @@ type SubmitButtonProps = {
   icon?: React.ReactElement<{ className: string }>
   variant?: "default" | "outline" | "ghost" | "link" | "destructive"
   size?: "default" | "sm" | "lg" | "icon"
+  className?: string
 }
 
-const SubmitButton = ({ label, icon, variant, size }: SubmitButtonProps) => {
+const SubmitButton = ({ label, icon, variant, size, className }: SubmitButtonProps) => {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" variant={variant} disabled={pending} size={size}>
+    <Button type="submit" variant={variant} disabled={pending} size={size} className={className}>
       {pending && <LucideLoaderCircle className={clsx("w-4 h-4 mr-2 animate-spin cursor-pointer ", {
         "mr-2": !!label
       })} />}

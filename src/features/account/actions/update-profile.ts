@@ -36,13 +36,26 @@ export const updateProfile = async (
     const validatedData = profileSchema.parse(data)
     
     // Preparar dados para atualização (todos os campos sempre são atualizados)
-    const updateData = {
+    const updateData: any = {
       name: validatedData.name,
-      position: validatedData.position || null,
-      mobile_phone: validatedData.mobile_phone || null,
-      city: validatedData.city || null,
-      state: validatedData.state || null,
       updatedAt: new Date()
+    }
+    
+    // Só incluir campos que não estão vazios
+    if (validatedData.position && validatedData.position.trim() !== '') {
+      updateData.position = validatedData.position
+    }
+    
+    if (validatedData.mobile_phone && validatedData.mobile_phone.trim() !== '') {
+      updateData.mobile_phone = validatedData.mobile_phone
+    }
+    
+    if (validatedData.city && validatedData.city.trim() !== '') {
+      updateData.city = validatedData.city
+    }
+    
+    if (validatedData.state && validatedData.state.trim() !== '') {
+      updateData.state = validatedData.state
     }
     
     await prisma.users.update({

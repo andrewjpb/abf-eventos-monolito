@@ -313,7 +313,7 @@ const SignUpForm = () => {
               <Checkbox
                 id="terms"
                 checked={acceptedTerms}
-                onCheckedChange={setAcceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
                 className="mt-1"
               />
               <div className="grid gap-1.5 leading-none">

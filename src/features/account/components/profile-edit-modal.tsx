@@ -19,6 +19,7 @@ import { updateProfileImage } from "../actions/update-profile-image"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { EMPTY_ACTION_STATE } from "@/components/form/utils/to-action-state"
 
 type ProfileEditModalProps = {
   user: UserWithDetails
@@ -79,7 +80,7 @@ export function ProfileEditModal({ user, open, onClose }: ProfileEditModalProps)
 
     startTransition(async () => {
       try {
-        const result = await updateProfileImage(null, formData)
+        const result = await updateProfileImage(EMPTY_ACTION_STATE, formData)
         if (result && result.status === "SUCCESS") {
           toast.success("Foto atualizada com sucesso!")
           router.refresh()
@@ -106,7 +107,7 @@ export function ProfileEditModal({ user, open, onClose }: ProfileEditModalProps)
     
     startTransition(async () => {
       try {
-        const result = await updateProfile(null, submitFormData)
+        const result = await updateProfile(EMPTY_ACTION_STATE, submitFormData)
         
         if (result && result.status === "SUCCESS") {
           toast.success("Perfil atualizado com sucesso!")

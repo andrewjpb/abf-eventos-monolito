@@ -33,7 +33,7 @@ const AccountDropdown = ({ user }: AccountDropdownProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="w-9 h-9 cursor-pointer">
+        <Avatar className="w-9 h-9 cursor-pointer border-2 border-primary/20">
           <AvatarImage src={user?.thumb_url || user?.image_url} alt={user?.username} />
           <AvatarFallback className="text-lg">
             {user?.username?.charAt(0).toUpperCase()}

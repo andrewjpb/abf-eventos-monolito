@@ -117,10 +117,9 @@ export function ProfileAvatarUpload({ user, size = "lg", className }: ProfileAva
         onChange={handleFileSelect}
       />
 
-      {/* Avatar with hover effect */}
+      {/* Avatar */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary/50 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
-        <Avatar className={cn(sizeClasses[size], "relative ring-4 ring-background")}>
+        <Avatar className={cn(sizeClasses[size], "border-4 border-primary/20")}>
           <AvatarImage src={previewUrl || undefined} alt={user.name} />
           <AvatarFallback className={cn(
             "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground",

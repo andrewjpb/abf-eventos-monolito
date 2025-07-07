@@ -10,8 +10,6 @@ export default async function ProfilePage() {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
-      <ProfileView user={userDetails} currentUserId={userDetails.id} />
-    </div>
+    <ProfileView user={userDetails} currentUserId={userDetails.id} />
   )
 }

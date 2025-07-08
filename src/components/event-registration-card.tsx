@@ -43,7 +43,9 @@ export function EventRegistrationCard({
 
   const handleRegister = () => {
     if (!user) {
-      toast.error("Você precisa estar logado para se inscrever")
+      if (typeof window !== 'undefined') {
+        toast.error("Você precisa estar logado para se inscrever")
+      }
       return
     }
 
@@ -59,7 +61,9 @@ export function EventRegistrationCard({
           setRegistrationStatus(canRegisterResult)
 
           if (!canRegisterResult.canRegister) {
-            toast.error(canRegisterResult.reason || "Não é possível se inscrever neste evento")
+            if (typeof window !== 'undefined') {
+              toast.error(canRegisterResult.reason || "Não é possível se inscrever neste evento")
+            }
             return
           }
         }
@@ -87,21 +91,29 @@ export function EventRegistrationCard({
         const result = await registerAttendee(EMPTY_ACTION_STATE, formData)
 
         if (result.status === "SUCCESS") {
-          toast.success("Presença confirmada com sucesso!")
-          // Recarregar a página para atualizar o status
-          window.location.reload()
+          if (typeof window !== 'undefined') {
+            toast.success("Presença confirmada com sucesso!")
+            // Recarregar a página para atualizar o status
+            window.location.reload()
+          }
         } else {
-          toast.error(result.message || "Erro ao confirmar presença")
+          if (typeof window !== 'undefined') {
+            toast.error(result.message || "Erro ao confirmar presença")
+          }
         }
       } catch (error) {
-        toast.error("Erro interno do servidor")
+        if (typeof window !== 'undefined') {
+          toast.error("Erro interno do servidor")
+        }
       }
     })
   }
 
   const handleCancel = () => {
     if (!attendanceId) {
-      toast.error("ID da inscrição não encontrado")
+      if (typeof window !== 'undefined') {
+        toast.error("ID da inscrição não encontrado")
+      }
       return
     }
 
@@ -112,14 +124,20 @@ export function EventRegistrationCard({
         const result = await cancelRegistration(attendanceId)
 
         if (result.status === "SUCCESS") {
-          toast.success(result.message || "Inscrição cancelada com sucesso!")
-          // Recarregar a página para atualizar o status
-          window.location.reload()
+          if (typeof window !== 'undefined') {
+            toast.success(result.message || "Inscrição cancelada com sucesso!")
+            // Recarregar a página para atualizar o status
+            window.location.reload()
+          }
         } else {
-          toast.error(result.message || "Erro ao cancelar inscrição")
+          if (typeof window !== 'undefined') {
+            toast.error(result.message || "Erro ao cancelar inscrição")
+          }
         }
       } catch (error) {
-        toast.error("Erro interno do servidor")
+        if (typeof window !== 'undefined') {
+          toast.error("Erro interno do servidor")
+        }
       } finally {
         setIsCanceling(false)
       }
@@ -160,7 +178,11 @@ export function EventRegistrationCard({
           </div>
           <Button
             className="w-full mt-3 h-9 text-sm"
-            onClick={() => window.location.href = '/sign-in'}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/sign-in'
+              }
+            }}
           >
             Fazer Login
           </Button>
@@ -218,25 +240,27 @@ export function EventRegistrationCard({
               <p className="text-xs text-gray-600">
                 Sua presença já está confirmada
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-                disabled={isCanceling || isPending}
-                className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
-              >
-                {isCanceling ? (
-                  <>
-                    <div className="w-3 h-3 border-2 border-red-700 border-t-transparent rounded-full animate-spin mr-1" />
-                    Cancelando...
-                  </>
-                ) : (
-                  <>
-                    <X className="w-3 h-3 mr-1" />
-                    Cancelar
-                  </>
-                )}
-              </Button>
+              {mounted && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  disabled={isCanceling || isPending}
+                  className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
+                >
+                  {isCanceling ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-red-700 border-t-transparent rounded-full animate-spin mr-1" />
+                      Cancelando...
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-3 h-3 mr-1" />
+                      Cancelar
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

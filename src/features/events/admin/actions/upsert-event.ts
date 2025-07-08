@@ -43,7 +43,13 @@ const eventSchema = z.object({
   transmission_link: z.string().optional(),
   schedule_link: z.string().optional(),
   free_online: z.preprocess((val) => val === "true" || val === true, z.boolean().default(false)),
-  addressId: z.string().min(1, { message: "Endereço é obrigatório" }),
+  // Campos do endereço
+  street: z.string().min(1, { message: "Rua é obrigatória" }),
+  number: z.string().min(1, { message: "Número é obrigatório" }),
+  complement: z.string().optional(),
+  postal_code: z.string().min(1, { message: "CEP é obrigatório" }),
+  cityId: z.string().min(1, { message: "Cidade é obrigatória" }),
+  stateId: z.string().min(1, { message: "Estado é obrigatório" }),
   speakerIds: z.string().optional(),
   sponsorIds: z.string().optional(),
   supporterIds: z.string().optional(),
@@ -121,6 +127,53 @@ async function generateUniqueSlug(title: string, eventId?: string): Promise<stri
   return slug
 }
 
+/**
+ * Cria ou atualiza um endereço
+ */
+async function upsertAddress(addressData: {
+  street: string
+  number: string
+  complement?: string
+  postal_code: string
+  cityId: string
+  stateId: string
+}, existingAddressId?: string): Promise<string> {
+  const addressId = existingAddressId || nanoid()
+  
+  if (existingAddressId) {
+    // Atualizar endereço existente
+    await prisma.address.update({
+      where: { id: existingAddressId },
+      data: {
+        street: addressData.street,
+        number: addressData.number,
+        complement: addressData.complement || '',
+        postal_code: addressData.postal_code,
+        cityId: addressData.cityId,
+        stateId: addressData.stateId,
+        updatedAt: new Date()
+      }
+    })
+  } else {
+    // Criar novo endereço
+    await prisma.address.create({
+      data: {
+        id: addressId,
+        street: addressData.street,
+        number: addressData.number,
+        complement: addressData.complement || '',
+        postal_code: addressData.postal_code,
+        cityId: addressData.cityId,
+        stateId: addressData.stateId,
+        created_at: new Date(),
+        updatedAt: new Date()
+      }
+    })
+  }
+
+  return addressId
+}
+
 export const upsertEvent = async (
   eventId: string | undefined,
   _actionState: ActionState,
@@ -141,6 +194,18 @@ export const upsertEvent = async (
   }
 
   try {
+    // Validar tamanho da requisição
+    const totalSize = Array.from(formData.entries()).reduce((total, [key, value]) => {
+      if (value instanceof File) {
+        return total + value.size
+      }
+      return total + (typeof value === 'string' ? value.length : 0)
+    }, 0)
+
+    if (totalSize > 8 * 1024 * 1024) { // 8MB
+      return toActionState("ERROR", "Tamanho total dos arquivos muito grande. Limite: 8MB")
+    }
+
     const imageFile = formData.get("image_file") as File || null
     const thumbFile = formData.get("thumb_file") as File || null
     const formDataObject = Object.fromEntries(formData.entries())
@@ -158,17 +223,23 @@ export const upsertEvent = async (
     let imageUploadResult = null
     let thumbUploadResult = null
 
-    // Gerar slug único se não for fornecido ou se estiver vazio
-    if (!data.slug) {
-      data.slug = await generateUniqueSlug(data.title, eventId)
-    } else {
-      data.slug = await generateUniqueSlug(data.slug, eventId)
-    }
+    // Gerar slug único sempre baseado no título
+    data.slug = await generateUniqueSlug(data.title, eventId)
 
     // Converter arrays de IDs
     const speakerIds = data.speakerIds ? data.speakerIds.split(',').filter(id => id.trim()) : []
     const sponsorIds = data.sponsorIds ? data.sponsorIds.split(',').filter(id => id.trim()) : []
     const supporterIds = data.supporterIds ? data.supporterIds.split(',').filter(id => id.trim()) : []
+
+    // Preparar dados do endereço
+    const addressData = {
+      street: data.street,
+      number: data.number,
+      complement: data.complement,
+      postal_code: data.postal_code,
+      cityId: data.cityId,
+      stateId: data.stateId
+    }
 
     if (eventId) {
       // Atualizar evento existente
@@ -177,7 +248,8 @@ export const upsertEvent = async (
         select: {
           id: true,
           title: true,
-          image_url: true
+          image_url: true,
+          addressId: true
         }
       })
 
@@ -190,6 +262,9 @@ export const upsertEvent = async (
 
       const changes: any = {}
       if (existingEvent.title !== data.title) changes['title'] = { from: existingEvent.title, to: data.title }
+
+      // Criar ou atualizar endereço
+      const addressId = await upsertAddress(addressData, existingEvent.addressId)
 
       // Atualizar dados básicos do evento
       await prisma.events.update({
@@ -212,7 +287,7 @@ export const upsertEvent = async (
           transmission_link: data.transmission_link || '',
           schedule_link: data.schedule_link || '',
           free_online: data.free_online,
-          addressId: data.addressId,
+          addressId: addressId,
           updatedAt: new Date()
         }
       })
@@ -300,6 +375,9 @@ export const upsertEvent = async (
         }
       }
 
+      // Criar endereço
+      const addressId = await upsertAddress(addressData)
+
       // Criar evento
       await prisma.events.create({
         data: {
@@ -326,7 +404,7 @@ export const upsertEvent = async (
           transmission_link: data.transmission_link || '',
           schedule_link: data.schedule_link || '',
           free_online: data.free_online,
-          addressId: data.addressId,
+          addressId: addressId,
           created_at: new Date(),
           updatedAt: new Date()
         }

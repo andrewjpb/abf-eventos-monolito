@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { FieldError } from "@/components/form/field-error"
 import { Form } from "@/components/form/form"
 import { EMPTY_ACTION_STATE } from "@/components/form/utils/to-action-state"
@@ -28,13 +28,6 @@ import { upsertEvent } from "../actions/upsert-event"
 
 type AdminEventUpsertFormProps = {
   event?: AdminEventWithDetails
-  addresses: Array<{
-    id: string
-    label: string
-    city: string
-    state: string
-    uf: string
-  }>
   speakers: Array<{
     id: string
     name: string
@@ -49,14 +42,25 @@ type AdminEventUpsertFormProps = {
     id: string
     name: string
   }>
+  states: Array<{
+    id: string
+    name: string
+    uf: string
+  }>
+  cities: Array<{
+    id: string
+    name: string
+    stateId: string | null
+  }>
 }
 
 export function AdminEventUpsertForm({ 
   event, 
-  addresses, 
   speakers, 
   sponsors, 
-  supporters 
+  supporters,
+  states,
+  cities 
 }: AdminEventUpsertFormProps) {
   const [actionState, action, pending] = useActionState(
     upsertEvent.bind(null, event?.id),
@@ -68,6 +72,7 @@ export function AdminEventUpsertForm({
   const [selectedThumbFile, setSelectedThumbFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(event?.image_url || null)
   const [thumbPreviewUrl, setThumbPreviewUrl] = useState<string | null>(event?.thumb_url || null)
+  const [isCompressing, setIsCompressing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const thumbFileInputRef = useRef<HTMLInputElement>(null)
 
@@ -82,31 +87,83 @@ export function AdminEventUpsertForm({
     event?.supporters?.map(s => s.id) || []
   )
 
+  // Estados para endereço
+  const [selectedState, setSelectedState] = useState<string>(event?.address?.stateId || '')
+  const [filteredCities, setFilteredCities] = useState(
+    cities.filter(city => city.stateId === (event?.address?.stateId || '') && city.stateId !== null)
+  )
+
+  // Atualizar cidades filtradas quando o estado inicial for carregado
+  useEffect(() => {
+    if (event?.address?.stateId) {
+      setSelectedState(event.address.stateId)
+      setFilteredCities(cities.filter(city => city.stateId === event.address.stateId && city.stateId !== null))
+    }
+  }, [event?.address?.stateId, cities])
+
   // Função para lidar com a seleção de imagem
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     // Validação do tipo de arquivo
     if (!file.type.startsWith('image/')) {
-      toast.error("Por favor, selecione um arquivo de imagem válido")
+      toast.error("❌ Por favor, selecione um arquivo de imagem válido (JPG, PNG, GIF, WEBP)")
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
       return
     }
 
-    // Validação do tamanho do arquivo (limite de 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. O tamanho máximo é 10MB")
+    // Validação de formatos específicos
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("❌ Formato não suportado. Use apenas JPG, PNG, GIF ou WEBP")
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
       return
     }
 
-    setSelectedFile(file)
+    // Validação do tamanho do arquivo (limite de 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(`❌ Arquivo muito grande (${(file.size / (1024 * 1024)).toFixed(1)}MB). O tamanho máximo é 5MB`)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      return
+    }
+
+    // Mostrar tamanho original
+    const originalSize = (file.size / 1024).toFixed(1)
+    toast.info(`📁 Arquivo original: ${originalSize}KB`)
+
+    // Comprimir imagem se for maior que 1MB
+    let processedFile = file
+    if (file.size > 1024 * 1024) {
+      setIsCompressing(true)
+      toast.info("🔄 Comprimindo imagem para melhor performance...")
+      
+      try {
+        processedFile = await compressImage(file, 1920, 0.8)
+        const compressedSize = (processedFile.size / 1024).toFixed(1)
+        toast.success(`✅ Imagem comprimida: ${compressedSize}KB (${((1 - processedFile.size / file.size) * 100).toFixed(1)}% menor)`)
+      } catch (error) {
+        toast.warning("⚠️ Erro na compressão, usando arquivo original")
+        processedFile = file
+      }
+      
+      setIsCompressing(false)
+    }
+
+    setSelectedFile(processedFile)
 
     // Criar preview
     const reader = new FileReader()
     reader.onload = (e) => {
       setPreviewUrl(e.target?.result as string)
     }
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(processedFile)
   }
 
   const handleRemoveImage = () => {
@@ -118,30 +175,68 @@ export function AdminEventUpsertForm({
   }
 
   // Função para lidar com a seleção de miniatura
-  const handleThumbSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     // Validação do tipo de arquivo
     if (!file.type.startsWith('image/')) {
-      toast.error("Por favor, selecione um arquivo de imagem válido")
+      toast.error("❌ Por favor, selecione um arquivo de imagem válido (JPG, PNG, GIF, WEBP)")
+      if (thumbFileInputRef.current) {
+        thumbFileInputRef.current.value = ""
+      }
       return
     }
 
-    // Validação do tamanho do arquivo (limite de 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. O tamanho máximo é 10MB")
+    // Validação de formatos específicos
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("❌ Formato não suportado. Use apenas JPG, PNG, GIF ou WEBP")
+      if (thumbFileInputRef.current) {
+        thumbFileInputRef.current.value = ""
+      }
       return
     }
 
-    setSelectedThumbFile(file)
+    // Validação do tamanho do arquivo (limite de 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(`❌ Arquivo muito grande (${(file.size / (1024 * 1024)).toFixed(1)}MB). O tamanho máximo é 5MB`)
+      if (thumbFileInputRef.current) {
+        thumbFileInputRef.current.value = ""
+      }
+      return
+    }
+
+    // Mostrar tamanho original
+    const originalSize = (file.size / 1024).toFixed(1)
+    toast.info(`📁 Miniatura original: ${originalSize}KB`)
+
+    // Comprimir imagem se for maior que 1MB
+    let processedFile = file
+    if (file.size > 1024 * 1024) {
+      setIsCompressing(true)
+      toast.info("🔄 Comprimindo miniatura...")
+      
+      try {
+        processedFile = await compressImage(file, 800, 0.8)
+        const compressedSize = (processedFile.size / 1024).toFixed(1)
+        toast.success(`✅ Miniatura comprimida: ${compressedSize}KB (${((1 - processedFile.size / file.size) * 100).toFixed(1)}% menor)`)
+      } catch (error) {
+        toast.warning("⚠️ Erro na compressão, usando arquivo original")
+        processedFile = file
+      }
+      
+      setIsCompressing(false)
+    }
+
+    setSelectedThumbFile(processedFile)
 
     // Criar preview
     const reader = new FileReader()
     reader.onload = (e) => {
       setThumbPreviewUrl(e.target?.result as string)
     }
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(processedFile)
   }
 
   const handleRemoveThumb = () => {
@@ -188,6 +283,76 @@ export function AdminEventUpsertForm({
     }
   }
 
+  const handleStateChange = (stateId: string) => {
+    setSelectedState(stateId)
+    const stateCities = cities.filter(city => city.stateId === stateId && city.stateId !== null)
+    setFilteredCities(stateCities)
+    
+    // Limpar seleção de cidade quando mudar estado
+    const citySelect = document.getElementById('cityId') as HTMLSelectElement
+    if (citySelect) {
+      citySelect.value = ''
+    }
+  }
+
+  // Função para comprimir imagem
+  const compressImage = (file: File, maxWidth: number = 1920, quality: number = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      // Verificar se estamos no cliente
+      if (typeof window === 'undefined') {
+        resolve(file)
+        return
+      }
+
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = document.createElement('img')
+      
+      img.onload = () => {
+        // Mostrar dimensões originais
+        toast.info(`📐 Dimensões originais: ${img.width}x${img.height}px`)
+        
+        // Calcular novo tamanho mantendo proporção
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width
+          width = maxWidth
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // Desenhar e comprimir
+        ctx?.drawImage(img, 0, 0, width, height)
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now()
+            })
+            
+            // Mostrar dimensões finais se diferentes
+            if (img.width !== width || img.height !== height) {
+              toast.info(`🎯 Dimensões ajustadas: ${width}x${height}px`)
+            }
+            
+            resolve(compressedFile)
+          } else {
+            resolve(file)
+          }
+        }, file.type, quality)
+      }
+      
+      img.onerror = () => {
+        toast.error("❌ Erro ao processar imagem")
+        resolve(file)
+      }
+      
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   return (
     <Form action={action} actionState={actionState}>
       <div className="space-y-6">
@@ -222,11 +387,13 @@ export function AdminEventUpsertForm({
                 name="slug"
                 placeholder="conferencia-tecnologia-2024"
                 defaultValue={event?.slug}
+                readOnly
+                className="bg-gray-50 cursor-not-allowed"
                 required
               />
               <FieldError actionState={actionState} name="slug" />
               <p className="text-xs text-muted-foreground">
-                Usado na URL do evento. Apenas letras minúsculas, números e hífens.
+                Gerado automaticamente baseado no título do evento.
               </p>
             </div>
 
@@ -327,22 +494,105 @@ export function AdminEventUpsertForm({
               <FieldError actionState={actionState} name="format" />
             </div>
 
-            {/* Endereço */}
-            <div className="space-y-2">
-              <Label htmlFor="addressId">Endereço *</Label>
-              <Select name="addressId" defaultValue={event?.addressId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o endereço" />
-                </SelectTrigger>
-                <SelectContent>
-                  {addresses.map(address => (
-                    <SelectItem key={address.id} value={address.id}>
-                      {address.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldError actionState={actionState} name="addressId" />
+            {/* Campos de Endereço */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-900 dark:text-white">Endereço do Evento</h4>
+              
+              {/* Rua */}
+              <div className="space-y-2">
+                <Label htmlFor="street">Rua/Logradouro *</Label>
+                <Input
+                  id="street"
+                  name="street"
+                  placeholder="Ex: Rua das Flores"
+                  defaultValue={event?.address?.street}
+                  required
+                />
+                <FieldError actionState={actionState} name="street" />
+              </div>
+
+              {/* Número e Complemento */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="number">Número *</Label>
+                  <Input
+                    id="number"
+                    name="number"
+                    placeholder="Ex: 123"
+                    defaultValue={event?.address?.number}
+                    required
+                  />
+                  <FieldError actionState={actionState} name="number" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="complement">Complemento</Label>
+                  <Input
+                    id="complement"
+                    name="complement"
+                    placeholder="Ex: Sala 101, Andar 2"
+                    defaultValue={event?.address?.complement}
+                  />
+                  <FieldError actionState={actionState} name="complement" />
+                </div>
+              </div>
+
+              {/* Estado */}
+              <div className="space-y-2">
+                <Label htmlFor="stateId">Estado *</Label>
+                <Select 
+                  name="stateId" 
+                  defaultValue={event?.address?.stateId}
+                  onValueChange={handleStateChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {states.map(state => (
+                      <SelectItem key={state.id} value={state.id}>
+                        {state.name} ({state.uf})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError actionState={actionState} name="stateId" />
+              </div>
+
+              {/* Cidade */}
+              <div className="space-y-2">
+                <Label htmlFor="cityId">Cidade *</Label>
+                <Select 
+                  name="cityId" 
+                  defaultValue={event?.address?.cityId}
+                  disabled={!selectedState}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={selectedState ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredCities.map(city => (
+                      <SelectItem key={city.id} value={city.id}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError actionState={actionState} name="cityId" />
+              </div>
+
+              {/* CEP */}
+              <div className="space-y-2">
+                <Label htmlFor="postal_code">CEP *</Label>
+                <Input
+                  id="postal_code"
+                  name="postal_code"
+                  placeholder="Ex: 12345-678"
+                  defaultValue={event?.address?.postal_code}
+                  required
+                />
+                <FieldError actionState={actionState} name="postal_code" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -475,36 +725,66 @@ export function AdminEventUpsertForm({
           <CardContent className="space-y-6">
             {/* Imagem Principal */}
             <div className="space-y-4">
-              <h4 className="font-semibold">Imagem Principal</h4>
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                <h4 className="font-semibold">Imagem Principal</h4>
+                {selectedFile && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                    {(selectedFile.size / 1024).toFixed(1)}KB
+                  </span>
+                )}
+              </div>
               
               {/* Preview da imagem principal */}
-              <div className="relative aspect-video w-full max-w-md rounded-lg overflow-hidden bg-muted border">
+              <div className={`relative aspect-video w-full max-w-md rounded-lg overflow-hidden border-2 border-dashed transition-all duration-200 ${
+                previewUrl ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 bg-muted hover:border-primary/50'
+              }`}>
+                {isCompressing && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                    <div className="text-white text-center">
+                      <LucideLoaderCircle className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <p className="text-sm">Processando...</p>
+                    </div>
+                  </div>
+                )}
                 {previewUrl ? (
-                  <Image
-                    src={previewUrl}
-                    alt="Preview da imagem principal do evento"
-                    fill
-                    className="object-cover"
-                  />
+                  <div className="relative h-full">
+                    <Image
+                      src={previewUrl}
+                      alt="Preview da imagem principal do evento"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-200" />
+                  </div>
                 ) : (
                   <div className="flex h-full items-center justify-center">
-                    <ImageIcon className="h-12 w-12 text-muted-foreground opacity-30" />
+                    <div className="text-center">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground opacity-30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Clique para selecionar</p>
+                      <p className="text-xs text-muted-foreground">JPG, PNG, GIF ou WEBP</p>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Upload da imagem principal */}
               <div className="space-y-2">
-                <Label htmlFor="image_file">Imagem Principal</Label>
+                <Label htmlFor="image_file" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Imagem Principal
+                  {selectedFile && <span className="text-green-600">✓</span>}
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     ref={fileInputRef}
                     id="image_file"
                     name="image_file"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={handleImageSelect}
                     className="flex-1"
+                    disabled={isCompressing}
                   />
                   {selectedFile && (
                     <Button
@@ -512,50 +792,84 @@ export function AdminEventUpsertForm({
                       variant="outline"
                       size="sm"
                       onClick={handleRemoveImage}
+                      disabled={isCompressing}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
                 <FieldError actionState={actionState} name="image_file" />
-                <p className="text-xs text-muted-foreground">
-                  Imagem principal usada na página de detalhes do evento.
-                </p>
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-1 bg-muted-foreground rounded-full" />
+                  <p className="text-xs text-muted-foreground">
+                    Resolução recomendada: 1920x1080px • Tamanho máximo: 5MB
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Miniatura */}
             <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-semibold">Miniatura (Carrossel)</h4>
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-secondary-foreground" />
+                <h4 className="font-semibold">Miniatura (Carrossel)</h4>
+                {selectedThumbFile && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border">
+                    {(selectedThumbFile.size / 1024).toFixed(1)}KB
+                  </span>
+                )}
+              </div>
               
               {/* Preview da miniatura */}
-              <div className="relative aspect-video w-full max-w-sm rounded-lg overflow-hidden bg-muted border">
+              <div className={`relative aspect-video w-full max-w-sm rounded-lg overflow-hidden border-2 border-dashed transition-all duration-200 ${
+                thumbPreviewUrl ? 'border-secondary bg-secondary/5' : 'border-muted-foreground/25 bg-muted hover:border-secondary/50'
+              }`}>
+                {isCompressing && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                    <div className="text-white text-center">
+                      <LucideLoaderCircle className="h-6 w-6 animate-spin mx-auto mb-2" />
+                      <p className="text-xs">Processando...</p>
+                    </div>
+                  </div>
+                )}
                 {thumbPreviewUrl ? (
-                  <Image
-                    src={thumbPreviewUrl}
-                    alt="Preview da miniatura do evento"
-                    fill
-                    className="object-cover"
-                  />
+                  <div className="relative h-full">
+                    <Image
+                      src={thumbPreviewUrl}
+                      alt="Preview da miniatura do evento"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-200" />
+                  </div>
                 ) : (
                   <div className="flex h-full items-center justify-center">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground opacity-30" />
+                    <div className="text-center">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground opacity-30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Clique para selecionar</p>
+                      <p className="text-xs text-muted-foreground">Para listagens</p>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Upload da miniatura */}
               <div className="space-y-2">
-                <Label htmlFor="thumb_file">Miniatura</Label>
+                <Label htmlFor="thumb_file" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Miniatura
+                  {selectedThumbFile && <span className="text-green-600">✓</span>}
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     ref={thumbFileInputRef}
                     id="thumb_file"
                     name="thumb_file"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={handleThumbSelect}
                     className="flex-1"
+                    disabled={isCompressing}
                   />
                   {selectedThumbFile && (
                     <Button
@@ -563,15 +877,19 @@ export function AdminEventUpsertForm({
                       variant="outline"
                       size="sm"
                       onClick={handleRemoveThumb}
+                      disabled={isCompressing}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
                 <FieldError actionState={actionState} name="thumb_file" />
-                <p className="text-xs text-muted-foreground">
-                  Miniatura usada no carrossel e listagens. Formatos aceitos: JPG, PNG, GIF, WEBP. Tamanho máximo: 10MB.
-                </p>
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-1 bg-muted-foreground rounded-full" />
+                  <p className="text-xs text-muted-foreground">
+                    Resolução recomendada: 800x600px • Tamanho máximo: 5MB
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -622,15 +940,15 @@ export function AdminEventUpsertForm({
         <div className="flex gap-4 pt-6">
           <Button
             type="submit"
-            disabled={pending}
+            disabled={pending || isCompressing}
             className="flex-1 md:flex-none"
           >
-            {pending ? (
+            {pending || isCompressing ? (
               <LucideLoaderCircle className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            {event ? 'Atualizar Evento' : 'Criar Evento'}
+            {isCompressing ? 'Comprimindo...' : pending ? 'Salvando...' : event ? 'Atualizar Evento' : 'Criar Evento'}
           </Button>
         </div>
       </div>

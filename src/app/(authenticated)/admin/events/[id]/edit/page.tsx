@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/heading"
 import { getAdminEvent } from "@/features/events/admin/queries/get-admin-event"
 import { AdminEventUpsertForm } from "@/features/events/admin/components/admin-event-upsert-form"
-import { getAvailableAddresses } from "@/features/events/admin/queries/get-available-addresses"
 import { getAvailableSpeakers } from "@/features/speakers/components/get-available-speakers"
 import { getSponsors } from "@/features/sponsors/queries/get-sponsors"
 import { getSupporters } from "@/features/supporters/queries/get-supporters"
+import { prisma } from "@/lib/prisma"
 
 interface EditEventPageProps {
   params: Promise<{
@@ -31,12 +31,36 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
   const { id } = await params
 
   // Carregar evento e dados necessários para o formulário
-  const [event, addresses, speakers, sponsorsData, supportersData] = await Promise.all([
+  const [event, speakers, sponsorsData, supportersData, states, cities] = await Promise.all([
     getAdminEvent(id),
-    getAvailableAddresses(),
     getAvailableSpeakers(),
     getSponsors(),
-    getSupporters()
+    getSupporters(),
+    prisma.states.findMany({
+      select: {
+        id: true,
+        name: true,
+        uf: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    }),
+    prisma.cities.findMany({
+      select: {
+        id: true,
+        name: true,
+        stateId: true
+      },
+      where: {
+        stateId: {
+          not: null
+        }
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
   ])
 
   const sponsorOptions = sponsorsData.sponsors.map(sponsor => ({
@@ -71,10 +95,11 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
       <div className="animate-fade-in-from-top">
         <AdminEventUpsertForm
           event={event}
-          addresses={addresses}
           speakers={speakerOptions}
           sponsors={sponsorOptions}
           supporters={supporterOptions}
+          states={states}
+          cities={cities}
         />
       </div>
     </div>

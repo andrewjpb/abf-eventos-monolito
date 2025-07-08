@@ -84,8 +84,8 @@ export async function requestPasswordReset(
           <title>Código de Verificação - ABF Eventos</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">ABF Eventos</h1>
+          <div style="background: #3564b1; padding: 40px 25px; text-align: center; border-radius: 8px 8px 0 0;">
+            <img src="https://eventos.abfti.com.br/logo-white.png" alt="ABF Eventos" style="height: 100px; max-width: 100%; object-fit: contain;" />
           </div>
           
           <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">

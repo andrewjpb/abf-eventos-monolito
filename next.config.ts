@@ -5,14 +5,23 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: [
-      's3.abfti.com.br', // Permitir carregar imagens deste host
-      'localhost'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 's3.abfti.com.br',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      }
     ],
     // Configuração opcional para otimização de imagens
     formats: ['image/avif', 'image/webp'],
     unoptimized: true, // Isso desativa a otimização para todas as imagens
-
   }
 };
 

@@ -23,7 +23,6 @@ import {
 import Image from "next/image"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { EventRegistrationCard } from "@/components/event-registration-card"
 import { EventsSection } from "./events-section"
@@ -56,7 +55,6 @@ export function EventDetail({
   canRegister,
   upcomingEvents = []
 }: EventDetailProps) {
-  const pathname = usePathname()
   const [showFullDescription, setShowFullDescription] = useState(false)
 
   // Verifica se o evento já ocorreu
@@ -364,6 +362,7 @@ export function EventDetail({
                 event={event}
                 user={user}
                 isRegistered={isRegistered}
+                attendanceId={attendanceId}
                 remainingVacancies={remainingVacancies}
                 companyRemainingVacancies={companyRemainingVacancies}
                 canRegister={canRegister}

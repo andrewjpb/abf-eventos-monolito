@@ -4,9 +4,10 @@ import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, CheckCircle, AlertCircle, Calendar } from "lucide-react"
+import { Users, CheckCircle, AlertCircle, Calendar, X } from "lucide-react"
 import { canUserRegister } from "@/features/attendance-list/actions/can-user-register"
 import { registerAttendee } from "@/features/attendance-list/actions/register-attendee"
+import { cancelRegistration } from "@/features/attendance-list/actions/cancel-registration"
 import { toast } from "sonner"
 import { EventWithDetails } from "@/features/events/types"
 import Image from "next/image"
@@ -16,6 +17,7 @@ interface EventRegistrationCardProps {
   event: EventWithDetails
   user?: any
   isRegistered?: boolean
+  attendanceId?: string | null
   remainingVacancies: number
   companyRemainingVacancies?: number
   canRegister?: { canRegister: boolean; reason?: string } | null
@@ -25,11 +27,13 @@ export function EventRegistrationCard({
   event,
   user,
   isRegistered = false,
+  attendanceId,
   remainingVacancies,
   companyRemainingVacancies,
   canRegister = null
 }: EventRegistrationCardProps) {
   const [isPending, startTransition] = useTransition()
+  const [isCanceling, setIsCanceling] = useState(false)
   const [registrationStatus, setRegistrationStatus] = useState<{ canRegister: boolean; reason?: string } | null>(canRegister)
   const [mounted, setMounted] = useState(false)
 
@@ -91,6 +95,33 @@ export function EventRegistrationCard({
         }
       } catch (error) {
         toast.error("Erro interno do servidor")
+      }
+    })
+  }
+
+  const handleCancel = () => {
+    if (!attendanceId) {
+      toast.error("ID da inscrição não encontrado")
+      return
+    }
+
+    setIsCanceling(true)
+    
+    startTransition(async () => {
+      try {
+        const result = await cancelRegistration(attendanceId)
+
+        if (result.status === "SUCCESS") {
+          toast.success(result.message || "Inscrição cancelada com sucesso!")
+          // Recarregar a página para atualizar o status
+          window.location.reload()
+        } else {
+          toast.error(result.message || "Erro ao cancelar inscrição")
+        }
+      } catch (error) {
+        toast.error("Erro interno do servidor")
+      } finally {
+        setIsCanceling(false)
       }
     })
   }
@@ -183,9 +214,30 @@ export function EventRegistrationCard({
           </div>
 
           <div className="mt-3 pt-3 border-t border-green-200">
-            <p className="text-xs text-gray-600 text-center">
-              Sua presença já está confirmada
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-600">
+                Sua presença já está confirmada
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                disabled={isCanceling || isPending}
+                className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
+              >
+                {isCanceling ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-red-700 border-t-transparent rounded-full animate-spin mr-1" />
+                    Cancelando...
+                  </>
+                ) : (
+                  <>
+                    <X className="w-3 h-3 mr-1" />
+                    Cancelar
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

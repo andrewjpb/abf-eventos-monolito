@@ -589,9 +589,9 @@ export function EventDetail({
                             <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
                               {speaker.users.name}
                             </h3>
-                            {speaker.users.position && (
+                            {speaker.users.company?.name && (
                               <p className="text-xs text-gray-600 dark:text-gray-400">
-                                {speaker.users.position}
+                                {speaker.users.company.name}
                               </p>
                             )}
                           </div>

@@ -23,7 +23,11 @@ export const getEvent = cache(async (id: string) => {
       },
       speakers: {
         include: {
-          users: true
+          users: {
+            include: {
+              company: true
+            }
+          }
         }
       },
       schedule: {

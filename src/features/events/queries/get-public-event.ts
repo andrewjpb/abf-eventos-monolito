@@ -26,7 +26,12 @@ export const getPublicEvent = cache(async (id: string) => {
               id: true,
               name: true,
               email: true,
-              image_url: true
+              image_url: true,
+              company: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }

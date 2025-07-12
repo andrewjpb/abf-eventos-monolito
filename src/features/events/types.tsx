@@ -1,5 +1,5 @@
 // /features/events/types.tsx
-import { events, address, speakers, sponsors, supporters, attendance_list, cities, states, users, event_schedule } from "@prisma/client"
+import { events, address, speakers, sponsors, supporters, attendance_list, cities, states, users, event_schedule, company } from "@prisma/client"
 
 // Tipo de evento com todos os relacionamentos
 export type EventWithDetails = events & {
@@ -8,7 +8,9 @@ export type EventWithDetails = events & {
     states: states
   }
   speakers?: Array<speakers & {
-    users: users
+    users: users & {
+      company?: company
+    }
   }>
   sponsors?: sponsors[]
   supporters?: supporters[]

@@ -117,7 +117,12 @@ export async function getAdminEvent(eventId: string): Promise<AdminEventWithDeta
               name: true,
               email: true,
               position: true,
-              image_url: true
+              image_url: true,
+              company: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }
@@ -176,7 +181,12 @@ export async function getAdminEventBySlug(slug: string): Promise<AdminEventWithD
               name: true,
               email: true,
               position: true,
-              image_url: true
+              image_url: true,
+              company: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }

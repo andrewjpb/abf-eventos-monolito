@@ -4,7 +4,7 @@ import { getAuth } from "@/features/auth/queries/get-auth"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
     const user = await getAuth()
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const eventId = params.eventId
+    const { eventId } = await params
 
     // Buscar as ordens dos apoiadores para o evento
     const supporterOrders = await prisma.event_supporter_order.findMany({

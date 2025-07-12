@@ -18,7 +18,9 @@ import {
   CalendarPlus,
   Radio,
   Wifi,
-  PlayCircle
+  PlayCircle,
+  CalendarClock,
+  CheckCircle
 } from "lucide-react"
 import Image from "next/image"
 import { Progress } from "@/components/ui/progress"
@@ -198,182 +200,30 @@ export function EventDetail({
               </h1>
             </div>
 
-            {/* Card de Patrocinadores */}
-            {event.sponsors && event.sponsors.length > 0 && (
-              <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50">
-                <CardContent className="px-4">
-                  {/* Header */}
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Patrocinadores
-                  </h2>
-
-                  {/* Body - Grid de logos */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {event.sponsors.map((sponsor) => (
-                      <div key={sponsor.id} className="flex items-center justify-center p-4 bg-white rounded-lg border">
-                        {sponsor.image_url ? (
-                          <Image
-                            src={sponsor.image_url}
-                            alt={sponsor.name}
-                            width={120}
-                            height={60}
-                            className="max-w-full max-h-12 object-contain"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-12 bg-gray-100 rounded">
-                            <span className="text-sm font-medium text-gray-600 text-center px-2">
-                              {sponsor.name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+            {/* Card Sobre o Evento - Movido para cá */}
+            <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50 mb-6">
+              <CardContent className="p-6">
+                {/* Resumo */}
+                {event.summary && (
+                  <div className="mb-4">
+                    <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {event.summary}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
 
-            {/* Card de Status do Evento - Transmissão/Início */}
-            <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50 mt-4">
-              <CardContent className="p-5">
-                {(() => {
-                  const agora = new Date()
-                  const dataEvento = new Date(event.date)
-
-                  // Criar datetime do evento combinando data e horário
-                  const [horaInicio, minutoInicio] = event.start_time.split(':').map(Number)
-                  const [horaFim, minutoFim] = event.end_time.split(':').map(Number)
-
-                  const inicioEvento = new Date(dataEvento)
-                  inicioEvento.setHours(horaInicio, minutoInicio, 0, 0)
-
-                  const fimEvento = new Date(dataEvento)
-                  fimEvento.setHours(horaFim, minutoFim, 0, 0)
-
-                  // Calcular status do evento
-                  const eventoComecou = agora >= inicioEvento
-                  const eventoTerminou = agora >= fimEvento
-                  const eventoOcorrendo = eventoComecou && !eventoTerminou
-
-                  // Calcular tempo até o início
-                  const minutosAteInicio = Math.floor((inicioEvento.getTime() - agora.getTime()) / (1000 * 60))
-                  const horasAteInicio = Math.floor(minutosAteInicio / 60)
-                  const diasAteInicio = Math.floor(horasAteInicio / 24)
-
-                  // Determinar se tem transmissão online
-                  const formatUpper = event.format?.toUpperCase()
-                  const temTransmissao = formatUpper === "ONLINE" || formatUpper === "HYBRID" || formatUpper === "HIBRIDO" || event.isStreaming
-
-                  if (eventoTerminou) {
-                    // Evento finalizado
-                    return (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                            <CheckCircleIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-medium">
-                              Evento realizado
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {formatarDataEvento(event.date)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  } else if (eventoOcorrendo) {
-                    // Evento acontecendo agora
-                    return (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <Radio className="w-6 h-6 text-green-600 dark:text-green-400 animate-pulse" />
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-medium">
-                              {temTransmissao ? "Transmissão ao vivo" : "Evento em andamento"}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Até às {event.end_time}
-                            </p>
-                          </div>
-                        </div>
-
-                        {temTransmissao && event.transmission_link ? (
-                          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <a
-                              href={event.transmission_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 transition-colors"
-                            >
-                              <PlayCircle className="w-5 h-5" />
-                              <span className="text-sm font-medium">Assistir agora</span>
-                            </a>
-                          </div>
-                        ) : (
-                          <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                            <Radio className="w-3 h-3 mr-1 animate-pulse" />
-                            Ao vivo
-                          </Badge>
-                        )}
-                      </div>
-                    )
-                  } else {
-                    // Evento futuro
-                    let tempoRestante = ""
-                    if (diasAteInicio > 0) {
-                      tempoRestante = `${diasAteInicio} ${diasAteInicio === 1 ? 'dia' : 'dias'}`
-                    } else if (horasAteInicio > 0) {
-                      tempoRestante = `${horasAteInicio} ${horasAteInicio === 1 ? 'hora' : 'horas'}`
-                    } else if (minutosAteInicio > 0) {
-                      tempoRestante = `${minutosAteInicio} ${minutosAteInicio === 1 ? 'minuto' : 'minutos'}`
-                    } else {
-                      tempoRestante = "Em breve"
-                    }
-
-                    return (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                            {temTransmissao ? (
-                              <Wifi className="w-6 h-6 text-primary" />
-                            ) : (
-                              <CalendarIcon className="w-6 h-6 text-primary" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-medium">
-                              {(() => {
-                                const formatUpper = event.format?.toUpperCase()
-
-                                if (formatUpper === "ONLINE") return "Evento online"
-                                if (formatUpper === "HYBRID" || formatUpper === "HIBRIDO") return "Evento híbrido"
-                                if ((formatUpper === "IN_PERSON" || formatUpper === "PRESENCIAL") && event.isStreaming) return "Evento presencial com transmissão"
-                                if (formatUpper === "IN_PERSON" || formatUpper === "PRESENCIAL") return "Evento presencial"
-                                return "Evento presencial"
-                              })()}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {formatUpper === "ONLINE" ? "Transmissão iniciará em" : "Começaremos em"} {tempoRestante}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                          <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors cursor-not-allowed opacity-60" disabled>
-                            <ClockIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">Aguardando início</span>
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  }
-                })()}
+                {/* Descrição completa */}
+                {event.description && (
+                  <div className="prose prose-gray dark:prose-invert max-w-none">
+                    <div
+                      className="text-gray-600 dark:text-gray-400 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: event.description }}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
+
           </div>
 
           {/* Container Direito - Card de Data e Hora */}
@@ -460,32 +310,150 @@ export function EventDetail({
       <div className="bg-gray-100 dark:bg-black/20 w-full py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Card Sobre o Evento - 70% */}
+            {/* Card Informações do Evento e Patrocinadores - 70% */}
             <div className="lg:col-span-8">
-              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
+              <div className="space-y-6">
+
+                {/* Card de Patrocinadores */}
+                {event.sponsors && event.sponsors.length > 0 && (
+                  <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
+                    <CardContent className="p-6">
+                      {/* Header */}
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                        Patrocinadores
+                      </h2>
+
+                      {/* Body - Grid de logos */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {event.sponsors.map((sponsor) => (
+                          <div key={sponsor.id} className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                            {sponsor.image_url ? (
+                              <Image
+                                src={sponsor.image_url}
+                                alt={sponsor.name}
+                                width={120}
+                                height={60}
+                                className="max-w-full max-h-12 object-contain"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center w-full h-12 bg-gray-100 dark:bg-gray-600 rounded">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-center px-2">
+                                  {sponsor.name}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Card da Programação do Evento */}
+                <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                    Sobre o evento
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Programação
                   </h2>
 
-                  {/* Resumo */}
-                  {event.summary && (
-                    <div className="mb-6">
-                      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {event.summary}
-                      </p>
-                    </div>
-                  )}
+                  {/* Card de Status do Evento - Transmissão/Início */}
+                  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    {(() => {
+                      const agora = new Date()
+                      const dataEvento = new Date(event.date)
 
-                  {/* Descrição completa */}
-                  {event.description && (
-                    <div className="prose prose-gray dark:prose-invert max-w-none">
-                      <div
-                        className="text-gray-600 dark:text-gray-400 leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: event.description }}
-                      />
-                    </div>
-                  )}
+                      // Criar datetime do evento combinando data e horário
+                      const [horaInicio, minutoInicio] = event.start_time.split(':').map(Number)
+                      const [horaFim, minutoFim] = event.end_time.split(':').map(Number)
+
+                      const inicioEvento = new Date(dataEvento)
+                      inicioEvento.setHours(horaInicio, minutoInicio, 0, 0)
+
+                      const fimEvento = new Date(dataEvento)
+                      fimEvento.setHours(horaFim, minutoFim, 0, 0)
+
+                      const eventoJaComecou = agora >= inicioEvento
+                      const eventoJaTerminou = agora >= fimEvento
+
+                      if (eventoJaTerminou) {
+                        return (
+                          <div className="flex items-center gap-4">
+                            <div className="bg-gray-100 dark:bg-gray-600 p-3 rounded-full">
+                              <CheckCircle className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Evento finalizado
+                              </h3>
+                              <p className="text-gray-600 dark:text-gray-400">
+                                Este evento já foi realizado
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      if (eventoJaComecou) {
+                        return (
+                          <div className="flex items-center gap-4">
+                            <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full animate-pulse">
+                              <PlayCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Evento em andamento
+                              </h3>
+                              <p className="text-gray-600 dark:text-gray-400">
+                                {event.format?.toUpperCase() === "ONLINE" ? (
+                                  "Este evento está acontecendo agora online"
+                                ) : event.format?.toUpperCase() === "HIBRIDO" ? (
+                                  "Este evento está acontecendo agora (presencial + online)"
+                                ) : (
+                                  "Este evento está acontecendo agora de forma presencial"
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      const diffMs = inicioEvento.getTime() - agora.getTime()
+                      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+                      const diffHours = Math.ceil(diffMs / (1000 * 60 * 60))
+                      const diffMinutes = Math.ceil(diffMs / (1000 * 60))
+
+                      let tempoRestante
+                      if (diffDays > 1) {
+                        tempoRestante = `${diffDays} dias`
+                      } else if (diffHours > 1) {
+                        tempoRestante = `${diffHours} horas`
+                      } else {
+                        tempoRestante = `${diffMinutes} minutos`
+                      }
+
+                      return (
+                        <div className="flex items-center gap-4">
+                          <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                            <CalendarClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                              Começamos em {tempoRestante}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400">
+                              {event.format?.toUpperCase() === "ONLINE" ? (
+                                "Evento online"
+                              ) : event.format?.toUpperCase() === "HIBRIDO" ? (
+                                "Evento híbrido (presencial + online)"
+                              ) : (
+                                "Evento presencial"
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
 
                   {/* Programação do Evento */}
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -583,7 +551,8 @@ export function EventDetail({
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </div>
             </div>
 
             {/* Card Palestrantes - 30% */}

@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Tag, Search, Plus, X } from "lucide-react"
+import { Tag, Search, Plus, X, ArrowUpDown } from "lucide-react"
 import { AdminEventWithDetails } from "../types"
 import { useQuery } from "@tanstack/react-query"
 import { getSupporters } from "@/features/supporters/queries/get-supporters"
-import { associateEventSupporter, disassociateEventSupporter } from "../actions/manage-event-supporters"
+import { associateEventSupporter, disassociateEventSupporter, updateSupporterOrder } from "../actions/manage-event-supporters"
 import { toast } from "sonner"
 
 interface EventSupportersManagerProps {
@@ -21,6 +21,7 @@ interface EventSupportersManagerProps {
 export function EventSupportersManager({ eventId, event }: EventSupportersManagerProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [isPending, startTransition] = useTransition()
+  const [supporterOrders, setSupporterOrders] = useState<Record<string, number>>({})
   
   // Query para buscar todos os apoiadores disponíveis
   const { data: supportersData, isLoading } = useQuery({
@@ -31,6 +32,23 @@ export function EventSupportersManager({ eventId, event }: EventSupportersManage
   const allSupporters = supportersData?.supporters || []
   const associatedSupporterIds = new Set(event.supporters.map(s => s.id))
   const availableSupporters = allSupporters.filter(supporter => !associatedSupporterIds.has(supporter.id))
+
+  // Query para buscar as ordens dos apoiadores
+  const { data: supporterOrdersData } = useQuery({
+    queryKey: ["event-supporter-orders", eventId],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/supporter-orders`)
+      if (!response.ok) return {}
+      return response.json()
+    }
+  })
+
+  // Atualizar o estado local quando os dados de ordem chegarem
+  useEffect(() => {
+    if (supporterOrdersData) {
+      setSupporterOrders(supporterOrdersData)
+    }
+  }, [supporterOrdersData])
 
   const handleAssociate = async (supporterId: string) => {
     startTransition(async () => {
@@ -58,6 +76,20 @@ export function EventSupportersManager({ eventId, event }: EventSupportersManage
     })
   }
 
+  const handleUpdateOrder = async (supporterId: string, order: number) => {
+    startTransition(async () => {
+      const formData = new FormData()
+      formData.append('order', order.toString())
+      const result = await updateSupporterOrder(eventId, supporterId, null, formData)
+      
+      if (result.success) {
+        toast.success('Ordem atualizada com sucesso')
+      } else {
+        toast.error(result.message)
+      }
+    })
+  }
+
   return (
     <div className="space-y-6">
       {/* Apoiadores Associados */}
@@ -76,24 +108,44 @@ export function EventSupportersManager({ eventId, event }: EventSupportersManage
             <div className="grid gap-3">
               {event.supporters.map((supporter) => (
                 <div key={supporter.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                       <Tag className="h-6 w-6 text-muted-foreground" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold">{supporter.name}</h3>
                     </div>
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => handleDisassociate(supporter.id)}
-                    disabled={isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        min="0"
+                        value={supporterOrders[supporter.id] ?? 0}
+                        onChange={(e) => {
+                          const newOrder = parseInt(e.target.value) || 0
+                          setSupporterOrders(prev => ({ ...prev, [supporter.id]: newOrder }))
+                        }}
+                        onBlur={() => {
+                          const order = supporterOrders[supporter.id] ?? 0
+                          handleUpdateOrder(supporter.id, order)
+                        }}
+                        className="w-20 h-8"
+                        placeholder="0"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDisassociate(supporter.id)}
+                      disabled={isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

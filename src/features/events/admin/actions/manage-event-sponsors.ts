@@ -202,3 +202,110 @@ export async function disassociateEventSponsor(
     }
   }
 }
+
+// Atualizar ordem do patrocinador no evento
+export async function updateSponsorOrder(
+  eventId: string,
+  sponsorId: string,
+  prevState: any,
+  formData: FormData
+) {
+  try {
+    // Verificar permissões
+    const user = await getAuthWithPermissionOrRedirect("events.update")
+
+    const order = parseInt(formData.get("order")?.toString() || "0")
+
+    // Verificar se o evento existe
+    const event = await prisma.events.findUnique({
+      where: { id: eventId },
+      select: { id: true, title: true }
+    })
+
+    if (!event) {
+      return {
+        success: false,
+        message: "Evento não encontrado"
+      }
+    }
+
+    // Buscar informações do patrocinador
+    const sponsor = await prisma.sponsors.findUnique({
+      where: { id: sponsorId },
+      select: { id: true, name: true }
+    })
+
+    if (!sponsor) {
+      return {
+        success: false,
+        message: "Patrocinador não encontrado"
+      }
+    }
+
+    // Verificar se existe a relação na tabela many-to-many
+    const existingRelation = await prisma.events.findUnique({
+      where: { id: eventId },
+      include: {
+        sponsors: {
+          where: { id: sponsorId }
+        }
+      }
+    })
+
+    if (!existingRelation || existingRelation.sponsors.length === 0) {
+      return {
+        success: false,
+        message: "Patrocinador não está associado a este evento"
+      }
+    }
+
+    // Upsert na tabela de ordem
+    await prisma.event_sponsor_order.upsert({
+      where: {
+        eventId_sponsorId: {
+          eventId,
+          sponsorId
+        }
+      },
+      update: {
+        order,
+        updatedAt: new Date()
+      },
+      create: {
+        eventId,
+        sponsorId,
+        order
+      }
+    })
+
+    // Log da ação
+    await logInfo(
+      "UPDATE_SPONSOR_ORDER",
+      `Ordem do patrocinador "${sponsor.name}" atualizada para ${order} no evento "${event.title}"`,
+      user.id,
+      {
+        eventId,
+        eventTitle: event.title,
+        sponsorId,
+        sponsorName: sponsor.name,
+        newOrder: order
+      }
+    )
+
+    // Revalidar as páginas relevantes
+    revalidatePath(`/admin/events/${eventId}`)
+    revalidatePath(`/admin/events/${eventId}/sponsors`)
+
+    return {
+      success: true,
+      message: `Ordem do patrocinador "${sponsor.name}" atualizada com sucesso`
+    }
+
+  } catch (error) {
+    console.error("Erro ao atualizar ordem do patrocinador:", error)
+    return {
+      success: false,
+      message: "Erro interno do servidor"
+    }
+  }
+}

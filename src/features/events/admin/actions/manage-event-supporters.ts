@@ -202,3 +202,110 @@ export async function disassociateEventSupporter(
     }
   }
 }
+
+// Atualizar ordem do apoiador no evento
+export async function updateSupporterOrder(
+  eventId: string,
+  supporterId: string,
+  prevState: any,
+  formData: FormData
+) {
+  try {
+    // Verificar permissões
+    const user = await getAuthWithPermissionOrRedirect("events.update")
+
+    const order = parseInt(formData.get("order")?.toString() || "0")
+
+    // Verificar se o evento existe
+    const event = await prisma.events.findUnique({
+      where: { id: eventId },
+      select: { id: true, title: true }
+    })
+
+    if (!event) {
+      return {
+        success: false,
+        message: "Evento não encontrado"
+      }
+    }
+
+    // Buscar informações do apoiador
+    const supporter = await prisma.supporters.findUnique({
+      where: { id: supporterId },
+      select: { id: true, name: true }
+    })
+
+    if (!supporter) {
+      return {
+        success: false,
+        message: "Apoiador não encontrado"
+      }
+    }
+
+    // Verificar se existe a relação na tabela many-to-many
+    const existingRelation = await prisma.events.findUnique({
+      where: { id: eventId },
+      include: {
+        supporters: {
+          where: { id: supporterId }
+        }
+      }
+    })
+
+    if (!existingRelation || existingRelation.supporters.length === 0) {
+      return {
+        success: false,
+        message: "Apoiador não está associado a este evento"
+      }
+    }
+
+    // Upsert na tabela de ordem
+    await prisma.event_supporter_order.upsert({
+      where: {
+        eventId_supporterId: {
+          eventId,
+          supporterId
+        }
+      },
+      update: {
+        order,
+        updatedAt: new Date()
+      },
+      create: {
+        eventId,
+        supporterId,
+        order
+      }
+    })
+
+    // Log da ação
+    await logInfo(
+      "UPDATE_SUPPORTER_ORDER",
+      `Ordem do apoiador "${supporter.name}" atualizada para ${order} no evento "${event.title}"`,
+      user.id,
+      {
+        eventId,
+        eventTitle: event.title,
+        supporterId,
+        supporterName: supporter.name,
+        newOrder: order
+      }
+    )
+
+    // Revalidar as páginas relevantes
+    revalidatePath(`/admin/events/${eventId}`)
+    revalidatePath(`/admin/events/${eventId}/supporters`)
+
+    return {
+      success: true,
+      message: `Ordem do apoiador "${supporter.name}" atualizada com sucesso`
+    }
+
+  } catch (error) {
+    console.error("Erro ao atualizar ordem do apoiador:", error)
+    return {
+      success: false,
+      message: "Erro interno do servidor"
+    }
+  }
+}

@@ -5,6 +5,98 @@ import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-aut
 import { type AdminEventWithDetails } from "../types"
 import { notFound } from "next/navigation"
 
+// Função auxiliar para buscar patrocinadores e apoiadores ordenados
+async function getOrderedSponsorsAndSupporters(eventId: string) {
+  // Buscar patrocinadores ordenados
+  const sponsorsOrdered = await prisma.sponsors.findMany({
+    where: {
+      events: {
+        some: {
+          id: eventId
+        }
+      }
+    },
+    include: {
+      _count: {
+        select: {
+          events: true
+        }
+      }
+    }
+  })
+
+  // Buscar ordens dos patrocinadores
+  const sponsorOrders = await prisma.event_sponsor_order.findMany({
+    where: {
+      eventId,
+      sponsorId: {
+        in: sponsorsOrdered.map(s => s.id)
+      }
+    }
+  })
+
+  // Mapear ordens dos patrocinadores
+  const sponsorOrderMap = sponsorOrders.reduce((acc, order) => {
+    acc[order.sponsorId] = order.order
+    return acc
+  }, {} as Record<string, number>)
+
+  // Ordenar patrocinadores
+  const orderedSponsors = sponsorsOrdered
+    .map(sponsor => ({
+      ...sponsor,
+      order: sponsorOrderMap[sponsor.id] || 0
+    }))
+    .sort((a, b) => a.order - b.order)
+
+  // Buscar apoiadores ordenados
+  const supportersOrdered = await prisma.supporters.findMany({
+    where: {
+      events: {
+        some: {
+          id: eventId
+        }
+      }
+    },
+    include: {
+      _count: {
+        select: {
+          events: true
+        }
+      }
+    }
+  })
+
+  // Buscar ordens dos apoiadores
+  const supporterOrders = await prisma.event_supporter_order.findMany({
+    where: {
+      eventId,
+      supporterId: {
+        in: supportersOrdered.map(s => s.id)
+      }
+    }
+  })
+
+  // Mapear ordens dos apoiadores
+  const supporterOrderMap = supporterOrders.reduce((acc, order) => {
+    acc[order.supporterId] = order.order
+    return acc
+  }, {} as Record<string, number>)
+
+  // Ordenar apoiadores
+  const orderedSupporters = supportersOrdered
+    .map(supporter => ({
+      ...supporter,
+      order: supporterOrderMap[supporter.id] || 0
+    }))
+    .sort((a, b) => a.order - b.order)
+
+  return {
+    sponsors: orderedSponsors,
+    supporters: orderedSupporters
+  }
+}
+
 export async function getAdminEvent(eventId: string): Promise<AdminEventWithDetails> {
   await getAuthWithPermissionOrRedirect("events.read")
 
@@ -30,8 +122,6 @@ export async function getAdminEvent(eventId: string): Promise<AdminEventWithDeta
           }
         }
       },
-      sponsors: true,
-      supporters: true,
       schedule: {
         orderBy: [
           { day_date: 'asc' },
@@ -55,7 +145,14 @@ export async function getAdminEvent(eventId: string): Promise<AdminEventWithDeta
     notFound()
   }
 
-  return event as AdminEventWithDetails
+  // Buscar patrocinadores e apoiadores ordenados
+  const { sponsors, supporters } = await getOrderedSponsorsAndSupporters(eventId)
+
+  return {
+    ...event,
+    sponsors,
+    supporters
+  } as AdminEventWithDetails
 }
 
 // Query para buscar evento por slug
@@ -84,8 +181,6 @@ export async function getAdminEventBySlug(slug: string): Promise<AdminEventWithD
           }
         }
       },
-      sponsors: true,
-      supporters: true,
       schedule: {
         orderBy: [
           { day_date: 'asc' },
@@ -109,5 +204,12 @@ export async function getAdminEventBySlug(slug: string): Promise<AdminEventWithD
     notFound()
   }
 
-  return event as AdminEventWithDetails
+  // Buscar patrocinadores e apoiadores ordenados
+  const { sponsors, supporters } = await getOrderedSponsorsAndSupporters(event.id)
+
+  return {
+    ...event,
+    sponsors,
+    supporters
+  } as AdminEventWithDetails
 }

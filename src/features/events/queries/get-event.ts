@@ -26,8 +26,6 @@ export const getEvent = cache(async (id: string) => {
           users: true
         }
       },
-      sponsors: true,
-      supporters: true,
       schedule: {
         orderBy: [
           { day_date: 'asc' },
@@ -45,6 +43,97 @@ export const getEvent = cache(async (id: string) => {
 
   if (!event) {
     notFound()
+  }
+
+  // Buscar patrocinadores ordenados
+  const sponsorsOrdered = await prisma.sponsors.findMany({
+    where: {
+      events: {
+        some: {
+          id: event.id
+        }
+      }
+    },
+    include: {
+      _count: {
+        select: {
+          events: true
+        }
+      }
+    }
+  })
+
+  // Buscar ordens dos patrocinadores
+  const sponsorOrders = await prisma.event_sponsor_order.findMany({
+    where: {
+      eventId: event.id,
+      sponsorId: {
+        in: sponsorsOrdered.map(s => s.id)
+      }
+    }
+  })
+
+  // Mapear ordens dos patrocinadores
+  const sponsorOrderMap = sponsorOrders.reduce((acc, order) => {
+    acc[order.sponsorId] = order.order
+    return acc
+  }, {} as Record<string, number>)
+
+  // Ordenar patrocinadores
+  const orderedSponsors = sponsorsOrdered
+    .map(sponsor => ({
+      ...sponsor,
+      order: sponsorOrderMap[sponsor.id] || 0
+    }))
+    .sort((a, b) => a.order - b.order)
+
+  // Buscar apoiadores ordenados
+  const supportersOrdered = await prisma.supporters.findMany({
+    where: {
+      events: {
+        some: {
+          id: event.id
+        }
+      }
+    },
+    include: {
+      _count: {
+        select: {
+          events: true
+        }
+      }
+    }
+  })
+
+  // Buscar ordens dos apoiadores
+  const supporterOrders = await prisma.event_supporter_order.findMany({
+    where: {
+      eventId: event.id,
+      supporterId: {
+        in: supportersOrdered.map(s => s.id)
+      }
+    }
+  })
+
+  // Mapear ordens dos apoiadores
+  const supporterOrderMap = supporterOrders.reduce((acc, order) => {
+    acc[order.supporterId] = order.order
+    return acc
+  }, {} as Record<string, number>)
+
+  // Ordenar apoiadores
+  const orderedSupporters = supportersOrdered
+    .map(supporter => ({
+      ...supporter,
+      order: supporterOrderMap[supporter.id] || 0
+    }))
+    .sort((a, b) => a.order - b.order)
+
+  // Adicionar os dados ordenados ao evento
+  const eventWithOrderedRelations = {
+    ...event,
+    sponsors: orderedSponsors,
+    supporters: orderedSupporters
   }
 
   // Verificar permissões do usuário
@@ -151,7 +240,7 @@ export const getEvent = cache(async (id: string) => {
   }
 
   return {
-    event,
+    event: eventWithOrderedRelations,
     isRegistered,
     attendanceId,
     isAdmin,

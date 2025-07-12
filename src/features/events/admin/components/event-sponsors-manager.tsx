@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Building, Search, Plus, X, Check } from "lucide-react"
+import { Building, Search, Plus, X, Check, ArrowUpDown } from "lucide-react"
 import { AdminEventWithDetails } from "../types"
 import { useQuery } from "@tanstack/react-query"
 import { getSponsors } from "@/features/sponsors/queries/get-sponsors"
-import { associateEventSponsor, disassociateEventSponsor } from "../actions/manage-event-sponsors"
+import { associateEventSponsor, disassociateEventSponsor, updateSponsorOrder } from "../actions/manage-event-sponsors"
 import { toast } from "sonner"
 
 interface EventSponsorsManagerProps {
@@ -21,12 +21,30 @@ interface EventSponsorsManagerProps {
 export function EventSponsorsManager({ eventId, event }: EventSponsorsManagerProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [isPending, startTransition] = useTransition()
+  const [sponsorOrders, setSponsorOrders] = useState<Record<string, number>>({})
   
   // Query para buscar todos os patrocinadores disponíveis
   const { data: sponsorsData, isLoading } = useQuery({
     queryKey: ["sponsors", searchTerm],
     queryFn: () => getSponsors({ search: searchTerm, active: "ACTIVE" })
   })
+
+  // Query para buscar as ordens dos patrocinadores
+  const { data: sponsorOrdersData } = useQuery({
+    queryKey: ["event-sponsor-orders", eventId],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/sponsor-orders`)
+      if (!response.ok) return {}
+      return response.json()
+    }
+  })
+
+  // Atualizar o estado local quando os dados de ordem chegarem
+  useEffect(() => {
+    if (sponsorOrdersData) {
+      setSponsorOrders(sponsorOrdersData)
+    }
+  }, [sponsorOrdersData])
 
   const allSponsors = sponsorsData?.sponsors || []
   const associatedSponsorIds = new Set(event.sponsors.map(s => s.id))
@@ -39,6 +57,20 @@ export function EventSponsorsManager({ eventId, event }: EventSponsorsManagerPro
       
       if (result.success) {
         toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+    })
+  }
+
+  const handleUpdateOrder = async (sponsorId: string, order: number) => {
+    startTransition(async () => {
+      const formData = new FormData()
+      formData.append('order', order.toString())
+      const result = await updateSponsorOrder(eventId, sponsorId, null, formData)
+      
+      if (result.success) {
+        toast.success('Ordem atualizada com sucesso')
       } else {
         toast.error(result.message)
       }
@@ -74,13 +106,13 @@ export function EventSponsorsManager({ eventId, event }: EventSponsorsManagerPro
         <CardContent>
           {event.sponsors.length > 0 ? (
             <div className="grid gap-3">
-              {event.sponsors.map((sponsor) => (
+              {event.sponsors.map((sponsor, index) => (
                 <div key={sponsor.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                       <Building className="h-6 w-6 text-muted-foreground" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold">{sponsor.name}</h3>
                       {sponsor.description && (
                         <p className="text-sm text-muted-foreground line-clamp-1">
@@ -90,15 +122,35 @@ export function EventSponsorsManager({ eventId, event }: EventSponsorsManagerPro
                     </div>
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => handleDisassociate(sponsor.id)}
-                    disabled={isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        min="0"
+                        value={sponsorOrders[sponsor.id] ?? 0}
+                        onChange={(e) => {
+                          const newOrder = parseInt(e.target.value) || 0
+                          setSponsorOrders(prev => ({ ...prev, [sponsor.id]: newOrder }))
+                        }}
+                        onBlur={() => {
+                          const order = sponsorOrders[sponsor.id] ?? 0
+                          handleUpdateOrder(sponsor.id, order)
+                        }}
+                        className="w-20 h-8"
+                        placeholder="0"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDisassociate(sponsor.id)}
+                      disabled={isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

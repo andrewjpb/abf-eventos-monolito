@@ -12,9 +12,6 @@ RUN npm install --legacy-peer-deps
 # Copiar todos os arquivos do projeto
 COPY . .
 
-# Copiar arquivo de ambiente (se existir)
-COPY .env* ./
-
 # Gerar o Prisma Client para o ambiente correto
 RUN npx prisma generate
 

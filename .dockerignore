@@ -8,7 +8,6 @@ docs/
 .claude/
 *.log
 *.md
-.env*
 !.env.example
 .DS_Store
 *.swp

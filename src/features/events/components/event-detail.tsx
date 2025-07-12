@@ -40,6 +40,7 @@ interface EventDetailProps {
   user?: any
   canRegister?: { canRegister: boolean; reason?: string } | null
   upcomingEvents?: EventWithDetails[]
+  hasEventCreatePermission?: boolean
 }
 
 export function EventDetail({
@@ -53,16 +54,19 @@ export function EventDetail({
   occupationPercentage,
   user,
   canRegister,
-  upcomingEvents = []
+  upcomingEvents = [],
+  hasEventCreatePermission = false
 }: EventDetailProps) {
   const [showFullDescription, setShowFullDescription] = useState(false)
+
 
   // Verifica se o evento já ocorreu
   const eventoPassado = new Date(event.date) < new Date()
 
   // Formatar endereço completo
   const formatarEndereco = () => {
-    if (event.isStreaming) {
+    const formatUpper = event.format?.toUpperCase()
+    if (formatUpper === "ONLINE") {
       return "Evento Online"
     }
 
@@ -84,18 +88,88 @@ export function EventDetail({
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Tarja de Status do Evento */}
+      {!event.isPublished ? (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Evento em Rascunho
+                </h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  Este evento ainda não foi publicado e só é visível para usuários com permissão de criação de eventos.
+                </p>
+              </div>
+              {hasEventCreatePermission && (
+                <div className="flex-shrink-0">
+                  <Link href={`/admin/events/${event.id}`}>
+                    <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-900/30">
+                      Administrar Evento
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        hasEventCreatePermission && (
+          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-4">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+                    Evento Publicado
+                  </h3>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    Este evento está público e disponível para inscrições.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <Link href={`/admin/events/${event.id}`}>
+                    <Button variant="outline" size="sm" className="border-green-300 text-green-700 hover:bg-green-100 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/30">
+                      Administrar Evento
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      )}
+
       <div className="container mx-auto px-4 pb-8 ">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Container Esquerdo */}
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2 mb-2">
               <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                {event.format === "PRESENCIAL" ? "Presencial" :
-                  event.format === "ONLINE" ? "Online" :
-                    event.format === "HIBRIDO" ? "Híbrido" : "Presencial"}
+                {(() => {
+                  const formatUpper = event.format?.toUpperCase()
+
+                  if (formatUpper === "ONLINE") return "Online"
+                  if (formatUpper === "HYBRID" || formatUpper === "HIBRIDO") return "Híbrido"
+                  if (formatUpper === "IN_PERSON" || formatUpper === "PRESENCIAL") return "Presencial"
+                  return "Presencial"
+                })()}
               </Badge>
 
-              {event.isStreaming && event.format !== "ONLINE" && (
+              {event.isStreaming && event.format?.toUpperCase() !== "ONLINE" && (
                 <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                   Com transmissão
                 </Badge>
@@ -187,7 +261,8 @@ export function EventDetail({
                   const diasAteInicio = Math.floor(horasAteInicio / 24)
 
                   // Determinar se tem transmissão online
-                  const temTransmissao = event.format === "ONLINE" || event.format === "HIBRIDO" || event.isStreaming
+                  const formatUpper = event.format?.toUpperCase()
+                  const temTransmissao = formatUpper === "ONLINE" || formatUpper === "HYBRID" || formatUpper === "HIBRIDO" || event.isStreaming
 
                   if (eventoTerminou) {
                     // Evento finalizado
@@ -271,10 +346,18 @@ export function EventDetail({
                           </div>
                           <div>
                             <p className="text-gray-900 dark:text-white font-medium">
-                              {temTransmissao ? "Transmissão ao vivo" : "Evento presencial"}
+                              {(() => {
+                                const formatUpper = event.format?.toUpperCase()
+
+                                if (formatUpper === "ONLINE") return "Evento online"
+                                if (formatUpper === "HYBRID" || formatUpper === "HIBRIDO") return "Evento híbrido"
+                                if ((formatUpper === "IN_PERSON" || formatUpper === "PRESENCIAL") && event.isStreaming) return "Evento presencial com transmissão"
+                                if (formatUpper === "IN_PERSON" || formatUpper === "PRESENCIAL") return "Evento presencial"
+                                return "Evento presencial"
+                              })()}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Começaremos em {tempoRestante}
+                              {formatUpper === "ONLINE" ? "Transmissão iniciará em" : "Começaremos em"} {tempoRestante}
                             </p>
                           </div>
                         </div>

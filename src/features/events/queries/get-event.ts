@@ -5,6 +5,7 @@ import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 import { getAuth } from "@/features/auth/queries/get-auth"
 import { canUserRegister } from "@/features/attendance-list/actions/can-user-register"
+import { checkUserPermission } from "@/features/permissions/queries/check-user-permission"
 import { notFound } from "next/navigation"
 
 export const getEvent = cache(async (id: string) => {
@@ -49,7 +50,7 @@ export const getEvent = cache(async (id: string) => {
   // Verificar permissões do usuário
   const { user } = await getAuth()
 
-  // Se o evento não está publicado, apenas administradores podem vê-lo
+  // Se o evento não está publicado, apenas usuários com permissão podem vê-lo
   if (!event.isPublished) {
     // Verificar se o usuário tem permissão para visualizar eventos não publicados
     if (!user) {
@@ -64,8 +65,11 @@ export const getEvent = cache(async (id: string) => {
     })
 
     const isAdmin = userWithRoles?.roles.some(role => role.name === "ADMIN") || false
+    
+    // Verificar se tem permissão para criar eventos
+    const hasEventCreatePermission = await checkUserPermission(user.id, "events.create")
 
-    if (!isAdmin) {
+    if (!isAdmin && !hasEventCreatePermission) {
       notFound() // Redirecionar para 404
     }
   }
@@ -140,6 +144,12 @@ export const getEvent = cache(async (id: string) => {
     }
   }
 
+  // Verificar se tem permissão para criar eventos (para usar na tarja)
+  let hasEventCreatePermission = false
+  if (user) {
+    hasEventCreatePermission = await checkUserPermission(user.id, "events.create")
+  }
+
   return {
     event,
     isRegistered,
@@ -150,6 +160,7 @@ export const getEvent = cache(async (id: string) => {
     remainingVacancies: Math.max(0, event.vacancy_total - event._count.attendance_list),
     companyRemainingVacancies,
     companyAttendees,
-    occupationPercentage: Math.min(100, Math.round((event._count.attendance_list / event.vacancy_total) * 100))
+    occupationPercentage: Math.min(100, Math.round((event._count.attendance_list / event.vacancy_total) * 100)),
+    hasEventCreatePermission
   }
 })

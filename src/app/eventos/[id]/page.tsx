@@ -14,19 +14,19 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
   if (!eventData) {
     return notFound()
   }
-  const { event, isRegistered, attendanceId, isAdmin, user, canRegister, remainingVacancies, companyRemainingVacancies, companyAttendees, occupationPercentage } = eventData
+  const { event, isRegistered, attendanceId, isAdmin, user, canRegister, remainingVacancies, companyRemainingVacancies, companyAttendees, occupationPercentage, hasEventCreatePermission } = eventData
 
   // Buscar próximos eventos (excluindo o evento atual)
   const upcomingEventsData = await getEvents({
     past: false,
     limit: 6
   })
-  
+
   // Filtrar para remover o evento atual
   const upcomingEvents = upcomingEventsData.events.filter(e => e.id !== event.id)
 
   return (
-    <div className="flex-1 flex flex-col gap-y-8 mt-10">
+    <div className="flex-1 flex flex-col gap-y-8 mt-0">
       <div className="animate-fade-in-from-top">
         <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
           <EventDetail
@@ -41,6 +41,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
             companyAttendees={companyAttendees}
             occupationPercentage={occupationPercentage}
             upcomingEvents={upcomingEvents}
+            hasEventCreatePermission={hasEventCreatePermission}
           />
         </Suspense>
       </div>

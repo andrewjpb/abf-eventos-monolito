@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { getAuth } from "@/features/auth/queries/get-auth"
+import { checkUserPermission } from "@/features/permissions/queries/check-user-permission"
 
 type GetEventsOptions = {
   cursor?: string;
@@ -26,6 +27,7 @@ export async function getEvents(options: GetEventsOptions = {}) {
   // Obter informações do usuário para verificar permissões
   const { user } = await getAuth()
   let isAdmin = false
+  let hasEventCreatePermission = false
 
   if (user) {
     const userWithRoles = await prisma.users.findUnique({
@@ -36,6 +38,7 @@ export async function getEvents(options: GetEventsOptions = {}) {
     })
 
     isAdmin = userWithRoles?.roles.some(role => role.name === "ADMIN") || false
+    hasEventCreatePermission = await checkUserPermission(user.id, "events.create")
   }
 
   // Construir condições de filtro
@@ -81,8 +84,8 @@ export async function getEvents(options: GetEventsOptions = {}) {
     where.highlight = true
   }
 
-  // Mostrar apenas eventos publicados (a menos que seja admin)
-  if (!isAdmin) {
+  // Mostrar apenas eventos publicados (a menos que seja admin ou tenha permissão de criar eventos)
+  if (!isAdmin && !hasEventCreatePermission) {
     where.isPublished = true
   }
 
@@ -172,7 +175,8 @@ export async function getEvents(options: GetEventsOptions = {}) {
         visible: countVisible,
         hidden: totalCount - countVisible
       },
-      isAdmin
+      isAdmin,
+      hasEventCreatePermission
     }
   }
 }

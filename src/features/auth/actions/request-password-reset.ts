@@ -72,7 +72,7 @@ export async function requestPasswordReset(
     console.log("OTP gerado:", otp)
     
     const emailResult = await resend.emails.send({
-      from: "ABF Eventos <onboarding@resend.dev>",
+      from: "ABF Eventos <reset-senha@abf.com.br>",
       to: [validatedData.email],
       subject: "Código para redefinir sua senha - ABF Eventos",
       html: `

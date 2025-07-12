@@ -220,6 +220,32 @@ model supporters {
   events     events[] @relation("EventToSupporter")
 }
 
+model event_sponsor_order {
+  id         String   @id @default(uuid())
+  eventId    String
+  sponsorId  String
+  order      Int      @default(0)
+  created_at DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  
+  @@unique([eventId, sponsorId])
+  @@index([eventId])
+  @@index([order])
+}
+
+model event_supporter_order {
+  id          String   @id @default(uuid())
+  eventId     String
+  supporterId String
+  order       Int      @default(0)
+  created_at  DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  
+  @@unique([eventId, supporterId])
+  @@index([eventId])
+  @@index([order])
+}
+
 model users {
   id                     String                  @id
   name                   String

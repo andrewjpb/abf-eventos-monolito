@@ -11,7 +11,8 @@
       "Bash(rm:*)",
       "Bash(npm run docker:build:*)",
       "Bash(rg:*)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npx prisma migrate dev:*)"
     ],
     "deny": []
   }

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 import { logInfo } from "@/features/logs/queries/add-log"
+import { PARTICIPANT_TYPES } from "@/features/attendance-list/constants/participant-types"
+import { nanoid } from "nanoid"
 
 // Associar palestrante ao evento
 export async function associateEventSpeaker(
@@ -71,12 +73,77 @@ export async function associateEventSpeaker(
       }
     }
 
-    // Criar associação
-    await prisma.events.update({
-      where: { id: eventId },
-      data: {
-        speakers: {
-          connect: { id: speakerId }
+    // Criar associação e gerenciar attendance_list
+    await prisma.$transaction(async (tx) => {
+      console.log('🎤 ASSOCIANDO PALESTRANTE AO EVENTO:', { eventId, speakerId, speakerName: speaker.users.name })
+      
+      // Conectar palestrante ao evento
+      await tx.events.update({
+        where: { id: eventId },
+        data: {
+          speakers: {
+            connect: { id: speakerId }
+          }
+        }
+      })
+
+      // Verificar se o palestrante já está na attendance_list do evento
+      const existingAttendance = await tx.attendance_list.findFirst({
+        where: {
+          eventId: eventId,
+          userId: speaker.users.id
+        }
+      })
+
+      // Buscar informações completas do usuário
+      const userInfo = await tx.users.findUnique({
+        where: { id: speaker.users.id },
+        include: {
+          company: true
+        }
+      })
+
+      if (!userInfo) {
+        throw new Error(`Usuário não encontrado para o palestrante ${speakerId}`)
+      }
+
+      if (existingAttendance) {
+        // Se já existe, apenas atualizar o participant_type para speaker
+        console.log('🎤 ATUALIZANDO ATTENDANCE EXISTENTE para palestrante')
+        await tx.attendance_list.update({
+          where: { id: existingAttendance.id },
+          data: {
+            participant_type: PARTICIPANT_TYPES.SPEAKER
+          }
+        })
+      } else {
+        // Se não existe, criar novo registro na attendance_list
+        console.log('🎤 CRIANDO NOVO ATTENDANCE para palestrante')
+        try {
+          const newAttendance = await tx.attendance_list.create({
+            data: {
+              id: nanoid(),
+              eventId: eventId,
+              userId: speaker.users.id,
+              company_cnpj: userInfo.cnpj,
+              company_segment: userInfo.company.segment,
+              attendee_full_name: userInfo.name,
+              attendee_email: userInfo.email,
+              attendee_position: userInfo.position,
+              attendee_rg: userInfo.rg,
+              attendee_cpf: userInfo.cpf,
+              mobile_phone: userInfo.mobile_phone,
+              attendee_type: 'in_person', // Palestrantes são sempre presenciais
+              participant_type: PARTICIPANT_TYPES.SPEAKER,
+              checked_in: false,
+              created_at: new Date(),
+              updatedAt: new Date()
+            }
+          })
+          console.log('✅ ATTENDANCE CRIADO COM SUCESSO:', newAttendance.id)
+        } catch (createError) {
+          console.error('❌ ERRO ao criar attendance_list:', createError)
+          throw createError
         }
       }
     })
@@ -170,14 +237,30 @@ export async function disassociateEventSpeaker(
       }
     }
 
-    // Remover associação
-    await prisma.events.update({
-      where: { id: eventId },
-      data: {
-        speakers: {
-          disconnect: { id: speakerId }
+    // Remover associação e gerenciar attendance_list
+    await prisma.$transaction(async (tx) => {
+      console.log('🎤 REMOVENDO PALESTRANTE DO EVENTO:', { eventId, speakerId, speakerName: speaker.users.name })
+      
+      // Desconectar palestrante do evento
+      await tx.events.update({
+        where: { id: eventId },
+        data: {
+          speakers: {
+            disconnect: { id: speakerId }
+          }
         }
-      }
+      })
+
+      // Remover palestrante da attendance_list do evento (apenas se for speaker)
+      const deletedAttendances = await tx.attendance_list.deleteMany({
+        where: {
+          eventId: eventId,
+          userId: speaker.users.id,
+          participant_type: PARTICIPANT_TYPES.SPEAKER
+        }
+      })
+
+      console.log('🎤 ATTENDANCES REMOVIDOS:', deletedAttendances.count)
     })
 
     // Log da ação

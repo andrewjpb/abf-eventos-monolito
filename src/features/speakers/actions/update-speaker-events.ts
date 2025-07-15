@@ -7,6 +7,8 @@ import { speakerPath, speakersPath, eventPath } from "@/app/paths"
 import { toActionState } from "@/components/form/utils/to-action-state"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
 import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
+import { PARTICIPANT_TYPES } from "@/features/attendance-list/constants/participant-types"
+import { nanoid } from "nanoid"
 
 type UpdateSpeakerEventsParams = {
   speakerId: string;
@@ -14,6 +16,7 @@ type UpdateSpeakerEventsParams = {
 }
 
 export async function updateSpeakerEvents({ speakerId, eventIds }: UpdateSpeakerEventsParams) {
+  console.log('🎤 UPDATE SPEAKER EVENTS - Iniciando:', { speakerId, eventIds })
   const { user, error } = await getAuthWithPermission("speakers.update")
   if (error) {
     return toActionState("ERROR", "Você não tem permissão para realizar esta ação")
@@ -83,11 +86,18 @@ export async function updateSpeakerEvents({ speakerId, eventIds }: UpdateSpeaker
     // Eventos a remover (estão em currentEventIds mas não em eventIds)
     const eventsToRemove = currentEventIds.filter(id => !eventIds.includes(id))
 
+    console.log('🎤 EVENTOS PARA PROCESSAR:', { 
+      currentEventIds, 
+      newEventIds: eventIds,
+      eventsToAdd, 
+      eventsToRemove 
+    })
+
     // Atualizar o relacionamento entre palestrante e eventos
-    await prisma.$transaction([
+    await prisma.$transaction(async (tx) => {
       // Remover eventos que não estão mais na lista
-      ...eventsToRemove.map(eventId =>
-        prisma.events.update({
+      for (const eventId of eventsToRemove) {
+        await tx.events.update({
           where: { id: eventId },
           data: {
             speakers: {
@@ -97,11 +107,20 @@ export async function updateSpeakerEvents({ speakerId, eventIds }: UpdateSpeaker
             }
           }
         })
-      ),
+
+        // Remover palestrante da attendance_list do evento
+        await tx.attendance_list.deleteMany({
+          where: {
+            eventId: eventId,
+            userId: speaker.users.id,
+            participant_type: PARTICIPANT_TYPES.SPEAKER
+          }
+        })
+      }
 
       // Adicionar novos eventos à lista
-      ...eventsToAdd.map(eventId =>
-        prisma.events.update({
+      for (const eventId of eventsToAdd) {
+        await tx.events.update({
           where: { id: eventId },
           data: {
             speakers: {
@@ -111,8 +130,78 @@ export async function updateSpeakerEvents({ speakerId, eventIds }: UpdateSpeaker
             }
           }
         })
-      )
-    ])
+
+        // Verificar se o palestrante já está na attendance_list do evento
+        const existingAttendance = await tx.attendance_list.findFirst({
+          where: {
+            eventId: eventId,
+            userId: speaker.users.id
+          }
+        })
+
+        // Buscar informações do usuário e empresa antes de criar/atualizar
+        const userInfo = await tx.users.findUnique({
+          where: { id: speaker.users.id },
+          include: {
+            company: true
+          }
+        })
+
+        if (!userInfo) {
+          throw new Error(`Usuário não encontrado para o palestrante ${speakerId}`)
+        }
+
+        if (existingAttendance) {
+          // Se já existe, apenas atualizar o participant_type para speaker
+          await tx.attendance_list.update({
+            where: { id: existingAttendance.id },
+            data: {
+              participant_type: PARTICIPANT_TYPES.SPEAKER
+            }
+          })
+        } else {
+          // Se não existe, criar novo registro na attendance_list
+          console.log('🎤 CRIANDO ATTENDANCE para palestrante:', {
+            speakerId,
+            eventId,
+            userId: speaker.users.id,
+            userName: userInfo.name
+          })
+          try {
+            const newAttendance = await tx.attendance_list.create({
+              data: {
+                id: nanoid(),
+                eventId: eventId,
+                userId: speaker.users.id,
+                company_cnpj: userInfo.cnpj,
+                company_segment: userInfo.company.segment,
+                attendee_full_name: userInfo.name,
+                attendee_email: userInfo.email,
+                attendee_position: userInfo.position,
+                attendee_rg: userInfo.rg,
+                attendee_cpf: userInfo.cpf,
+                mobile_phone: userInfo.mobile_phone,
+                attendee_type: 'in_person', // Palestrantes são sempre presenciais
+                participant_type: PARTICIPANT_TYPES.SPEAKER,
+                checked_in: false,
+                created_at: new Date(),
+                updatedAt: new Date()
+              }
+            })
+            console.log('✅ ATTENDANCE CRIADO:', newAttendance.id)
+          } catch (createError) {
+            // Log do erro para debug
+            console.error('❌ ERRO ao criar attendance_list para palestrante:', {
+              speakerId,
+              eventId,
+              userId: speaker.users.id,
+              error: createError
+            })
+            throw createError
+          }
+        }
+      }
+    })
 
     // Registrar a atualização no log
     await logInfo("Speaker.updateEvents", `Eventos do palestrante #${speakerId} atualizados`, user.id, {
@@ -120,7 +209,9 @@ export async function updateSpeakerEvents({ speakerId, eventIds }: UpdateSpeaker
       speakerName: speaker.users.name,
       addedEvents: eventsToAdd.length,
       removedEvents: eventsToRemove.length,
-      currentEvents: eventIds.length
+      currentEvents: eventIds.length,
+      eventsToAdd,
+      eventsToRemove
     })
 
     // Revalidar os paths necessários

@@ -310,12 +310,17 @@ export const registerAttendee = async (
               .button {
                 display: inline-block;
                 padding: 12px 24px;
-                background-color: #2563eb;
+                background-color: #16a34a;
                 color: #ffffff;
                 text-decoration: none;
                 border-radius: 6px;
-                font-weight: 500;
+                font-weight: 600;
                 margin-top: 20px;
+                border: none;
+                cursor: pointer;
+              }
+              .button:hover {
+                background-color: #15803d;
               }
               .success-box {
                 background-color: #dcfce7;

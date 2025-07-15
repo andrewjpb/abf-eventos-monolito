@@ -147,11 +147,11 @@ export function EventRegistrationCard({
   // Evitar renderização no servidor
   if (!mounted) {
     return (
-      <Card className="w-full border-0 shadow-sm">
+      <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
         <CardContent className="p-4">
           <div className="animate-pulse">
-            <div className="h-10 bg-gray-200 rounded mb-3"></div>
-            <div className="h-9 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+            <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </CardContent>
       </Card>
@@ -161,17 +161,17 @@ export function EventRegistrationCard({
   // Se o usuário não está logado
   if (!user) {
     return (
-      <Card className="w-full border-0 shadow-sm">
+      <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-full">
-              <Users className="w-5 h-5 text-blue-600" />
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-full">
+              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                 Confirme sua presença
               </h3>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Faça login para participar
               </p>
             </div>
@@ -194,7 +194,7 @@ export function EventRegistrationCard({
   // Se já está registrado
   if (isRegistered) {
     return (
-      <Card className="w-full border-0 shadow-sm bg-green-50">
+      <Card className="w-full border-0 shadow-sm bg-green-50 dark:bg-green-900/20 dark:border dark:border-green-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             {/* Foto do usuário */}
@@ -208,8 +208,8 @@ export function EventRegistrationCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-green-100 flex items-center justify-center">
-                  <span className="text-green-700 font-semibold text-sm">
+                <div className="w-full h-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
+                  <span className="text-green-700 dark:text-green-300 font-semibold text-sm">
                     {user?.username?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
@@ -218,26 +218,26 @@ export function EventRegistrationCard({
 
             {/* Nome e empresa */}
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm leading-tight">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-tight">
                 {user?.username || "Usuário"}
               </h3>
               {user?.company && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   {user.company.name}
                 </p>
               )}
             </div>
 
             {/* Status */}
-            <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+            <Badge variant="secondary" className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs">
               <CheckCircle className="w-3 h-3 mr-1" />
               Inscrito
             </Badge>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-green-200">
+          <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Sua presença já está confirmada
               </p>
               {mounted && (
@@ -271,17 +271,17 @@ export function EventRegistrationCard({
   // Se não pode se inscrever
   if (registrationStatus && !registrationStatus.canRegister) {
     return (
-      <Card className="w-full border-0 shadow-sm bg-red-50">
+      <Card className="w-full border-0 shadow-sm bg-red-50 dark:bg-red-900/20 dark:border dark:border-red-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-full">
-              <AlertCircle className="w-5 h-5 text-red-600" />
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                 Inscrições indisponíveis
               </h3>
-              <p className="text-xs text-gray-600 mt-0.5">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
                 {registrationStatus.reason || "Não é possível se inscrever"}
               </p>
             </div>
@@ -295,7 +295,7 @@ export function EventRegistrationCard({
   const displayVacancies = companyRemainingVacancies !== undefined ? companyRemainingVacancies : remainingVacancies
 
   return (
-    <Card className="w-full border-0 shadow-sm">
+    <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Header com foto e informações do usuário */}
@@ -311,8 +311,8 @@ export function EventRegistrationCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-700 font-semibold text-sm">
+                <div className="w-full h-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                  <span className="text-blue-700 dark:text-blue-300 font-semibold text-sm">
                     {user?.username?.charAt(0).toUpperCase() || "U"}
                   </span>
                 </div>
@@ -321,11 +321,11 @@ export function EventRegistrationCard({
 
             {/* Nome e empresa */}
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm leading-tight">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-tight">
                 {user?.username || "Usuário"}
               </h3>
               {user?.company && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   {user.company.name}
                 </p>
               )}
@@ -333,7 +333,7 @@ export function EventRegistrationCard({
 
             {/* Badge de vagas */}
             <div className="text-right">
-              <Badge variant="secondary" className="bg-blue-50 text-blue-800 text-xs">
+              <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs">
                 {displayVacancies} {displayVacancies === 1 ? 'vaga' : 'vagas'}
               </Badge>
             </div>

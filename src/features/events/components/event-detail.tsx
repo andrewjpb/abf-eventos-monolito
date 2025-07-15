@@ -406,6 +406,12 @@ export function EventDetail({
                       }
 
                       if (eventoJaComecou) {
+                        // Verificar se deve mostrar o botão de transmissão
+                        const mostrarTransmissao = event.transmission_link && 
+                                                  event.isStreaming && 
+                                                  (event.format?.toUpperCase() === "ONLINE" || event.format?.toUpperCase() === "HIBRIDO") &&
+                                                  isRegistered
+
                         return (
                           <div className="flex items-center gap-4">
                             <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full animate-pulse">
@@ -413,7 +419,7 @@ export function EventDetail({
                             </div>
                             <div className="flex-1">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Evento em andamento
+                                Acompanhe o evento em andamento
                               </h3>
                               <p className="text-gray-600 dark:text-gray-400">
                                 {event.format?.toUpperCase() === "ONLINE" ? (
@@ -425,7 +431,7 @@ export function EventDetail({
                                 )}
                               </p>
                             </div>
-                            {event.transmission_link && (
+                            {mostrarTransmissao && (
                               <a
                                 href={event.transmission_link}
                                 target="_blank"
@@ -473,17 +479,7 @@ export function EventDetail({
                               )}
                             </p>
                           </div>
-                          {event.transmission_link && (
-                            <a
-                              href={event.transmission_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                              <PlayCircle className="w-4 h-4" />
-                              <span className="text-sm font-medium">Transmissão</span>
-                            </a>
-                          )}
+                          {/* Não mostrar botão de transmissão antes do evento começar */}
                         </div>
                       )
                     })()}

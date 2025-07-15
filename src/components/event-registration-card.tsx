@@ -229,17 +229,19 @@ export function EventRegistrationCard({
     return (
       <Card className="w-full border-0 shadow-sm bg-green-50 dark:bg-green-900/20 dark:border dark:border-green-800">
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg h-12 w-12 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                Inscrição Confirmada
-              </h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Sua presença está garantida
-              </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg h-12 w-12 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                  Inscrição Confirmada
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Sua presença está garantida
+                </p>
+              </div>
             </div>
             <Button
               variant="outline"

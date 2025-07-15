@@ -92,7 +92,7 @@ export function EventDetail({
     <div className="flex flex-col gap-8">
       {/* Tarja de Status do Evento */}
       {!event.isPublished ? (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 hidden sm:block">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
@@ -124,7 +124,7 @@ export function EventDetail({
         </div>
       ) : (
         hasEventCreatePermission && (
-          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-4">
+          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-4 hidden sm:block">
             <div className="container mx-auto px-4">
               <div className="flex items-center gap-3">
                 <div className="flex-shrink-0">
@@ -230,7 +230,7 @@ export function EventDetail({
           <div className="w-full">
             <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50">
               <CardContent className="p-5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   {/* Lado Esquerdo */}
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
@@ -273,7 +273,7 @@ export function EventDetail({
             {event.address && (
               <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50 mt-4">
                 <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     {/* Lado Esquerdo */}
                     <div className="flex items-center gap-3">
                       <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">

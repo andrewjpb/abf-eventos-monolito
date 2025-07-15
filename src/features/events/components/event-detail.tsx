@@ -291,10 +291,15 @@ export function EventDetail({
 
                     {/* Lado Direito */}
                     <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                      <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                      <a
+                        href={`https://waze.com/ul?q=${encodeURIComponent(`${event.address.street}, ${event.address.number}, ${event.address.cities.name}, ${event.address.states.uf}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                      >
                         <MapPinIcon className="w-5 h-5" />
-                        <span className="text-sm font-medium">Ver no mapa</span>
-                      </button>
+                        <span className="text-sm font-medium">Abrir no Waze</span>
+                      </a>
                     </div>
                   </div>
                 </CardContent>

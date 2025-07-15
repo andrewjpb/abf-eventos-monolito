@@ -106,16 +106,16 @@ model event_schedule {
   id          String   @id
   eventId     String
   day_date    DateTime // Data específica do dia da programação
-  start_time  String   // Horário de início (ex: "09:00")
-  end_time    String   // Horário de fim (ex: "10:30")
-  title       String   // Título da atividade
-  description String?  // Descrição da atividade (opcional)
+  start_time  String // Horário de início (ex: "09:00")
+  end_time    String // Horário de fim (ex: "10:30")
+  title       String // Título da atividade
+  description String? // Descrição da atividade (opcional)
   order_index Int      @default(0) // Ordem na timeline
   created_at  DateTime @default(now())
   updatedAt   DateTime @default(now())
-  
-  event       events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
+
+  event events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
   @@map("event_schedule")
 }
 
@@ -227,7 +227,7 @@ model event_sponsor_order {
   order      Int      @default(0)
   created_at DateTime @default(now())
   updatedAt  DateTime @default(now())
-  
+
   @@unique([eventId, sponsorId])
   @@index([eventId])
   @@index([order])
@@ -240,39 +240,40 @@ model event_supporter_order {
   order       Int      @default(0)
   created_at  DateTime @default(now())
   updatedAt   DateTime @default(now())
-  
+
   @@unique([eventId, supporterId])
   @@index([eventId])
   @@index([order])
 }
 
 model users {
-  id                     String                  @id
-  name                   String
-  username               String                  @unique
-  email                  String                  @unique
-  password               String
-  active                 Boolean                 @default(true)
-  rg                     String                  @unique
-  cpf                    String                  @unique
-  cnpj                   String
-  mobile_phone           String                  @unique
-  position               String
-  city                   String
-  state                  String
-  image_url              String                  @default("")
-  thumb_url              String                  @default("")
-  image_path             String                  @default("")
-  thumb_path             String                  @default("")
-  created_at             DateTime                @default(now())
-  updatedAt              DateTime                @default(now())
-  AppLog                 AppLog[]
-  attendance_list        attendance_list[]
-  Session                Session[]
-  speakers               speakers?
-  reset_password_tokens  reset_password_token[]
-  company                company                 @relation(fields: [cnpj], references: [cnpj])
-  roles                  roles[]                 @relation("RoleToUser")
+  id                    String                 @id
+  name                  String
+  username              String                 @unique
+  email                 String                 @unique
+  password              String
+  active                Boolean                @default(true)
+  rg                    String                 @unique
+  cpf                   String                 @unique
+  cnpj                  String
+  mobile_phone          String                 @unique
+  position              String
+  city                  String
+  state                 String
+  image_url             String                 @default("")
+  thumb_url             String                 @default("")
+  image_path            String                 @default("")
+  thumb_path            String                 @default("")
+  created_at            DateTime               @default(now())
+  updatedAt             DateTime               @default(now())
+  email_verified        Boolean                @default(false)
+  AppLog                AppLog[]
+  attendance_list       attendance_list[]
+  Session               Session[]
+  speakers              speakers?
+  reset_password_tokens reset_password_token[]
+  company               company                @relation(fields: [cnpj], references: [cnpj])
+  roles                 roles[]                @relation("RoleToUser")
 }
 
 model Session {

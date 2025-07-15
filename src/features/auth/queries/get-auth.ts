@@ -46,6 +46,9 @@ export const getAuth = async () => {
       // Adicionar URLs de imagem
       result.user.image_url = userWithRoles.image_url;
       result.user.thumb_url = userWithRoles.thumb_url;
+      
+      // Adicionar campo de email verificado
+      result.user.email_verified = userWithRoles.email_verified;
     }
   }
 

@@ -4,14 +4,17 @@ import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, CheckCircle, AlertCircle, Calendar, X } from "lucide-react"
+import { Users, CheckCircle, AlertCircle, Calendar, X, Mail, ArrowLeft } from "lucide-react"
 import { canUserRegister } from "@/features/attendance-list/actions/can-user-register"
 import { registerAttendee } from "@/features/attendance-list/actions/register-attendee"
 import { cancelRegistration } from "@/features/attendance-list/actions/cancel-registration"
+import { sendOTPVerification } from "@/features/attendance-list/actions/send-otp-verification"
+import { verifyOTP } from "@/features/attendance-list/actions/verify-otp"
 import { toast } from "sonner"
 import { EventWithDetails } from "@/features/events/types"
 import Image from "next/image"
 import { EMPTY_ACTION_STATE } from "./form/utils/to-action-state"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 
 interface EventRegistrationCardProps {
   event: EventWithDetails
@@ -22,6 +25,8 @@ interface EventRegistrationCardProps {
   companyRemainingVacancies?: number
   canRegister?: { canRegister: boolean; reason?: string } | null
 }
+
+type VerificationStep = 'initial' | 'otp-sent' | 'verified'
 
 export function EventRegistrationCard({
   event,
@@ -36,18 +41,68 @@ export function EventRegistrationCard({
   const [isCanceling, setIsCanceling] = useState(false)
   const [registrationStatus, setRegistrationStatus] = useState<{ canRegister: boolean; reason?: string } | null>(canRegister)
   const [mounted, setMounted] = useState(false)
+  const [verificationStep, setVerificationStep] = useState<VerificationStep>('initial')
+  const [otpValue, setOtpValue] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isSendingOTP, setIsSendingOTP] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleRegister = () => {
-    if (!user) {
-      if (typeof window !== 'undefined') {
-        toast.error("Você precisa estar logado para se inscrever")
+  const handleSendOTP = async () => {
+    if (!user) return
+    
+    setIsSendingOTP(true)
+    try {
+      const result = await sendOTPVerification()
+      
+      if (result.status === 'SUCCESS') {
+        if (result.emailVerified) {
+          // Email já verificado, pode prosseguir com a inscrição
+          await proceedWithRegistration()
+        } else {
+          setVerificationStep('otp-sent')
+          toast.success(result.message)
+        }
+      } else {
+        toast.error(result.message)
       }
+    } catch (error) {
+      toast.error('Erro ao enviar código de verificação')
+    } finally {
+      setIsSendingOTP(false)
+    }
+  }
+
+  const handleVerifyOTP = async () => {
+    if (!otpValue || otpValue.length !== 6) {
+      toast.error('Digite o código completo')
       return
     }
+    
+    setIsVerifying(true)
+    try {
+      const result = await verifyOTP(otpValue)
+      
+      if (result.status === 'SUCCESS') {
+        setVerificationStep('verified')
+        toast.success(result.message)
+        // Prosseguir com a inscrição após verificação
+        setTimeout(() => {
+          proceedWithRegistration()
+        }, 1000)
+      } else {
+        toast.error(result.message)
+      }
+    } catch (error) {
+      toast.error('Erro ao verificar código')
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  const proceedWithRegistration = async () => {
 
     startTransition(async () => {
       try {
@@ -107,6 +162,27 @@ export function EventRegistrationCard({
         }
       }
     })
+  }
+
+  const handleRegister = () => {
+    if (!user) {
+      if (typeof window !== 'undefined') {
+        toast.error("Você precisa estar logado para se inscrever")
+      }
+      return
+    }
+
+    console.log("User data:", user)
+    console.log("Email verified:", user.email_verified)
+
+    // Verificar se o email está verificado
+    if (user.email_verified === false) {
+      console.log("Email not verified, sending OTP")
+      handleSendOTP()
+    } else {
+      console.log("Email verified, proceeding with registration")
+      proceedWithRegistration()
+    }
   }
 
   const handleCancel = () => {
@@ -294,6 +370,118 @@ export function EventRegistrationCard({
   // Pode se inscrever
   const displayVacancies = companyRemainingVacancies !== undefined ? companyRemainingVacancies : remainingVacancies
 
+  // Se está no processo de verificação OTP
+  if (verificationStep === 'otp-sent') {
+    return (
+      <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            {/* Header com ícone e título */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-full">
+                <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                  Verificação de Email
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Digite o código enviado para {user?.email}
+                </p>
+              </div>
+            </div>
+
+            {/* Input OTP */}
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={6}
+                value={otpValue}
+                onChange={(value) => setOtpValue(value)}
+                disabled={isVerifying}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setVerificationStep('initial')
+                  setOtpValue('')
+                }}
+                disabled={isVerifying}
+                className="flex-1"
+              >
+                <ArrowLeft className="w-3 h-3 mr-1" />
+                Voltar
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleVerifyOTP}
+                disabled={isVerifying || otpValue.length !== 6}
+                className="flex-1"
+              >
+                {isVerifying ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                    Verificando...
+                  </>
+                ) : (
+                  'Verificar'
+                )}
+              </Button>
+            </div>
+
+            <div className="text-center">
+              <Button
+                variant="link"
+                size="sm"
+                onClick={handleSendOTP}
+                disabled={isSendingOTP}
+                className="text-xs"
+              >
+                {isSendingOTP ? 'Enviando...' : 'Reenviar código'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Se o email foi verificado com sucesso
+  if (verificationStep === 'verified') {
+    return (
+      <Card className="w-full border-0 shadow-sm bg-green-50 dark:bg-green-900/20 dark:border dark:border-green-800">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
+              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                Email verificado!
+              </h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Confirmando sua presença...
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
       <CardContent className="p-4">
@@ -343,12 +531,12 @@ export function EventRegistrationCard({
           <Button
             className="w-full h-9 text-sm"
             onClick={handleRegister}
-            disabled={isPending}
+            disabled={isPending || isSendingOTP}
           >
-            {isPending ? (
+            {isPending || isSendingOTP ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Confirmando...
+                {isSendingOTP ? 'Enviando código...' : 'Confirmando...'}
               </>
             ) : (
               <>

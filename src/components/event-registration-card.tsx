@@ -15,6 +15,7 @@ import { EventWithDetails } from "@/features/events/types"
 import Image from "next/image"
 import { EMPTY_ACTION_STATE } from "./form/utils/to-action-state"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { useRouter } from "next/navigation"
 
 interface EventRegistrationCardProps {
   event: EventWithDetails
@@ -37,26 +38,22 @@ export function EventRegistrationCard({
   companyRemainingVacancies,
   canRegister = null
 }: EventRegistrationCardProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isCanceling, setIsCanceling] = useState(false)
   const [registrationStatus, setRegistrationStatus] = useState<{ canRegister: boolean; reason?: string } | null>(canRegister)
-  const [mounted, setMounted] = useState(false)
   const [verificationStep, setVerificationStep] = useState<VerificationStep>('initial')
   const [otpValue, setOtpValue] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   const [isSendingOTP, setIsSendingOTP] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const handleSendOTP = async () => {
     if (!user) return
-    
+
     setIsSendingOTP(true)
     try {
       const result = await sendOTPVerification()
-      
+
       if (result.status === 'SUCCESS') {
         if (result.emailVerified) {
           // Email já verificado, pode prosseguir com a inscrição
@@ -80,11 +77,11 @@ export function EventRegistrationCard({
       toast.error('Digite o código completo')
       return
     }
-    
+
     setIsVerifying(true)
     try {
       const result = await verifyOTP(otpValue)
-      
+
       if (result.status === 'SUCCESS') {
         setVerificationStep('verified')
         toast.success(result.message)
@@ -146,93 +143,57 @@ export function EventRegistrationCard({
         const result = await registerAttendee(EMPTY_ACTION_STATE, formData)
 
         if (result.status === "SUCCESS") {
-          if (typeof window !== 'undefined') {
-            toast.success("Presença confirmada com sucesso!")
-            // Recarregar a página para atualizar o status
-            window.location.reload()
-          }
+          toast.success("Presença confirmada com sucesso!")
+          // Refresh da página para atualizar o status
+          router.refresh()
         } else {
-          if (typeof window !== 'undefined') {
-            toast.error(result.message || "Erro ao confirmar presença")
-          }
+          toast.error(result.message || "Erro ao confirmar presença")
         }
       } catch (error) {
-        if (typeof window !== 'undefined') {
-          toast.error("Erro interno do servidor")
-        }
+        toast.error("Erro interno do servidor")
       }
     })
   }
 
   const handleRegister = () => {
     if (!user) {
-      if (typeof window !== 'undefined') {
-        toast.error("Você precisa estar logado para se inscrever")
-      }
+      toast.error("Você precisa estar logado para se inscrever")
       return
     }
 
-    console.log("User data:", user)
-    console.log("Email verified:", user.email_verified)
-
     // Verificar se o email está verificado
     if (user.email_verified === false) {
-      console.log("Email not verified, sending OTP")
       handleSendOTP()
     } else {
-      console.log("Email verified, proceeding with registration")
       proceedWithRegistration()
     }
   }
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!attendanceId) {
-      if (typeof window !== 'undefined') {
-        toast.error("ID da inscrição não encontrado")
-      }
+      toast.error("ID da inscrição não encontrado")
       return
     }
 
     setIsCanceling(true)
-    
-    startTransition(async () => {
-      try {
-        const result = await cancelRegistration(attendanceId)
 
-        if (result.status === "SUCCESS") {
-          if (typeof window !== 'undefined') {
-            toast.success(result.message || "Inscrição cancelada com sucesso!")
-            // Recarregar a página para atualizar o status
-            window.location.reload()
-          }
-        } else {
-          if (typeof window !== 'undefined') {
-            toast.error(result.message || "Erro ao cancelar inscrição")
-          }
-        }
-      } catch (error) {
-        if (typeof window !== 'undefined') {
-          toast.error("Erro interno do servidor")
-        }
-      } finally {
-        setIsCanceling(false)
+    try {
+      const result = await cancelRegistration(attendanceId)
+
+      if (result.status === "SUCCESS") {
+        toast.success(result.message || "Inscrição cancelada com sucesso!")
+        // Refresh da página para atualizar o status
+        router.refresh()
+      } else {
+        toast.error(result.message || "Erro ao cancelar inscrição")
       }
-    })
+    } catch (error) {
+      toast.error("Erro interno do servidor")
+    } finally {
+      setIsCanceling(false)
+    }
   }
 
-  // Evitar renderização no servidor
-  if (!mounted) {
-    return (
-      <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
-        <CardContent className="p-4">
-          <div className="animate-pulse">
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
-            <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
 
   // Se o usuário não está logado
   if (!user) {
@@ -240,7 +201,7 @@ export function EventRegistrationCard({
       <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-full">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
               <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1">
@@ -254,11 +215,7 @@ export function EventRegistrationCard({
           </div>
           <Button
             className="w-full mt-3 h-9 text-sm"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                window.location.href = '/sign-in'
-              }
-            }}
+            onClick={() => router.push('/sign-in')}
           >
             Fazer Login
           </Button>
@@ -273,71 +230,36 @@ export function EventRegistrationCard({
       <Card className="w-full border-0 shadow-sm bg-green-50 dark:bg-green-900/20 dark:border dark:border-green-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            {/* Foto do usuário */}
-            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-              {user?.picture ? (
-                <Image
-                  src={user.picture}
-                  alt={user.username || "Usuário"}
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
-                  <span className="text-green-700 dark:text-green-300 font-semibold text-sm">
-                    {user?.username?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                </div>
-              )}
+            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg h-12 w-12 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
-
-            {/* Nome e empresa */}
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-tight">
-                {user?.username || "Usuário"}
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                Inscrição Confirmada
               </h3>
-              {user?.company && (
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {user.company.name}
-                </p>
-              )}
-            </div>
-
-            {/* Status */}
-            <Badge variant="secondary" className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Inscrito
-            </Badge>
-          </div>
-
-          <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
-            <div className="flex items-center justify-between">
               <p className="text-xs text-gray-600 dark:text-gray-400">
-                Sua presença já está confirmada
+                Sua presença está garantida
               </p>
-              {mounted && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancel}
-                  disabled={isCanceling || isPending}
-                  className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
-                >
-                  {isCanceling ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-red-700 border-t-transparent rounded-full animate-spin mr-1" />
-                      Cancelando...
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-3 h-3 mr-1" />
-                      Cancelar
-                    </>
-                  )}
-                </Button>
-              )}
             </div>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleCancel}
+              disabled={isCanceling || isPending}
+              className="h-10 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+            >
+              {isCanceling ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-red-700 border-t-transparent rounded-full animate-spin mr-1" />
+                  Cancelando...
+                </>
+              ) : (
+                <>
+                  <X className="w-4 h-4 mr-1" />
+                  Cancelar inscrição
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -350,7 +272,7 @@ export function EventRegistrationCard({
       <Card className="w-full border-0 shadow-sm bg-red-50 dark:bg-red-900/20 dark:border dark:border-red-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
@@ -378,7 +300,7 @@ export function EventRegistrationCard({
           <div className="space-y-4">
             {/* Header com ícone e título */}
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-full">
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                 <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1">
@@ -464,17 +386,61 @@ export function EventRegistrationCard({
     return (
       <Card className="w-full border-0 shadow-sm bg-green-50 dark:bg-green-900/20 dark:border dark:border-green-800">
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                  Email verificado!
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Confirmando sua presença...
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                Email verificado!
-              </h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Confirmando sua presença...
-              </p>
+
+            {/* Dados do usuário */}
+            <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-800">
+              {/* Foto do usuário */}
+              <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                {user?.picture ? (
+                  <Image
+                    src={user.picture}
+                    alt={user.username || "Usuário"}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
+                    <span className="text-green-700 dark:text-green-300 font-semibold text-sm">
+                      {user?.username?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Nome e empresa */}
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight">
+                  {user?.username || "Usuário"}
+                </h4>
+                {user?.company && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {user.company.name}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Loader de confirmação */}
+            <div className="flex justify-center">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                Processando inscrição...
+              </div>
             </div>
           </div>
         </CardContent>
@@ -485,68 +451,39 @@ export function EventRegistrationCard({
   return (
     <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
       <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header com foto e informações do usuário */}
-          <div className="flex items-center gap-3">
-            {/* Foto do usuário */}
-            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-              {user?.picture ? (
-                <Image
-                  src={user.picture}
-                  alt={user.username || "Usuário"}
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
-                  <span className="text-blue-700 dark:text-blue-300 font-semibold text-sm">
-                    {user?.username?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Nome e empresa */}
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-tight">
-                {user?.username || "Usuário"}
-              </h3>
-              {user?.company && (
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {user.company.name}
-                </p>
-              )}
-            </div>
-
-            {/* Badge de vagas */}
-            <div className="text-right">
-              <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs">
-                {displayVacancies} {displayVacancies === 1 ? 'vaga' : 'vagas'}
-              </Badge>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg h-12 w-12 items-center justify-center flex">
+            <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
-
-          {/* Botão de confirmação */}
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+              Confirmar Presença
+            </h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              {displayVacancies} {displayVacancies === 1 ? 'vaga disponível' : 'vagas disponíveis'}
+            </p>
+          </div>
           <Button
-            className="w-full h-9 text-sm"
+            variant="outline"
+            size="default"
             onClick={handleRegister}
             disabled={isPending || isSendingOTP}
+            className="h-10 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
           >
             {isPending || isSendingOTP ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                {isSendingOTP ? 'Enviando código...' : 'Confirmando...'}
+                <div className="w-5 h-5 border-2 border-blue-700 border-t-transparent rounded-full animate-spin mr-1" />
+                {isSendingOTP ? 'Enviando...' : 'Confirmando...'}
               </>
             ) : (
               <>
-                <Calendar className="w-4 h-4 mr-2" />
+                <CheckCircle className="w-5 h-5 mr-1" />
                 Confirmar Presença
               </>
             )}
           </Button>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   )
 }

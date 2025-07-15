@@ -107,153 +107,140 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
             </Badge>
           </div>
 
-          {/* Título do evento */}
-          <h2 className="text-2xl font-bold text-card-foreground mb-3">
-            {event.title}
-          </h2>
+          {/* Título e descrição */}
+          <div className="mb-6">
+            <div className="flex gap-4 justify-start mb-3">
+              <div className="flex-shrink-0 bg-primary text-primary-foreground text-center rounded-md overflow-hidden w-16">
+                <div className="text-2xl font-bold py-1">
+                  {obterDia()}
+                </div>
+                <div className="bg-primary-foreground/10 text-xs py-1">
+                  {obterMes()}
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-card-foreground flex-1">
+                  {event.title}
+                </h2>
+                <p className="text-muted-foreground">
+                  {event.summary}
+                </p>
+              </div>
+            </div>
 
-          {/* Descrição ou resumo */}
-          <p className="text-muted-foreground mb-6">
-            {event.summary}
-          </p>
+          </div>
 
           {/* Separador */}
           <div className="border-t border-border my-4"></div>
 
-          {/* Informações do evento (data, hora, local) */}
-          <div className="flex items-start gap-4">
-            {/* Data do evento (bloco de data) */}
-            <div className="flex-shrink-0 bg-primary text-primary-foreground text-center rounded-md overflow-hidden w-16">
-              <div className="text-2xl font-bold py-1">
-                {obterDia()}
+          {/* Informações do evento (hora, local) */}
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col items-start justify-center space-y-2">
+              {/* Horário */}
+              <div className="flex items-center gap-2 text-card-foreground">
+                <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm">{formatarHorario()}</span>
               </div>
-              <div className="bg-primary-foreground/10 text-xs py-1">
-                {obterMes()}
+
+              {/* Local */}
+              <div className="flex items-center gap-2 text-card-foreground">
+                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm break-words">{formatarLocal()}</span>
               </div>
             </div>
 
-            {/* Detalhes do evento */}
-            <div className="flex flex-col lg:flex-row lg:justify-between w-full space-y-3 lg:space-y-0">
-              <div className="flex flex-col items-start justify-center">
-                {/* Horário */}
-                <div className="flex items-center gap-2 text-card-foreground">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatarHorario()}</span>
-                </div>
+            {/* Palestrantes / Patrocinadores (se existirem) */}
+            <div className="flex flex-row gap-6">
+              {temPalestrantes && (
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground mb-2">Palestrantes</span>
 
-                {/* Local */}
-                <div className="flex items-center gap-2 text-card-foreground">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatarLocal()}</span>
-                </div>
-              </div>
-
-              {/* Palestrantess / Patrocinadores (se existirem) */}
-              <div className="flex gap-6 mt-2 lg:mt-0">
-                {temPalestrantes && (
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground mb-1">Palestrantes</span>
-
-                    {/* Versão melhorada para exibição de palestrantes */}
-                    <div className="flex items-center">
-                      <div className="flex -space-x-2 mr-2">
-                        {event.speakers?.slice(0, 3).map((speaker, index) => (
-                          <div
-                            key={index}
-                            className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-background"
-                            style={{ zIndex: 10 - index }}
-                          >
-                            {speaker.users?.image_url ? (
-                              <Image
-                                src={speaker.users.image_url}
-                                alt={speaker.users.name || "Palestrante"}
-                                fill
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                <span className="text-xs font-medium text-primary">
-                                  {speaker.users?.name?.charAt(0) || "?"}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-
-                        {/* Mostrar indicador de mais palestrantes caso existam */}
-                        {(event.speakers?.length || 0) > 3 && (
-                          <div className="relative w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center z-0">
-                            <span className="text-xs text-muted-foreground font-medium">
-                              +{(event.speakers?.length || 0) - 3}
+                  {/* Apenas avatares dos palestrantes */}
+                  <div className="flex -space-x-2">
+                    {event.speakers?.slice(0, 4).map((speaker, index) => (
+                      <div
+                        key={index}
+                        className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-background"
+                        style={{ zIndex: 10 - index }}
+                      >
+                        {speaker.users?.image_url ? (
+                          <Image
+                            src={speaker.users.image_url}
+                            alt={speaker.users.name || "Palestrante"}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-xs font-medium text-primary">
+                              {speaker.users?.name?.charAt(0) || "?"}
                             </span>
                           </div>
                         )}
                       </div>
+                    ))}
 
-                      <div className="text-sm text-card-foreground">
-                        {event.speakers?.length === 1 && (
-                          <span>{event.speakers[0].users?.name || "Palestrante"}</span>
-                        )}
-
-                        {event.speakers?.length === 2 && (
-                          <span>
-                            {event.speakers[0].users?.name || "Palestrante"} e{" "}
-                            {event.speakers[1].users?.name || "Palestrante"}
-                          </span>
-                        )}
-
-                        {(event.speakers?.length || 0) > 2 && (
-                          <span>
-                            {event.speakers?.[0].users?.name || "Palestrante"} e outros
-                          </span>
-                        )}
+                    {/* Mostrar indicador de mais palestrantes caso existam */}
+                    {(event.speakers?.length || 0) > 4 && (
+                      <div className="relative w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center z-0">
+                        <span className="text-xs text-muted-foreground font-medium">
+                          +{(event.speakers?.length || 0) - 4}
+                        </span>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {temPatrocinadores && (
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground mb-1">Patrocinadores</span>
-                    <div className="flex items-center">
-                      <div className="flex -space-x-1 mr-2">
-                        {event.sponsors?.slice(0, 3).map((sponsor, index) => (
-                          <div
-                            key={index}
-                            className="relative w-6 h-6 rounded-full overflow-hidden border border-background bg-card"
-                            style={{ zIndex: 10 - index }}
-                          >
-                            {sponsor.image_url ? (
-                              <Image
-                                src={sponsor.image_url}
-                                alt={sponsor.name}
-                                fill
-                                className="object-contain"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-muted flex items-center justify-center">
-                                <span className="text-[8px] font-medium text-muted-foreground">
-                                  {sponsor.name?.charAt(0) || "?"}
-                                </span>
-                              </div>
-                            )}
+              {temPatrocinadores && (
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground mb-2">Patrocinadores</span>
+                  {/* Apenas avatares dos patrocinadores */}
+                  <div className="flex -space-x-1">
+                    {event.sponsors?.slice(0, 4).map((sponsor, index) => (
+                      <div
+                        key={index}
+                        className="relative w-6 h-6 rounded-full overflow-hidden border border-background bg-card"
+                        style={{ zIndex: 10 - index }}
+                      >
+                        {sponsor.image_url ? (
+                          <Image
+                            src={sponsor.image_url}
+                            alt={sponsor.name}
+                            fill
+                            className="object-contain"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-[8px] font-medium text-muted-foreground">
+                              {sponsor.name?.charAt(0) || "?"}
+                            </span>
                           </div>
-                        ))}
+                        )}
                       </div>
-                      <span className="text-sm text-card-foreground">{event.sponsors?.length} empresas</span>
-                    </div>
+                    ))}
+
+                    {/* Mostrar indicador de mais patrocinadores caso existam */}
+                    {(event.sponsors?.length || 0) > 4 && (
+                      <div className="relative w-6 h-6 rounded-full bg-muted border border-background flex items-center justify-center z-0">
+                        <span className="text-[8px] text-muted-foreground font-medium">
+                          +{(event.sponsors?.length || 0) - 4}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Link para a página do evento (todo o card é clicável) */}
-        <Link href={eventPath(event.id)} className="absolute inset-0">
-          <span className="sr-only">Ver detalhes do evento {event.title}</span>
-        </Link>
       </div>
+
+      {/* Link para a página do evento (todo o card é clicável) */}
+      <Link href={eventPath(event.id)} className="absolute inset-0">
+        <span className="sr-only">Ver detalhes do evento {event.title}</span>
+      </Link>
     </div>
+
   )
 }

@@ -12,6 +12,7 @@ import { eventAdminPath } from "@/app/paths"
 import { getEventAttendees } from "../queries/get-event-attendees"
 import { EventCheckinItem } from "./event-checkin-item"
 import { AdminEventWithDetails } from "../types"
+import { PARTICIPANT_TYPE_OPTIONS } from "@/features/attendance-list/constants/participant-types"
 
 type EventCheckinViewProps = {
   event: AdminEventWithDetails
@@ -23,6 +24,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [participantTypeFilter, setParticipantTypeFilter] = useState("all")
 
   // Carregar participantes
   useEffect(() => {
@@ -65,8 +67,15 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       })
     }
 
+    // Filtro por tipo de participante
+    if (participantTypeFilter !== "all") {
+      filtered = filtered.filter(attendee => 
+        attendee.participant_type === participantTypeFilter
+      )
+    }
+
     setFilteredAttendees(filtered)
-  }, [attendees, searchTerm, statusFilter])
+  }, [attendees, searchTerm, statusFilter, participantTypeFilter])
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -174,7 +183,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       {/* Filters */}
       <motion.div variants={fadeIn}>
         <Card className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -185,16 +194,32 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
               />
             </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="checked-in">Check-in Realizado</SelectItem>
-                <SelectItem value="not-checked-in">Pendente</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="checked-in">Check-in Realizado</SelectItem>
+                  <SelectItem value="not-checked-in">Pendente</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={participantTypeFilter} onValueChange={setParticipantTypeFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filtrar por tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  {PARTICIPANT_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </Card>
       </motion.div>
@@ -213,7 +238,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
               <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== "all"
+                {searchTerm || statusFilter !== "all" || participantTypeFilter !== "all"
                   ? "Nenhum participante encontrado com os filtros aplicados"
                   : "Nenhum participante inscrito neste evento"
                 }

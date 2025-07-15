@@ -8,5 +8,6 @@ declare module "lucia" {
     company?: any;     // Adicionar propriedade company opcional
     image_url?: string;
     thumb_url?: string;
+    email_verified?: boolean;  // Adicionar campo de email verificado
   }
 }

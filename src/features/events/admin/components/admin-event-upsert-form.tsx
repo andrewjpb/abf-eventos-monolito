@@ -799,11 +799,23 @@ export function AdminEventUpsertForm({
                   )}
                 </div>
                 <FieldError actionState={actionState} name="image_file" />
-                <div className="flex items-center gap-2">
-                  <div className="h-1 w-1 bg-muted-foreground rounded-full" />
-                  <p className="text-xs text-muted-foreground">
-                    Resolução recomendada: 1920x1080px • Tamanho máximo: 5MB
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1 w-1 bg-muted-foreground rounded-full" />
+                    <p className="text-xs text-muted-foreground">
+                      Formatos aceitos: JPG, PNG, GIF, WEBP. Tamanho máximo: 5MB.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
+                      📐 Resolução recomendada:
+                    </p>
+                    <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                      <li>• <strong>Resolução recomendada:</strong> 1200x480px</li>
+                      <li>• <strong>Evento destaque:</strong> 1200x480px (formato paisagem)</li>
+                      <li>• <strong>Tamanho máximo:</strong> 5MB</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -884,11 +896,23 @@ export function AdminEventUpsertForm({
                   )}
                 </div>
                 <FieldError actionState={actionState} name="thumb_file" />
-                <div className="flex items-center gap-2">
-                  <div className="h-1 w-1 bg-muted-foreground rounded-full" />
-                  <p className="text-xs text-muted-foreground">
-                    Resolução recomendada: 800x600px • Tamanho máximo: 5MB
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1 w-1 bg-muted-foreground rounded-full" />
+                    <p className="text-xs text-muted-foreground">
+                      Formatos aceitos: JPG, PNG, GIF, WEBP. Tamanho máximo: 5MB.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
+                      📐 Resolução recomendada:
+                    </p>
+                    <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                      <li>• <strong>Resolução recomendada:</strong> 400x320px</li>
+                      <li>• <strong>Cards de eventos:</strong> 400x320px (formato levemente paisagem)</li>
+                      <li>• <strong>Tamanho máximo:</strong> 5MB</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>

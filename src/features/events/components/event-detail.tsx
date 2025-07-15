@@ -248,10 +248,22 @@ export function EventDetail({
 
                   {/* Lado Direito */}
                   <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                    <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-                      <CalendarPlus className="w-5 h-5" />
-                      <span className="text-sm font-medium">Adicionar à agenda</span>
-                    </button>
+                    {event.schedule_link ? (
+                      <a
+                        href={event.schedule_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                      >
+                        <CalendarPlus className="w-5 h-5" />
+                        <span className="text-sm font-medium">Adicionar à agenda</span>
+                      </a>
+                    ) : (
+                      <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <CalendarPlus className="w-5 h-5" />
+                        <span className="text-sm font-medium">Adicionar à agenda</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -399,7 +411,7 @@ export function EventDetail({
                             <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full animate-pulse">
                               <PlayCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                 Evento em andamento
                               </h3>
@@ -413,6 +425,17 @@ export function EventDetail({
                                 )}
                               </p>
                             </div>
+                            {event.transmission_link && (
+                              <a
+                                href={event.transmission_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors animate-pulse"
+                              >
+                                <PlayCircle className="w-4 h-4" />
+                                <span className="text-sm font-medium">Acessar Transmissão</span>
+                              </a>
+                            )}
                           </div>
                         )
                       }
@@ -436,7 +459,7 @@ export function EventDetail({
                           <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
                             <CalendarClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                               Começamos em {tempoRestante}
                             </h3>
@@ -450,6 +473,17 @@ export function EventDetail({
                               )}
                             </p>
                           </div>
+                          {event.transmission_link && (
+                            <a
+                              href={event.transmission_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              <PlayCircle className="w-4 h-4" />
+                              <span className="text-sm font-medium">Transmissão</span>
+                            </a>
+                          )}
                         </div>
                       )
                     })()}

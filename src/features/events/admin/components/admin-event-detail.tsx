@@ -400,7 +400,7 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
 
             {event.schedule_link && (
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Link da programação</p>
+                <p className="text-muted-foreground text-sm mb-1">Link da agenda</p>
                 <a 
                   href={event.schedule_link} 
                   target="_blank" 

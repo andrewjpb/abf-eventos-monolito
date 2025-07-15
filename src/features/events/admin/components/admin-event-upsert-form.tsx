@@ -701,7 +701,7 @@ export function AdminEventUpsertForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="schedule_link">Link da Programação</Label>
+                <Label htmlFor="schedule_link">Link da Agenda</Label>
                 <Input
                   id="schedule_link"
                   name="schedule_link"

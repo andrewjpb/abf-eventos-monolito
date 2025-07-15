@@ -11,7 +11,8 @@ import {
   Star,
   ExternalLink,
   Clock,
-  Building
+  Building,
+  UserCheck
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -66,8 +67,8 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md">
-      <CardContent className="p-0">
+    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md flex flex-col h-full">
+      <CardContent className="p-0 flex flex-col h-full">
         {/* Imagem do evento */}
         <div className="relative h-48 bg-muted">
           {(event.thumb_url || event.image_url) ? (
@@ -115,53 +116,62 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
         </div>
 
         {/* Conteúdo */}
-        <div className="p-4 space-y-3">
-          {/* Título */}
-          <div>
-            <h3 className="font-semibold text-lg line-clamp-2 mb-1">
-              {event.title}
-            </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {event.summary}
-            </p>
-          </div>
-
-          {/* Informações principais */}
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{formatDate(event.date)}</span>
+        <div className="p-4 flex flex-col h-full">
+          <div className="flex-1 space-y-3">
+            {/* Título */}
+            <div>
+              <h3 className="font-semibold text-lg line-clamp-2 mb-1">
+                {event.title}
+              </h3>
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {event.summary}
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="truncate">
-                {event.address.cities.name}, {event.address.states.uf}
+            {/* Informações principais */}
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>{formatDate(event.date)}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="truncate">
+                  {event.address.cities.name}, {event.address.states.uf}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className={getOccupancyColor(occupancyRate)}>
+                  {event._count.attendance_list}/{event.vacancy_total} inscritos ({occupancyRate}%)
+                </span>
+              </div>
+            </div>
+
+            {/* Data de criação */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
+              <Clock className="h-3 w-3" />
+              <span>
+                Criado em {new Date(event.created_at).toLocaleDateString('pt-BR')}
               </span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className={getOccupancyColor(occupancyRate)}>
-                {event._count.attendance_list}/{event.vacancy_total} inscritos ({occupancyRate}%)
-              </span>
-            </div>
           </div>
 
-          {/* Data de criação */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
-            <Clock className="h-3 w-3" />
-            <span>
-              Criado em {new Date(event.created_at).toLocaleDateString('pt-BR')}
-            </span>
-          </div>
-
-          {/* Ações */}
-          <div className="flex gap-2 pt-2">
+          {/* Ações - fixadas no final */}
+          <div className="flex gap-2 pt-3 mt-auto">
             <Link href={`/admin/events/${event.id}`} className="flex-1">
               <Button variant="outline" size="sm" className="w-full">
                 <Eye className="h-4 w-4 mr-2" />
-                Visualizar
+                Administrar evento
+              </Button>
+            </Link>
+            
+            <Link href={`/admin/events/${event.id}/checkin`}>
+              <Button variant="outline" size="sm">
+                <UserCheck className="h-4 w-4 mr-2" />
+                Check-in
               </Button>
             </Link>
             

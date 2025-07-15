@@ -117,7 +117,7 @@ export async function getAdminEventsInfinite(
     }
   }
 
-  // Cursor para paginação infinita
+  // Cursor para paginação infinita - sempre usar 'lt' com id desc para consistência
   if (cursor) {
     where.id = {
       lt: cursor
@@ -152,7 +152,7 @@ export async function getAdminEventsInfinite(
       orderBy = { attendance_list: { _count: 'desc' } }
       break
     default:
-      orderBy = { date: 'desc' }
+      orderBy = { id: 'desc' }
   }
 
   // Buscar eventos com limite + 1 para verificar se há próxima página

@@ -119,9 +119,11 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
                 </div>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-card-foreground flex-1">
-                  {event.title}
-                </h2>
+                <Link href={eventPath(event.id)} className="pointer-events-auto">
+                  <h2 className="text-2xl font-bold text-card-foreground flex-1 hover:text-primary transition-colors">
+                    {event.title}
+                  </h2>
+                </Link>
                 <p className="text-muted-foreground">
                   {event.summary}
                 </p>
@@ -236,8 +238,8 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
         </div>
       </div>
 
-      {/* Link para a página do evento (todo o card é clicável) */}
-      <Link href={eventPath(event.id)} className="absolute inset-0">
+      {/* Link para a página do evento (apenas no título) */}
+      <Link href={eventPath(event.id)} className="absolute inset-0 pointer-events-none">
         <span className="sr-only">Ver detalhes do evento {event.title}</span>
       </Link>
     </div>

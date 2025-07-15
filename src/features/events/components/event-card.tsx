@@ -58,10 +58,10 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
 
   // Obter texto do formato com base no valor do banco
   const obterTextoFormato = () => {
-    if (event.format === "in_person") return "Presencial"
-    if (event.format === "online") return "Online"
-    if (event.format === "hybrid") return "Híbrido"
-    return event.format || "Evento"
+    if (event.format === "in_person") return "PRESENCIAL"
+    if (event.format === "online") return "ONLINE"
+    if (event.format === "hybrid") return "HÍBRIDO"
+    return event.format || "EVENTO"
   }
 
   // Altura adaptável com base no variant e tamanho da tela

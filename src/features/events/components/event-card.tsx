@@ -51,11 +51,6 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
     return formatarDataEvento(dataInicio)
   }
 
-  // Determinar o formato do evento (Conferência, Visita, Encontro, etc.)
-  const obterFormato = () => {
-    return event.format || "Evento"
-  }
-
   // Obter texto do formato com base no valor do banco
   const obterTextoFormato = () => {
     if (event.format === "in_person") return "PRESENCIAL"
@@ -105,7 +100,7 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
         {/* Tipo de evento e duração */}
         <div className="flex gap-2 sm:gap-3 mb-2">
           <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground text-xs">
-            {obterFormato()}
+            {obterTextoFormato()}
           </Badge>
 
           <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground text-xs">

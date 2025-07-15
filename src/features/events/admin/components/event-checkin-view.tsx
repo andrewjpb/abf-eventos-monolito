@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, UserCheck, Users, CheckCircle2, XCircle, Search, Filter } from "lucide-react"
+import { ArrowLeft, UserCheck, Users, CheckCircle2, XCircle, Search, Filter, Download } from "lucide-react"
+import * as XLSX from 'xlsx'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -12,7 +13,7 @@ import { eventAdminPath } from "@/app/paths"
 import { getEventAttendees } from "../queries/get-event-attendees"
 import { EventCheckinItem } from "./event-checkin-item"
 import { AdminEventWithDetails } from "../types"
-import { PARTICIPANT_TYPE_OPTIONS } from "@/features/attendance-list/constants/participant-types"
+import { PARTICIPANT_TYPE_OPTIONS, getParticipantTypeLabel } from "@/features/attendance-list/constants/participant-types"
 
 type EventCheckinViewProps = {
   event: AdminEventWithDetails
@@ -93,6 +94,49 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
 
   const checkedInCount = attendees.filter(a => a.checked_in).length
   const totalCount = attendees.length
+
+  const exportToExcel = () => {
+    const dataToExport = filteredAttendees.map(attendee => ({
+      'Nome': attendee.attendee_full_name,
+      'Email': attendee.attendee_email,
+      'Telefone': attendee.mobile_phone || 'Não informado',
+      'Cargo': attendee.attendee_position || 'Não informado',
+      'Empresa': attendee.company?.name || 'Não informado',
+      'CNPJ': attendee.company_cnpj || 'Não informado',
+      'Segmento': attendee.company_segment || 'Não informado',
+      'CPF': attendee.attendee_cpf || 'Não informado',
+      'RG': attendee.attendee_rg || 'Não informado',
+      'Tipo de Participante': getParticipantTypeLabel(attendee.participant_type),
+      'Tipo de Inscrição': attendee.attendee_type === 'in_person' ? 'Presencial' : (attendee.attendee_type === 'online' ? 'Online' : attendee.attendee_type),
+      'Check-in': attendee.checked_in ? 'Sim' : 'Não',
+      'Data de Inscrição': new Date(attendee.created_at).toLocaleDateString('pt-BR'),
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Participantes')
+    
+    // Ajustar largura das colunas
+    const columnWidths = [
+      { wch: 25 }, // Nome
+      { wch: 30 }, // Email
+      { wch: 15 }, // Telefone
+      { wch: 20 }, // Cargo
+      { wch: 30 }, // Empresa
+      { wch: 18 }, // CNPJ
+      { wch: 20 }, // Segmento
+      { wch: 15 }, // CPF
+      { wch: 15 }, // RG
+      { wch: 18 }, // Tipo de Participante
+      { wch: 15 }, // Tipo de Inscrição
+      { wch: 10 }, // Check-in
+      { wch: 15 }, // Data de Inscrição
+    ]
+    worksheet['!cols'] = columnWidths
+
+    const fileName = `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}_participantes.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
 
   if (loading) {
     return (
@@ -184,19 +228,19 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       <motion.div variants={fadeIn}>
         <Card className="p-6">
           <div className="flex flex-col gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, email, empresa ou CNPJ..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome, email, empresa ou CNPJ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -207,7 +251,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
               </Select>
 
               <Select value={participantTypeFilter} onValueChange={setParticipantTypeFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filtrar por tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -219,6 +263,15 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Button 
+                onClick={exportToExcel}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Exportar Excel
+              </Button>
             </div>
           </div>
         </Card>

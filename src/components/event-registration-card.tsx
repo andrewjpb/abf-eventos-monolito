@@ -248,7 +248,7 @@ export function EventRegistrationCard({
               size="lg"
               onClick={handleCancel}
               disabled={isCanceling || isPending}
-              className="h-10 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+              className="h-10 text-xs bg-red-50 border-red-300 text-red-800 hover:bg-red-100 hover:text-red-900 hover:border-red-400 dark:bg-red-950/50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/50 dark:hover:border-red-600 font-medium"
             >
               {isCanceling ? (
                 <>

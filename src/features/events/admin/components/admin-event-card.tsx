@@ -67,16 +67,17 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md flex flex-col h-full">
+    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md flex flex-col h-full p-0">
       <CardContent className="p-0 flex flex-col h-full">
         {/* Imagem do evento */}
-        <div className="relative h-48 bg-muted">
-          {(event.thumb_url || event.image_url) ? (
+        <div className="relative bg-muted aspect-[2/1] w-full">
+          {(event.image_url || event.thumb_url) ? (
             <Image
-              src={event.thumb_url || event.image_url}
+              src={event.image_url || event.thumb_url}
               alt={event.title}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              priority={false}
               className="object-cover"
             />
           ) : (
@@ -87,12 +88,12 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
 
           {/* Badges de status */}
           <div className="absolute top-2 left-2 flex gap-2">
-            <Badge className={`${statusColor === 'green' ? 'bg-green-100 text-green-800' : 
-                                 statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-800' : 
-                                 'bg-gray-100 text-gray-800'}`}>
+            <Badge className={`${statusColor === 'green' ? 'bg-green-100 text-green-800' :
+              statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-gray-100 text-gray-800'}`}>
               {statusLabel}
             </Badge>
-            
+
             <Badge className={getFormatColor(event.format)}>
               {getFormatLabel(event.format)}
             </Badge>
@@ -106,7 +107,7 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
                 Destaque
               </Badge>
             )}
-            
+
             {!event.isPublished && (
               <Badge variant="outline" className="bg-white/90 text-gray-600">
                 Rascunho
@@ -120,7 +121,7 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
           <div className="flex-1 space-y-3">
             {/* Título */}
             <div>
-              <h3 className="font-semibold text-lg line-clamp-2 mb-1">
+              <h3 className="font-semibold text-base line-clamp-2 mb-1">
                 {event.title}
               </h3>
               <p className="text-sm text-muted-foreground line-clamp-2">
@@ -160,27 +161,29 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
           </div>
 
           {/* Ações - fixadas no final */}
-          <div className="flex gap-2 pt-3 mt-auto">
-            <Link href={`/admin/events/${event.id}`} className="flex-1">
+          <div className="flex flex-col gap-2 pt-3 mt-auto">
+            <Link href={`/admin/events/${event.id}`} className="w-full">
               <Button variant="outline" size="sm" className="w-full">
                 <Eye className="h-4 w-4 mr-2" />
                 Administrar evento
               </Button>
             </Link>
-            
-            <Link href={`/admin/events/${event.id}/checkin`}>
-              <Button variant="outline" size="sm">
-                <UserCheck className="h-4 w-4 mr-2" />
-                Check-in
-              </Button>
-            </Link>
-            
-            <Link href={`/admin/enrollments/event/${event.id}`}>
-              <Button variant="outline" size="sm">
-                <Users className="h-4 w-4 mr-2" />
-                Inscrições
-              </Button>
-            </Link>
+
+            <div className="flex gap-2">
+              <Link href={`/admin/events/${event.id}/checkin`} className="flex-1">
+                <Button variant="outline" size="sm" className="w-full">
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Check-in
+                </Button>
+              </Link>
+
+              <Link href={`/admin/enrollments/event/${event.id}`} className="flex-1">
+                <Button variant="outline" size="sm" className="w-full">
+                  <Users className="h-4 w-4 mr-2" />
+                  Inscrições
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </CardContent>

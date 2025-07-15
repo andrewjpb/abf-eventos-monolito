@@ -38,6 +38,7 @@ model attendance_list {
   updatedAt          DateTime @default(now())
   mobile_phone       String
   attendee_type      String
+  participant_type   String   @default("participant")
   company            company  @relation(fields: [company_cnpj], references: [cnpj])
   events             events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   users              users    @relation(fields: [userId], references: [id])

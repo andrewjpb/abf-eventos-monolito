@@ -9,6 +9,7 @@ import { getAuth } from "@/features/auth/queries/get-auth"
 import { revalidatePath } from "next/cache"
 import { eventPath, eventsPath } from "@/app/paths"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
+import { DEFAULT_PARTICIPANT_TYPE } from "../constants/participant-types"
 
 // Schema para validação
 const attendeeSchema = z.object({
@@ -23,6 +24,7 @@ const attendeeSchema = z.object({
   attendee_cpf: z.string().min(11, { message: "CPF é obrigatório" }).max(11),
   mobile_phone: z.string().min(1, { message: "Telefone celular é obrigatório" }),
   attendee_type: z.string().min(1, { message: "Tipo de participante é obrigatório" }),
+  participant_type: z.string().default(DEFAULT_PARTICIPANT_TYPE),
 })
 
 export const registerAttendee = async (
@@ -183,6 +185,7 @@ export const registerAttendee = async (
         checked_in: false,
         mobile_phone: data.mobile_phone,
         attendee_type: data.attendee_type,
+        participant_type: data.participant_type,
         created_at: new Date(),
         updatedAt: new Date()
       }

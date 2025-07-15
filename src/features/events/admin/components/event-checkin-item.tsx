@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toggleCheckin } from "../actions/toggle-checkin"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { getParticipantTypeLabel, getParticipantTypeColor } from "@/features/attendance-list/constants/participant-types"
 
 type EventCheckinItemProps = {
   attendee: any
@@ -72,6 +73,12 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
               )}
             >
               {attendee.checked_in ? "Presente" : "Pendente"}
+            </Badge>
+            <Badge 
+              variant="outline"
+              className={cn("text-xs", getParticipantTypeColor(attendee.participant_type))}
+            >
+              {getParticipantTypeLabel(attendee.participant_type)}
             </Badge>
           </div>
           

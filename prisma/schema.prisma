@@ -246,6 +246,24 @@ model event_supporter_order {
   @@index([order])
 }
 
+model otp_codes {
+  id         String    @id @default(cuid())
+  code       String
+  identifier String    // Email, telefone, ou qualquer identificador
+  purpose    String    // "email_verification", "password_reset", etc.
+  userId     String?   // Opcional, para associar a um usuário
+  expiresAt  DateTime
+  used       Boolean   @default(false)
+  created_at DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  user       users?    @relation(fields: [userId], references: [id])
+  
+  @@unique([identifier, purpose, code])
+  @@index([identifier, purpose])
+  @@index([expiresAt])
+}
+
 model users {
   id                    String                 @id
   name                  String
@@ -272,6 +290,7 @@ model users {
   Session               Session[]
   speakers              speakers?
   reset_password_tokens reset_password_token[]
+  otp_codes             otp_codes[]
   company               company                @relation(fields: [cnpj], references: [cnpj])
   roles                 roles[]                @relation("RoleToUser")
 }

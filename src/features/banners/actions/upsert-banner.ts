@@ -31,7 +31,7 @@ const bannerSchema = z.object({
   image_url: z.string().optional(),
   external_link: z.string().min(1, { message: "Link externo é obrigatório" }),
   active: z.preprocess(
-    (val) => val === "true" || val === true,
+    (val) => val === "true" || val === true || val === "on",
     z.boolean().default(true)
   ),
 });

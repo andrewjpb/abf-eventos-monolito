@@ -30,7 +30,7 @@ const SUPPORTERS_IMAGE_PREFIX = "eventos/images/supporters/full_size/"
 const supporterSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }),
   active: z.preprocess(
-    (val) => val === "true" || val === true,
+    (val) => val === "true" || val === true || val === "on",
     z.boolean().default(true)
   ),
   // Campos de imagem

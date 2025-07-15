@@ -24,7 +24,10 @@ const companySchema = z.object({
     .transform(formatCnpj)
     .refine((cnpj) => cnpj.length === 14, { message: "CNPJ deve ter 14 dígitos após formatação" }),
   segment: z.string().min(1, { message: "Segmento é obrigatório" }),
-  active: z.enum(["true", "false"]).transform(value => value === "true"),
+  active: z.preprocess(
+    (val) => val === "true" || val === true || val === "on",
+    z.boolean().default(true)
+  ),
 })
 
 export const upsertCompany = async (

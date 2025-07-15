@@ -23,7 +23,7 @@ const userSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   active: z.preprocess(
-    (val) => val === "true" || val === true,
+    (val) => val === "true" || val === true || val === "on",
     z.boolean()
   ),
   roleIds: z.array(z.string()).optional(),

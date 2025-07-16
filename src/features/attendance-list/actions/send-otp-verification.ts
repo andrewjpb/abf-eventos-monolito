@@ -42,15 +42,36 @@ export async function sendOTPVerification() {
       userId: auth.user.id,
       subject: "Confirme seu email - ABF Eventos",
       template: (code: string) => `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Confirme seu email</h2>
-          <p>Use o código abaixo para confirmar seu email e finalizar sua inscrição:</p>
-          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-            <h1 style="color: #1a73e8; letter-spacing: 5px; margin: 0;">${code}</h1>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Confirme seu email - ABF Eventos</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; padding: 20px;">
+          <div style="background: #3564b1; padding: 40px 25px; text-align: center; border-radius: 8px 8px 0 0;">
+            <img src="https://eventos.abfti.com.br/logo-white.png" alt="ABF Eventos" style="height: 60px; max-width: 100%; object-fit: contain;" />
           </div>
-          <p style="color: #666; font-size: 14px;">Este código expira em 10 minutos.</p>
-          <p style="color: #666; font-size: 14px;">Se você não solicitou este código, ignore este email.</p>
-        </div>
+          
+          <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Confirme seu email</h2>
+            
+            <p style="margin-bottom: 25px; font-size: 16px; text-align: center;">
+              Use o código abaixo para confirmar seu email e finalizar sua inscrição:
+            </p>
+            
+            <div style="background: #f8f9fa; border: 2px solid #667eea; border-radius: 8px; padding: 25px; text-align: center; margin: 25px 0;">
+              <div style="font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 6px;">${code}</div>
+              <p style="margin: 10px 0 0 0; font-size: 14px; color: #666;">Válido por 10 minutos</p>
+            </div>
+            
+            <p style="font-size: 12px; color: #999; text-align: center; margin: 20px 0 0 0;">
+              Se você não solicitou este código, ignore este email.
+            </p>
+          </div>
+        </body>
+        </html>
       `
     })
 

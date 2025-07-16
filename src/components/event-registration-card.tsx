@@ -16,6 +16,7 @@ import Image from "next/image"
 import { EMPTY_ACTION_STATE } from "./form/utils/to-action-state"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { useRouter } from "next/navigation"
+import { signInPath } from "@/app/paths"
 
 interface EventRegistrationCardProps {
   event: EventWithDetails
@@ -402,14 +403,13 @@ export function EventRegistrationCard({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setVerificationStep('initial')
-                  setOtpValue('')
+                  router.push(signInPath())
                 }}
                 disabled={isVerifying}
                 className="flex-1"
               >
                 <ArrowLeft className="w-3 h-3 mr-1" />
-                Voltar
+                Fazer login
               </Button>
               <Button
                 size="sm"

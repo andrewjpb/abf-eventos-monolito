@@ -120,158 +120,80 @@ export const cancelRegistration = async (attendanceId: string) => {
       const htmlContent = `
         <!DOCTYPE html>
         <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Inscrição Cancelada</title>
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                background-color: #f5f5f5;
-                margin: 0;
-                padding: 0;
-              }
-              .container {
-                max-width: 600px;
-                margin: 0 auto;
-                background-color: #ffffff;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-              }
-              .header {
-                background-color: #dc2626;
-                color: #ffffff;
-                padding: 30px;
-                text-align: center;
-              }
-              .header h1 {
-                margin: 0;
-                font-size: 24px;
-                font-weight: 600;
-              }
-              .content {
-                padding: 30px;
-              }
-              .event-card {
-                background-color: #f9fafb;
-                border: 1px solid #e5e7eb;
-                border-radius: 8px;
-                padding: 20px;
-                margin: 20px 0;
-              }
-              .event-title {
-                font-size: 18px;
-                font-weight: 600;
-                color: #111827;
-                margin: 0 0 10px 0;
-              }
-              .event-details {
-                font-size: 14px;
-                color: #6b7280;
-                margin: 5px 0;
-              }
-              .icon {
-                display: inline-block;
-                width: 16px;
-                height: 16px;
-                margin-right: 8px;
-                vertical-align: middle;
-              }
-              .footer {
-                background-color: #f9fafb;
-                padding: 20px 30px;
-                text-align: center;
-                font-size: 12px;
-                color: #6b7280;
-                border-top: 1px solid #e5e7eb;
-              }
-              .button {
-                display: inline-block;
-                padding: 12px 24px;
-                background-color: #2563eb;
-                color: #ffffff;
-                text-decoration: none;
-                border-radius: 6px;
-                font-weight: 500;
-                margin-top: 20px;
-              }
-              .warning-box {
-                background-color: #fef3c7;
-                border: 1px solid #fbbf24;
-                border-radius: 6px;
-                padding: 15px;
-                margin: 20px 0;
-                font-size: 14px;
-                color: #92400e;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>Inscrição Cancelada</h1>
-              </div>
-              
-              <div class="content">
-                <p>Olá <strong>${attendance.attendee_full_name || attendance.users.username}</strong>,</p>
-                
-                <p>Confirmamos o cancelamento da sua inscrição para o seguinte evento:</p>
-                
-                <div class="event-card">
-                  <h2 class="event-title">${attendance.events.title}</h2>
-                  <p class="event-details">
-                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zM4 8h12v8H4V8z" clip-rule="evenodd"/>
-                    </svg>
-                    <strong>Data:</strong> ${eventDateFormatted}
-                  </p>
-                  <p class="event-details">
-                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                    </svg>
-                    <strong>Horário:</strong> ${attendance.events.start_time} às ${attendance.events.end_time}
-                  </p>
-                  <p class="event-details">
-                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                    </svg>
-                    <strong>Local:</strong> ${locationInfo}
-                  </p>
-                  ${attendance.users.company ? `
-                  <p class="event-details">
-                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
-                    </svg>
-                    <strong>Empresa:</strong> ${attendance.users.company.name}
-                  </p>
-                  ` : ''}
-                </div>
-                
-                <div class="warning-box">
-                  <strong>⚠️ Importante:</strong> Sua vaga foi liberada e está disponível para outros participantes. 
-                  Caso deseje participar do evento, será necessário realizar uma nova inscrição, sujeita à disponibilidade de vagas.
-                </div>
-                
-                <p>Se você cancelou por engano ou mudou de ideia, você pode se inscrever novamente acessando a página do evento:</p>
-                
-                <div style="text-align: center;">
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/eventos/${attendance.events.id}" class="button">
-                    Ver Evento
-                  </a>
-                </div>
-                
-                <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
-                  Se você tiver alguma dúvida, entre em contato conosco respondendo este e-mail.
-                </p>
-              </div>
-              
-              <div class="footer">
-                <p>Este é um e-mail automático. Por favor, não responda diretamente a esta mensagem.</p>
-                <p>&copy; ${new Date().getFullYear()} ABF Eventos. Todos os direitos reservados.</p>
-              </div>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Inscrição Cancelada - ABF Eventos</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #3564b1; padding: 40px 25px; text-align: center; border-radius: 8px 8px 0 0;">
+            <img src="https://eventos.abfti.com.br/logo-white.png" alt="ABF Eventos" style="height: 60px; max-width: 100%; object-fit: contain;" />
+          </div>
+          
+          <div style="background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Inscrição Cancelada</h2>
+            
+            <div style="background: #fef3c7; border: 2px solid #fbbf24; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+              <p style="margin: 0; font-size: 18px; color: #92400e; font-weight: bold;">⚠️ Cancelamento Confirmado</p>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #92400e;">Sua inscrição foi cancelada com sucesso.</p>
             </div>
-          </body>
+            
+            <p style="margin-bottom: 20px;">Olá, <strong>${attendance.attendee_full_name || attendance.users.username}</strong>!</p>
+            
+            <p style="margin-bottom: 25px; font-size: 16px;">Confirmamos o cancelamento da sua inscrição para o seguinte evento:</p>
+            
+            <div style="background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">${attendance.events.title}</h3>
+              
+              <p style="margin: 8px 0; font-size: 14px; color: #666;">
+                <strong>📅 Data:</strong> ${eventDateFormatted}
+              </p>
+              
+              <p style="margin: 8px 0; font-size: 14px; color: #666;">
+                <strong>🕐 Horário:</strong> ${attendance.events.start_time} às ${attendance.events.end_time}
+              </p>
+              
+              <p style="margin: 8px 0; font-size: 14px; color: #666;">
+                <strong>📍 Local:</strong> ${locationInfo}
+              </p>
+              
+              ${attendance.users.company ? `
+              <p style="margin: 8px 0; font-size: 14px; color: #666;">
+                <strong>🏢 Empresa:</strong> ${attendance.users.company.name}
+              </p>
+              ` : ''}
+            </div>
+            
+            <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0; font-weight: bold; color: #92400e;">⚠️ Importante:</p>
+              <p style="margin: 0; color: #92400e; font-size: 14px;">
+                Sua vaga foi liberada e está disponível para outros participantes. 
+                Caso deseje participar do evento, será necessário realizar uma nova inscrição, sujeita à disponibilidade de vagas.
+              </p>
+            </div>
+            
+            <p style="margin-bottom: 25px; font-size: 16px;">
+              Se você cancelou por engano ou mudou de ideia, você pode se inscrever novamente:
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/eventos/${attendance.events.id}" style="display: inline-block; padding: 12px 30px; background-color: #3564b1; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                Ver Evento
+              </a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #999; text-align: center;">
+              Se você tiver alguma dúvida, entre em contato conosco respondendo este e-mail.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+            
+            <p style="font-size: 11px; color: #999; text-align: center; margin: 0;">
+              Este é um e-mail automático. Por favor, não responda diretamente a esta mensagem.<br>
+              © ${new Date().getFullYear()} ABF Eventos. Todos os direitos reservados.
+            </p>
+          </div>
+        </body>
         </html>
       `
 

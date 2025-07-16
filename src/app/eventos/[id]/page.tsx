@@ -13,7 +13,7 @@ type EventPageProps = Promise<{ id: string }>
 export async function generateMetadata({ params }: { params: EventPageProps }): Promise<Metadata> {
   const { id } = await params
   const eventData = await getEvent(id)
-  
+
   if (!eventData) {
     return {
       title: "Evento não encontrado - ABF Eventos",
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: EventPageProps }): 
   }
 
   const { event } = eventData
-  
+
   // Formatar data do evento
   const eventDate = new Date(event.date)
   const eventDateFormatted = new Intl.DateTimeFormat('pt-BR', {
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: EventPageProps }): 
     month: 'long',
     day: 'numeric'
   }).format(eventDate)
-  
+
   // Formatar endereço
   let locationInfo = ""
   if (event.format === "ONLINE") {
@@ -42,14 +42,14 @@ export async function generateMetadata({ params }: { params: EventPageProps }): 
   } else {
     locationInfo = "Local a definir"
   }
-  
+
   // Descrição para SEO
-  const description = event.summary || 
+  const description = event.summary ||
     `Participe do evento ${event.title} em ${eventDateFormatted}. ${locationInfo}. Inscreva-se agora!`
-  
+
   // URL absoluta para Open Graph
   const eventUrl = `${process.env.NEXT_PUBLIC_APP_URL}/eventos/${event.id}`
-  
+
   // Keywords específicas do evento
   const eventKeywords = [
     event.title,
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: { params: EventPageProps }): 
     "franchising",
     "networking"
   ]
-  
+
   return generateEventMetadata({
     title: event.title,
     description,
@@ -90,7 +90,7 @@ export default async function EventPage({ params }: { params: EventPageProps }) 
   const upcomingEvents = upcomingEventsData.events.filter(e => e.id !== event.id)
 
   return (
-    <div className="flex-1 flex flex-col gap-y-8 mt-0">
+    <div className="flex-1 flex flex-col gap-y-8 mt-6">
       <div className="animate-fade-in-from-top">
         <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
           <EventDetail

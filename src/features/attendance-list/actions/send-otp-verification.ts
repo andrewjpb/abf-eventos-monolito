@@ -9,7 +9,7 @@ export async function sendOTPVerification() {
   const auth = await getAuth()
   
   if (!auth || !auth.user) {
-    await logWarn("Auth.OTP", "Tentativa de envio de OTP sem autenticação", null, {
+    await logWarn("Auth.OTP", "Tentativa de envio de OTP sem autenticação", undefined, {
       hasAuth: !!auth,
       hasUser: !!auth?.user
     })

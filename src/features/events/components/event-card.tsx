@@ -66,34 +66,36 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
   return (
     <div className="flex flex-col overflow-hidden rounded-lg shadow-md border border-border bg-card h-full hover:shadow-lg transition-shadow">
       {/* Imagem do evento com badge de tipo */}
-      <div className={`relative ${imageHeight} bg-muted`}>
-        {event.image_url ? (
-          <Image
-            src={event.image_url}
-            alt={event.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
+      <Link href={eventPath(event.id)} className="block">
+        <div className={`relative ${imageHeight} bg-muted cursor-pointer hover:opacity-95 transition-opacity`}>
+          {event.image_url ? (
             <Image
-              src="/placeholder-image.svg"
-              alt="Imagem não disponível"
-              width={80}
-              height={80}
-              className="opacity-30 object-cover"
+              src={event.image_url}
+              alt={event.title}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover"
             />
-          </div>
-        )}
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <Image
+                src="/placeholder-image.svg"
+                alt="Imagem não disponível"
+                width={80}
+                height={80}
+                className="opacity-30 object-cover"
+              />
+            </div>
+          )}
 
-        {/* Badge Premium, Técnico, etc */}
-        <div className="absolute right-2 sm:right-3 top-2 sm:top-3">
-          <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-foreground py-0.5 px-2 sm:py-1 sm:px-4 rounded-full text-xs sm:text-sm">
-            {obterTextoFormato()}
-          </Badge>
+          {/* Badge Premium, Técnico, etc */}
+          <div className="absolute right-2 sm:right-3 top-2 sm:top-3 pointer-events-none">
+            <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-foreground py-0.5 px-2 sm:py-1 sm:px-4 rounded-full text-xs sm:text-sm">
+              {obterTextoFormato()}
+            </Badge>
+          </div>
         </div>
-      </div>
+      </Link>
 
       {/* Informações do evento */}
       <div className="flex flex-col p-3 sm:p-4 flex-grow">

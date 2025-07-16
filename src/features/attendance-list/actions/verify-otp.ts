@@ -9,7 +9,7 @@ export async function verifyOTP(otpCode: string) {
   const auth = await getAuth()
   
   if (!auth || !auth.user) {
-    await logWarn("Auth.OTP", "Tentativa de verificação de OTP sem autenticação", null, {
+    await logWarn("Auth.OTP", "Tentativa de verificação de OTP sem autenticação", undefined, {
       hasAuth: !!auth,
       hasUser: !!auth?.user,
       action: "verify_otp"

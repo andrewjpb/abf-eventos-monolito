@@ -140,7 +140,7 @@ export function Header() {
               eventos@abf.com.br
             </p>
           </Link>
-          <Link href={homePath()} className={buttonVariants({ variant: "default" })}>
+          <Link href="https://www.abf.com.br/seja-um-associado/" target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "default" })}>
             <p>Associe-se</p>
           </Link>
           <ThemeSwitcher />
@@ -173,7 +173,9 @@ export function Header() {
             </div>
 
             <Link
-              href={homePath()}
+              href="https://www.abf.com.br/seja-um-associado/"
+              target="_blank"
+              rel="noopener noreferrer"
               className={buttonVariants({ variant: "default", className: "w-full justify-center" })}
               onClick={() => setMobileMenuOpen(false)}
             >

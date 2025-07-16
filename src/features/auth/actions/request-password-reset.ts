@@ -39,7 +39,7 @@ export async function requestPasswordReset(
     // Por segurança, sempre retornamos sucesso mesmo se o email não existir
     if (!user) {
       console.log("❌ Usuário não encontrado, retornando sucesso fake")
-      await logWarn("Auth.passwordReset", `Tentativa de reset de senha para email inexistente: ${validatedData.email}`, null, {
+      await logWarn("Auth.passwordReset", `Tentativa de reset de senha para email inexistente: ${validatedData.email}`, undefined, {
         email: validatedData.email,
         userExists: false
       })
@@ -143,8 +143,11 @@ export async function requestPasswordReset(
   } catch (error) {
     console.error("Erro ao solicitar reset de senha:", error)
 
-    await logError("Auth.passwordReset", `Erro no processo de reset de senha`, data?.email ? "sistema" : null, {
-      email: data?.email,
+    // Tentar extrair email do formData se possível
+    const emailFromForm = formData.get("email") as string
+    
+    await logError("Auth.passwordReset", `Erro no processo de reset de senha`, undefined, {
+      email: emailFromForm,
       error: String(error),
       errorType: error instanceof z.ZodError ? "validation" : "unknown"
     })

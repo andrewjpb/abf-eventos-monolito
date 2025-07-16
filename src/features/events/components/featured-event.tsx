@@ -65,34 +65,36 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
       {/* Container principal */}
       <div className="relative">
         {/* Imagem de fundo */}
-        <div className="relative h-[180px] sm:h-[220px] md:h-[280px] lg:h-[240px] xl:h-[480px] bg-muted">
-          {event.image_url ? (
-            <Image
-              src={event.image_url}
-              alt={event.title}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
+        <Link href={eventPath(event.id)} className="block">
+          <div className="relative h-[180px] sm:h-[220px] md:h-[280px] lg:h-[240px] xl:h-[480px] bg-muted cursor-pointer hover:opacity-95 transition-opacity">
+            {event.image_url ? (
               <Image
-                src="/placeholder-image.svg"
-                alt="Imagem não disponível"
-                width={120}
-                height={120}
-                className="opacity-30 object-cover"
+                src={event.image_url}
+                alt={event.title}
+                fill
+                className="object-cover"
               />
-            </div>
-          )}
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <Image
+                  src="/placeholder-image.svg"
+                  alt="Imagem não disponível"
+                  width={120}
+                  height={120}
+                  className="opacity-30 object-cover"
+                />
+              </div>
+            )}
 
-          {/* Badge de Destaque */}
-          <div className="absolute right-4 top-4">
-            <Badge className="bg-background text-foreground py-1.5 px-4 rounded-full text-sm font-medium flex items-center gap-1">
-              <Star className="h-4 w-4" />
-              Destaque
-            </Badge>
+            {/* Badge de Destaque */}
+            <div className="absolute right-4 top-4 pointer-events-none">
+              <Badge className="bg-background text-foreground py-1.5 px-4 rounded-full text-sm font-medium flex items-center gap-1">
+                <Star className="h-4 w-4" />
+                Destaque
+              </Badge>
+            </div>
           </div>
-        </div>
+        </Link>
 
         {/* Conteúdo do card */}
         <div className="p-6">

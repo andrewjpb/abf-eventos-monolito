@@ -1,15 +1,14 @@
-import { Metadata } from "next"
 import { Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { AdminEventsInfiniteList } from "@/features/events/admin/components/admin-events-infinite-list"
+import { generateListingMetadata } from "@/lib/metadata"
 
-export const metadata: Metadata = {
-  title: "Eventos - Admin",
-  description: "Gerenciar eventos do sistema",
-  viewport: "width=device-width, initial-scale=1"
-}
+export const metadata = generateListingMetadata(
+  "admin",
+  "Painel administrativo para gerenciar eventos da ABF. Criação, edição e controle de publicação de eventos."
+)
 
 function AdminEventsPageSkeleton() {
   return (

@@ -6,6 +6,12 @@ import { SearchParams } from "nuqs/server"
 import { Spinner } from "@/components/spinner"
 import { ParsedSearchParams, searchParamsCache } from "@/features/events/search-params"
 import { EventList } from "@/features/events/components/event-list"
+import { generateListingMetadata } from "@/lib/metadata"
+
+export const metadata = generateListingMetadata(
+  "eventos",
+  "Descubra e participe dos eventos de franchising da ABF. Encontre palestras, workshops e networking com especialistas do setor."
+)
 
 type EventsPageProps = {
   searchParams: Promise<SearchParams>

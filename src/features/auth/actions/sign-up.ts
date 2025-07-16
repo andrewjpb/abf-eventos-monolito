@@ -1,14 +1,14 @@
 "use server"
 
 import { ActionState, fromErrorToActionState, toActionState } from "@/components/form/utils/to-action-state";
-import { lucia } from "@/lib/lucia";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { hash } from "@node-rs/argon2"
 import { z } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 import { logInfo } from "@/features/logs/queries/add-log";
 import { checkCnpjExists } from "@/features/company/queries/check-cnpj-exists";
+import { redirect } from "next/navigation";
+import { signInPath } from "@/app/paths";
 
 const signUpSchema = z
   .object({
@@ -52,8 +52,6 @@ const signUpSchema = z
   });
 
 export const signUp = async (prevState: ActionState, formData: FormData) => {
-  const cookieStore = await cookies()
-
   try {
     const formEntries = Object.fromEntries(formData);
     
@@ -145,13 +143,7 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
         thumb_url: "",
         image_path: "",
         thumb_path: "",
-        active: true,
-        // Add a default role (e.g., "user")
-        roles: {
-          connect: {
-            name: "user" // Assuming you have a "user" role created in your database
-          }
-        }
+        active: true
       }
     });
 
@@ -167,15 +159,11 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
       }
     );
 
-    const session = await lucia.createSession(user.id, {});
-    const sessionCookie = lucia.createSessionCookie(session.id);
-
-    cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
-
   } catch (error) {
     console.log(error);
     return fromErrorToActionState(error, formData);
   }
 
-  return toActionState("SUCCESS", "Cadastro realizado com sucesso!");
+  // Redirecionar para a tela de login após cadastro bem-sucedido
+  redirect(signInPath());
 };

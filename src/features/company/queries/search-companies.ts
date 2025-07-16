@@ -10,16 +10,19 @@ type SearchCompaniesParams = {
   take?: number;
   skip?: number;
   excludeIds?: string[];
+  includeInactive?: boolean;
 }
 
 export const searchCompanies = cache(async ({
   search = "",
   take = 10,
   skip = 0,
-  excludeIds = []
+  excludeIds = [],
+  includeInactive = false
 }: SearchCompaniesParams = {}) => {
   const whereClause: Prisma.companyWhereInput = {
-    active: true,
+    // Só filtrar por active se includeInactive for false
+    ...(includeInactive ? {} : { active: true }),
     NOT: excludeIds.length > 0 ? { id: { in: excludeIds } } : undefined,
     OR: search ? [
       { name: { contains: search, mode: "insensitive" } },
@@ -36,7 +39,8 @@ export const searchCompanies = cache(async ({
         id: true,
         name: true,
         cnpj: true,
-        segment: true
+        segment: true,
+        active: true
       },
       orderBy: { name: 'asc' },
       take,

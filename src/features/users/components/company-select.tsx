@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { LucideLoaderCircle, SearchIcon, X } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
 
@@ -16,6 +17,7 @@ type Company = {
   name: string;
   cnpj: string;
   segment?: string;
+  active: boolean;
 }
 
 type CompanySelectProps = {
@@ -82,8 +84,8 @@ export function CompanySelect({
     }
 
     try {
-      // Busca especificamente a empresa pelo CNPJ
-      const result = await searchCompanies({ search: selectedCnpj })
+      // Busca especificamente a empresa pelo CNPJ, incluindo inativas
+      const result = await searchCompanies({ search: selectedCnpj, includeInactive: true })
       const companyFromSearch = result.companies.find(c => c.cnpj === selectedCnpj)
 
       if (companyFromSearch) {
@@ -101,7 +103,8 @@ export function CompanySelect({
     try {
       const result = await searchCompanies({
         search,
-        take: 20
+        take: 20,
+        includeInactive: true
       })
 
       setCompanies(result.companies)
@@ -146,8 +149,19 @@ export function CompanySelect({
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="border rounded-md p-3 flex justify-between items-center">
-          <div className="flex flex-col">
-            <div className="font-medium">{selectedCompany.name}</div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="font-medium">{selectedCompany.name}</div>
+              <Badge 
+                variant="outline" 
+                className={selectedCompany.active 
+                  ? "bg-green-100 text-green-800 border-green-300" 
+                  : "bg-red-100 text-red-800 border-red-300"
+                }
+              >
+                {selectedCompany.active ? "Associada" : "Não Associada"}
+              </Badge>
+            </div>
             <div className="text-sm text-muted-foreground flex flex-wrap gap-2">
               {selectedCompany.segment && (
                 <span>{selectedCompany.segment}</span>
@@ -237,8 +251,19 @@ export function CompanySelect({
             ) : (
               companies.map((company) => (
                 <SelectItem key={company.id} value={company.cnpj}>
-                  <div className="flex flex-col">
-                    <span>{company.name}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span>{company.name}</span>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${company.active 
+                          ? "bg-green-100 text-green-800 border-green-300" 
+                          : "bg-red-100 text-red-800 border-red-300"
+                        }`}
+                      >
+                        {company.active ? "Associada" : "Não Associada"}
+                      </Badge>
+                    </div>
                     <span className="text-xs text-muted-foreground">
                       {company.segment && `${company.segment} • `}CNPJ: {company.cnpj}
                     </span>

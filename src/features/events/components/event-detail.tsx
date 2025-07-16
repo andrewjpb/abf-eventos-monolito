@@ -200,29 +200,19 @@ export function EventDetail({
               </h1>
             </div>
 
-            {/* Card Sobre o Evento - Movido para cá */}
-            <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50 mb-6">
-              <CardContent className="p-6">
-                {/* Resumo */}
-                {event.summary && (
-                  <div className="mb-4">
-                    <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {event.summary}
-                    </p>
-                  </div>
-                )}
-
-                {/* Descrição completa */}
-                {event.description && (
+            {/* Card Sobre o Evento */}
+            {event.description && (
+              <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
+                <CardContent className="py-2">
                   <div className="prose prose-gray dark:prose-invert max-w-none">
                     <div
                       className="text-gray-600 dark:text-gray-400 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: event.description }}
                     />
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
           </div>
 
@@ -269,8 +259,8 @@ export function EventDetail({
               </CardContent>
             </Card>
 
-            {/* Card de Endereço */}
-            {event.address && (
+            {/* Card de Endereço - Não mostrar para eventos online */}
+            {event.address && event.format?.toUpperCase() !== "ONLINE" && (
               <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50 mt-4">
                 <CardContent className="p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -368,224 +358,224 @@ export function EventDetail({
 
                 {/* Card da Programação do Evento */}
                 <Card className="w-full border-0 shadow-sm bg-white dark:bg-gray-800/50">
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Programação
-                  </h2>
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      Programação
+                    </h2>
 
-                  {/* Card de Status do Evento - Transmissão/Início */}
-                  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    {(() => {
-                      const agora = new Date()
-                      const dataEvento = new Date(event.date)
+                    {/* Card de Status do Evento - Transmissão/Início */}
+                    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      {(() => {
+                        const agora = new Date()
+                        const dataEvento = new Date(event.date)
 
-                      // Criar datetime do evento combinando data e horário
-                      const [horaInicio, minutoInicio] = event.start_time.split(':').map(Number)
-                      const [horaFim, minutoFim] = event.end_time.split(':').map(Number)
+                        // Criar datetime do evento combinando data e horário
+                        const [horaInicio, minutoInicio] = event.start_time.split(':').map(Number)
+                        const [horaFim, minutoFim] = event.end_time.split(':').map(Number)
 
-                      const inicioEvento = new Date(dataEvento)
-                      inicioEvento.setHours(horaInicio, minutoInicio, 0, 0)
+                        const inicioEvento = new Date(dataEvento)
+                        inicioEvento.setHours(horaInicio, minutoInicio, 0, 0)
 
-                      const fimEvento = new Date(dataEvento)
-                      fimEvento.setHours(horaFim, minutoFim, 0, 0)
+                        const fimEvento = new Date(dataEvento)
+                        fimEvento.setHours(horaFim, minutoFim, 0, 0)
 
-                      const eventoJaComecou = agora >= inicioEvento
-                      const eventoJaTerminou = agora >= fimEvento
+                        const eventoJaComecou = agora >= inicioEvento
+                        const eventoJaTerminou = agora >= fimEvento
 
-                      if (eventoJaTerminou) {
+                        if (eventoJaTerminou) {
+                          return (
+                            <div className="flex items-center gap-4">
+                              <div className="bg-gray-100 dark:bg-gray-600 p-3 rounded-full">
+                                <CheckCircle className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                  Evento finalizado
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  Este evento já foi realizado
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        }
+
+                        if (eventoJaComecou) {
+                          // Verificar se deve mostrar o botão de transmissão
+                          const mostrarTransmissao = event.transmission_link &&
+                            event.isStreaming &&
+                            (event.format?.toUpperCase() === "ONLINE" || event.format?.toUpperCase() === "HIBRIDO") &&
+                            isRegistered
+
+                          return (
+                            <div className="flex items-center gap-4">
+                              <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full animate-pulse">
+                                <PlayCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                  Acompanhe o evento em andamento
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  {event.format?.toUpperCase() === "ONLINE" ? (
+                                    "Este evento está acontecendo agora online"
+                                  ) : event.format?.toUpperCase() === "HIBRIDO" ? (
+                                    "Este evento está acontecendo agora (presencial + online)"
+                                  ) : (
+                                    "Este evento está acontecendo agora de forma presencial"
+                                  )}
+                                </p>
+                              </div>
+                              {mostrarTransmissao && (
+                                <a
+                                  href={event.transmission_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors animate-pulse"
+                                >
+                                  <PlayCircle className="w-4 h-4" />
+                                  <span className="text-sm font-medium">Acessar Transmissão</span>
+                                </a>
+                              )}
+                            </div>
+                          )
+                        }
+
+                        const diffMs = inicioEvento.getTime() - agora.getTime()
+                        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+                        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60))
+                        const diffMinutes = Math.ceil(diffMs / (1000 * 60))
+
+                        let tempoRestante
+                        if (diffDays > 1) {
+                          tempoRestante = `${diffDays} dias`
+                        } else if (diffHours > 1) {
+                          tempoRestante = `${diffHours} horas`
+                        } else {
+                          tempoRestante = `${diffMinutes} minutos`
+                        }
+
                         return (
                           <div className="flex items-center gap-4">
-                            <div className="bg-gray-100 dark:bg-gray-600 p-3 rounded-full">
-                              <CheckCircle className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Evento finalizado
-                              </h3>
-                              <p className="text-gray-600 dark:text-gray-400">
-                                Este evento já foi realizado
-                              </p>
-                            </div>
-                          </div>
-                        )
-                      }
-
-                      if (eventoJaComecou) {
-                        // Verificar se deve mostrar o botão de transmissão
-                        const mostrarTransmissao = event.transmission_link && 
-                                                  event.isStreaming && 
-                                                  (event.format?.toUpperCase() === "ONLINE" || event.format?.toUpperCase() === "HIBRIDO") &&
-                                                  isRegistered
-
-                        return (
-                          <div className="flex items-center gap-4">
-                            <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full animate-pulse">
-                              <PlayCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                              <CalendarClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="flex-1">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Acompanhe o evento em andamento
+                                Começamos em {tempoRestante}
                               </h3>
                               <p className="text-gray-600 dark:text-gray-400">
                                 {event.format?.toUpperCase() === "ONLINE" ? (
-                                  "Este evento está acontecendo agora online"
+                                  "Evento online"
                                 ) : event.format?.toUpperCase() === "HIBRIDO" ? (
-                                  "Este evento está acontecendo agora (presencial + online)"
+                                  "Evento híbrido (presencial + online)"
                                 ) : (
-                                  "Este evento está acontecendo agora de forma presencial"
+                                  "Evento presencial"
                                 )}
                               </p>
                             </div>
-                            {mostrarTransmissao && (
-                              <a
-                                href={event.transmission_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors animate-pulse"
-                              >
-                                <PlayCircle className="w-4 h-4" />
-                                <span className="text-sm font-medium">Acessar Transmissão</span>
-                              </a>
-                            )}
+                            {/* Não mostrar botão de transmissão antes do evento começar */}
                           </div>
                         )
-                      }
-
-                      const diffMs = inicioEvento.getTime() - agora.getTime()
-                      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-                      const diffHours = Math.ceil(diffMs / (1000 * 60 * 60))
-                      const diffMinutes = Math.ceil(diffMs / (1000 * 60))
-
-                      let tempoRestante
-                      if (diffDays > 1) {
-                        tempoRestante = `${diffDays} dias`
-                      } else if (diffHours > 1) {
-                        tempoRestante = `${diffHours} horas`
-                      } else {
-                        tempoRestante = `${diffMinutes} minutos`
-                      }
-
-                      return (
-                        <div className="flex items-center gap-4">
-                          <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
-                            <CalendarClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              Começamos em {tempoRestante}
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              {event.format?.toUpperCase() === "ONLINE" ? (
-                                "Evento online"
-                              ) : event.format?.toUpperCase() === "HIBRIDO" ? (
-                                "Evento híbrido (presencial + online)"
-                              ) : (
-                                "Evento presencial"
-                              )}
-                            </p>
-                          </div>
-                          {/* Não mostrar botão de transmissão antes do evento começar */}
-                        </div>
-                      )
-                    })()}
-                  </div>
-
-                  {/* Programação do Evento */}
-                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <CalendarIcon className="w-5 h-5" />
-                        Programação
-                      </h3>
+                      })()}
                     </div>
 
-                    {event.schedule && event.schedule.length > 0 ? (
-                      <div className="relative">
-                        {/* Linha principal da timeline */}
-                        <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent dark:from-blue-400 dark:via-blue-500 dark:to-transparent"></div>
+                    {/* Programação do Evento */}
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                          <CalendarIcon className="w-5 h-5" />
+                          Programação
+                        </h3>
+                      </div>
 
-                        <div className="space-y-1">
-                          {event.schedule.map((item, index) => (
-                            <div key={item.id} className="relative flex items-start gap-4 group">
-                              {/* Ponto da timeline */}
-                              <div className="relative z-10 flex-shrink-0 mt-1">
-                                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm border-2 border-white dark:border-gray-800">
-                                  <ClockIcon className="w-3 h-3 text-white" />
-                                </div>
-                              </div>
+                      {event.schedule && event.schedule.length > 0 ? (
+                        <div className="relative">
+                          {/* Linha principal da timeline */}
+                          <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent dark:from-blue-400 dark:via-blue-500 dark:to-transparent"></div>
 
-                              {/* Conteúdo do item */}
-                              <div className="flex-1 min-w-0 py-2 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/20 rounded-md transition-colors duration-200 px-2 -mx-2">
-                                {/* Horário e título na mesma linha */}
-                                <div className="flex items-center gap-3 mb-1">
-                                  <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium border-blue-200 dark:border-blue-700">
-                                    {item.start_time.substring(0, 5)} - {item.end_time.substring(0, 5)}
-                                  </Badge>
-                                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                                    {item.title}
-                                  </h4>
+                          <div className="space-y-1">
+                            {event.schedule.map((item, index) => (
+                              <div key={item.id} className="relative flex items-start gap-4 group">
+                                {/* Ponto da timeline */}
+                                <div className="relative z-10 flex-shrink-0 mt-1">
+                                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm border-2 border-white dark:border-gray-800">
+                                    <ClockIcon className="w-3 h-3 text-white" />
+                                  </div>
                                 </div>
 
-                                {/* Descrição */}
-                                {item.description && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 ml-0 leading-relaxed">
-                                    {item.description}
-                                  </p>
-                                )}
+                                {/* Conteúdo do item */}
+                                <div className="flex-1 min-w-0 py-2 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/20 rounded-md transition-colors duration-200 px-2 -mx-2">
+                                  {/* Horário e título na mesma linha */}
+                                  <div className="flex items-center gap-3 mb-1">
+                                    <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium border-blue-200 dark:border-blue-700">
+                                      {item.start_time.substring(0, 5)} - {item.end_time.substring(0, 5)}
+                                    </Badge>
+                                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                                      {item.title}
+                                    </h4>
+                                  </div>
+
+                                  {/* Descrição */}
+                                  {item.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 ml-0 leading-relaxed">
+                                      {item.description}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-6 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                              <CalendarPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-6 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
-                            <CalendarPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <div>
+                              <p className="text-blue-900 dark:text-blue-100 font-medium mb-1">
+                                Programação em desenvolvimento
+                              </p>
+                              <p className="text-blue-700 dark:text-blue-300 text-sm">
+                                Em breve divulgaremos todos os detalhes da programação deste evento
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-blue-900 dark:text-blue-100 font-medium mb-1">
-                              Programação em desenvolvimento
-                            </p>
-                            <p className="text-blue-700 dark:text-blue-300 text-sm">
-                              Em breve divulgaremos todos os detalhes da programação deste evento
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Informações adicionais */}
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <div className="flex flex-wrap gap-6">
-                      {user && companyAttendees > 0 && (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {companyAttendees} {companyAttendees === 1 ? 'pessoa' : 'pessoas'} da sua empresa já se {companyAttendees === 1 ? 'inscreveu' : 'inscreveram'} para este evento
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Duração: {event.start_time} - {event.end_time}
-                        </span>
-                      </div>
-
-                      {event.format === "HIBRIDO" && (
-                        <div className="flex items-center gap-2">
-                          <Wifi className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            Evento híbrido (presencial + online)
-                          </span>
                         </div>
                       )}
                     </div>
-                  </div>
-                </CardContent>
+
+                    {/* Informações adicionais */}
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <div className="flex flex-wrap gap-6">
+                        {user && companyAttendees > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Users className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              {companyAttendees} {companyAttendees === 1 ? 'pessoa' : 'pessoas'} da sua empresa já se {companyAttendees === 1 ? 'inscreveu' : 'inscreveram'} para este evento
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Duração: {event.start_time} - {event.end_time}
+                          </span>
+                        </div>
+
+                        {event.format === "HIBRIDO" && (
+                          <div className="flex items-center gap-2">
+                            <Wifi className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              Evento híbrido (presencial + online)
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
                 </Card>
               </div>
             </div>

@@ -25,6 +25,7 @@ export const canUserRegister = cache(async (eventId: string) => {
       vacancy_total: true,
       vacancies_per_brand: true,
       isPublished: true,
+      exclusive_for_members: true,
       // Contar inscrições totais
       _count: {
         select: {
@@ -46,6 +47,29 @@ export const canUserRegister = cache(async (eventId: string) => {
     return {
       canRegister: false,
       message: "Evento não disponível para inscrições"
+    }
+  }
+
+  // Verificar se o evento é exclusivo para associados
+  if (event.exclusive_for_members) {
+    if (!user) {
+      return {
+        canRegister: false,
+        message: "Este evento é exclusivo para associados da ABF. Faça login para se inscrever."
+      }
+    }
+
+    // Verificar se a empresa do usuário está ativa (é associada)
+    const userCompany = await prisma.company.findUnique({
+      where: { cnpj: user.companyId },
+      select: { active: true, name: true }
+    })
+
+    if (!userCompany || !userCompany.active) {
+      return {
+        canRegister: false,
+        message: "Este evento é exclusivo para empresas associadas à ABF. Sua empresa não possui associação ativa."
+      }
     }
   }
 

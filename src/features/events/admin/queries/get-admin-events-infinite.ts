@@ -170,6 +170,7 @@ export async function getAdminEventsInfinite(
       vacancy_total: true,
       highlight: true,
       isPublished: true,
+      exclusive_for_members: true,
       created_at: true,
       updatedAt: true,
       address: {

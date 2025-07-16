@@ -183,6 +183,26 @@ export function EventDetail({
                 </Badge>
               )}
 
+              {event.exclusive_for_members && (
+                <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
+                  {(() => {
+                    // Se o usuário não estiver logado, mostrar badge básico
+                    if (!user) {
+                      return "Exclusivo Associados"
+                    }
+                    
+                    // Se o usuário estiver logado, verificar se a empresa é associada
+                    const isCompanyActive = user.company?.active === true
+                    
+                    if (isCompanyActive) {
+                      return "Exclusivo Associados ✓"
+                    } else {
+                      return "Exclusivo Associados"
+                    }
+                  })()}
+                </Badge>
+              )}
+
               {eventoPassado ? (
                 <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
                   Evento Passado

@@ -24,7 +24,7 @@ export type AdminEventWithDetails = events & {
 // Tipo simplificado para listagem
 export type AdminEventSummary = Pick<events, 
   'id' | 'title' | 'slug' | 'image_url' | 'thumb_url' | 'summary' | 'date' | 'format' | 
-  'vacancy_total' | 'highlight' | 'isPublished' | 'created_at' | 'updatedAt'
+  'vacancy_total' | 'highlight' | 'isPublished' | 'exclusive_for_members' | 'created_at' | 'updatedAt'
 > & {
   address: {
     cities: Pick<cities, 'name'>
@@ -69,6 +69,7 @@ export interface EventFormData {
   transmission_link?: string
   schedule_link?: string
   free_online: boolean
+  exclusive_for_members: boolean
   addressId: string
   speakerIds?: string[]
   sponsorIds?: string[]

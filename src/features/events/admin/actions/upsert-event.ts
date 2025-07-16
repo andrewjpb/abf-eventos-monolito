@@ -43,6 +43,7 @@ const eventSchema = z.object({
   transmission_link: z.string().optional(),
   schedule_link: z.string().optional(),
   free_online: z.preprocess((val) => val === "true" || val === true || val === "on", z.boolean().default(false)),
+  exclusive_for_members: z.preprocess((val) => val === "true" || val === true || val === "on", z.boolean().default(false)),
   // Campos do endereço
   street: z.string().min(1, { message: "Rua é obrigatória" }),
   number: z.string().min(1, { message: "Número é obrigatório" }),
@@ -287,6 +288,7 @@ export const upsertEvent = async (
           transmission_link: data.transmission_link || '',
           schedule_link: data.schedule_link || '',
           free_online: data.free_online,
+          exclusive_for_members: data.exclusive_for_members,
           addressId: addressId,
           updatedAt: new Date()
         }
@@ -404,6 +406,7 @@ export const upsertEvent = async (
           transmission_link: data.transmission_link || '',
           schedule_link: data.schedule_link || '',
           free_online: data.free_online,
+          exclusive_for_members: data.exclusive_for_members,
           addressId: addressId,
           created_at: new Date(),
           updatedAt: new Date()

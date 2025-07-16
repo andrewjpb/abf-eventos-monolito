@@ -200,6 +200,12 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
                       Gratuito Online
                     </Badge>
                   )}
+
+                  {event.exclusive_for_members && (
+                    <Badge className="bg-purple-100 text-purple-800">
+                      Exclusivo para Associados
+                    </Badge>
+                  )}
                 </div>
 
                 <h1 className="text-2xl font-bold mb-2">{event.title}</h1>

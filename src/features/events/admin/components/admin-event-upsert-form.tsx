@@ -952,6 +952,20 @@ export function AdminEventUpsertForm({
                 defaultChecked={event?.highlight}
               />
             </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="exclusive_for_members">Exclusivo para associados</Label>
+                <p className="text-sm text-muted-foreground">
+                  Restringir inscrições apenas para empresas com associação ativa na ABF
+                </p>
+              </div>
+              <Switch
+                id="exclusive_for_members"
+                name="exclusive_for_members"
+                defaultChecked={event?.exclusive_for_members}
+              />
+            </div>
           </CardContent>
         </Card>
 

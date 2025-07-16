@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, CheckCircle, AlertCircle, Calendar, X, Mail, ArrowLeft } from "lucide-react"
+import { Users, CheckCircle, AlertCircle, Calendar, X, Mail, ArrowLeft, ExternalLink } from "lucide-react"
 import { canUserRegister } from "@/features/attendance-list/actions/can-user-register"
 import { registerAttendee } from "@/features/attendance-list/actions/register-attendee"
 import { cancelRegistration } from "@/features/attendance-list/actions/cancel-registration"
@@ -226,6 +226,68 @@ export function EventRegistrationCard({
 
   // Se já está registrado
   if (isRegistered) {
+    // Verificar se é um evento exclusivo e se a empresa não é associada
+    const isExclusiveEvent = event.exclusive_for_members
+    const isCompanyActive = user?.company?.active === true
+    
+    if (isExclusiveEvent && !isCompanyActive) {
+      // Evento exclusivo mas empresa não é associada
+      return (
+        <Card className="w-full border-0 shadow-sm bg-amber-50 dark:bg-amber-900/20 dark:border dark:border-amber-800">
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 dark:bg-amber-800 rounded-lg h-12 w-12 flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                    Evento Exclusivo para Empresas Associadas
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Você está inscrito, mas este evento é exclusivo para empresas associadas à ABF
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('https://portaldoassociado.abf.com.br/', '_blank')}
+                  className="flex-1 h-10 text-xs bg-blue-50 border-blue-300 text-blue-800 hover:bg-blue-100 hover:text-blue-900 hover:border-blue-400 dark:bg-blue-950/50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/50 dark:hover:border-blue-600 font-medium"
+                >
+                  <ExternalLink className="w-4 h-4 mr-1" />
+                  Associe-se à ABF
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  disabled={isCanceling || isPending}
+                  className="flex-1 h-10 text-xs bg-red-50 border-red-300 text-red-800 hover:bg-red-100 hover:text-red-900 hover:border-red-400 dark:bg-red-950/50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/50 dark:hover:border-red-600 font-medium"
+                >
+                  {isCanceling ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-red-700 border-t-transparent rounded-full animate-spin mr-1" />
+                      Cancelando...
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-4 h-4 mr-1" />
+                      Cancelar inscrição
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
+    
+    // Inscrição normal (evento não exclusivo ou empresa é associada)
     return (
       <Card className="w-full border-0 shadow-sm bg-green-50 dark:bg-green-900/20 dark:border dark:border-green-800">
         <CardContent className="p-4">

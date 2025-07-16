@@ -100,11 +100,17 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
           </div>
 
           {/* Badges de destaque e publicação */}
-          <div className="absolute top-2 right-2 flex gap-2">
+          <div className="absolute top-2 right-2 flex gap-2 flex-wrap">
             {event.highlight && (
               <Badge className="bg-orange-100 text-orange-800">
                 <Star className="h-3 w-3 mr-1" />
                 Destaque
+              </Badge>
+            )}
+
+            {event.exclusive_for_members && (
+              <Badge className="bg-purple-100 text-purple-800">
+                Exclusivo
               </Badge>
             )}
 

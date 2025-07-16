@@ -98,7 +98,7 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
       {/* Informações do evento */}
       <div className="flex flex-col p-3 sm:p-4 flex-grow">
         {/* Tipo de evento e duração */}
-        <div className="flex gap-2 sm:gap-3 mb-2">
+        <div className="flex gap-2 sm:gap-3 mb-2 flex-wrap">
           <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground text-xs">
             {obterTextoFormato()}
           </Badge>
@@ -106,6 +106,12 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
           <Badge variant="outline" className="rounded-full bg-accent text-accent-foreground text-xs">
             {calcularDias()}
           </Badge>
+
+          {event.exclusive_for_members && (
+            <Badge variant="outline" className="rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs">
+              Exclusivo
+            </Badge>
+          )}
         </div>
 
         {/* Título */}

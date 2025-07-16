@@ -27,7 +27,15 @@ const signUpSchema = z
     rg: z.string().min(1, { message: "RG é obrigatório" }).max(20),
     cpf: z.string().min(11, { message: "CPF é obrigatório" }).max(14),
     cnpj: z.string().min(14, { message: "CNPJ é obrigatório" }).max(18),
-    mobile_phone: z.string().min(1, { message: "Telefone é obrigatório" }).max(20),
+    mobile_phone: z.string()
+      .min(1, { message: "Telefone é obrigatório" })
+      .max(20)
+      .refine((phone) => {
+        // Remover formatação
+        const cleanPhone = phone.replace(/\D/g, '')
+        // Validar: deve ter 10 dígitos (DDD + 8 fixo) ou 11 dígitos (DDD + 9 celular)
+        return cleanPhone.length === 10 || cleanPhone.length === 11
+      }, { message: "Telefone deve ter DDD + 8 dígitos (fixo) ou DDD + 9 dígitos (celular)" }),
     position: z.string().min(1, { message: "Cargo é obrigatório" }).max(100),
     city: z.string().min(1, { message: "Cidade é obrigatória" }).max(100),
     state: z.string().min(1, { message: "Estado é obrigatório" }).max(50),

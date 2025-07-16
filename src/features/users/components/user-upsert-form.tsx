@@ -107,10 +107,53 @@ export function UserUpsertForm({ user, roles }: UserUpsertFormProps) {
   // Manipular alterações nos campos para manter o estado atualizado
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    
+    // Aplicar formatação no campo de telefone
+    if (name === "mobile_phone") {
+      const formattedValue = formatPhone(value);
+      setFormValues(prev => ({
+        ...prev,
+        [name]: formattedValue
+      }));
+      return;
+    }
+    
     setFormValues(prev => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value
     }));
+  };
+
+  // Função para formatar telefone
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    
+    // Formato para celular (11 dígitos): (00) 00000-0000
+    if (numbers.length === 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+    }
+    
+    // Formato para fixo (10 dígitos): (00) 0000-0000
+    if (numbers.length === 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+    }
+    
+    // Formatação parcial durante a digitação
+    if (numbers.length > 6) {
+      return numbers.length > 10 
+        ? numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
+        : numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3')
+    }
+    
+    if (numbers.length > 2) {
+      return numbers.replace(/(\d{2})(\d{0,5})/, '($1) $2')
+    }
+    
+    if (numbers.length > 0) {
+      return numbers.replace(/(\d{0,2})/, '($1')
+    }
+    
+    return numbers
   };
 
   return (
@@ -333,16 +376,19 @@ export function UserUpsertForm({ user, roles }: UserUpsertFormProps) {
 
             {/* Telefone */}
             <div className="space-y-2">
-              <Label htmlFor="mobile_phone">Telefone Celular</Label>
+              <Label htmlFor="mobile_phone">Telefone</Label>
               <Input
                 id="mobile_phone"
                 name="mobile_phone"
                 value={formValues.mobile_phone}
                 onChange={handleInputChange}
-                placeholder="(00) 00000-0000"
+                placeholder="(00) 0000-0000 ou (00) 00000-0000"
                 required
               />
               <FieldError actionState={state} name="mobile_phone" />
+              <p className="text-xs text-muted-foreground">
+                Aceita telefone fixo (8 dígitos) ou celular (9 dígitos) com DDD
+              </p>
             </div>
 
             {/* Cidade e Estado */}

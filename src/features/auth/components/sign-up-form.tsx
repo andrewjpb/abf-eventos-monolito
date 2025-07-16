@@ -80,7 +80,33 @@ const SignUpForm = () => {
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '')
-    return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+    
+    // Formato para celular (11 dígitos): (00) 00000-0000
+    if (numbers.length === 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+    }
+    
+    // Formato para fixo (10 dígitos): (00) 0000-0000
+    if (numbers.length === 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+    }
+    
+    // Formatação parcial durante a digitação
+    if (numbers.length > 6) {
+      return numbers.length > 10 
+        ? numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
+        : numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3')
+    }
+    
+    if (numbers.length > 2) {
+      return numbers.replace(/(\d{2})(\d{0,5})/, '($1) $2')
+    }
+    
+    if (numbers.length > 0) {
+      return numbers.replace(/(\d{0,2})/, '($1')
+    }
+    
+    return numbers
   }
 
   return (
@@ -123,7 +149,7 @@ const SignUpForm = () => {
                 <Input 
                   id="mobile_phone" 
                   name="mobile_phone" 
-                  placeholder="(00) 00000-0000" 
+                  placeholder="(00) 0000-0000 ou (00) 00000-0000" 
                   onChange={(e) => {
                     const formatted = formatPhone(e.target.value)
                     e.target.value = formatted.slice(0, 15)
@@ -131,6 +157,9 @@ const SignUpForm = () => {
                   required 
                 />
                 <FieldError actionState={actionState} name="mobile_phone" />
+                <p className="text-xs text-muted-foreground">
+                  Aceita telefone fixo (8 dígitos) ou celular (9 dígitos) com DDD
+                </p>
               </div>
               
               <div className="space-y-2">

@@ -18,7 +18,14 @@ const userSchema = z.object({
   position: z.string().optional(),
   rg: z.string().min(1, { message: "RG é obrigatório" }),
   cpf: z.string().min(1, { message: "CPF é obrigatório" }),
-  mobile_phone: z.string().min(1, { message: "Telefone celular é obrigatório" }),
+  mobile_phone: z.string()
+    .min(1, { message: "Telefone é obrigatório" })
+    .refine((phone) => {
+      // Remover formatação
+      const cleanPhone = phone.replace(/\D/g, '')
+      // Validar: deve ter 10 dígitos (DDD + 8 fixo) ou 11 dígitos (DDD + 9 celular)
+      return cleanPhone.length === 10 || cleanPhone.length === 11
+    }, { message: "Telefone deve ter DDD + 8 dígitos (fixo) ou DDD + 9 dígitos (celular)" }),
   cnpj: z.string().min(1, { message: "CNPJ da empresa é obrigatório" }),
   city: z.string().optional(),
   state: z.string().optional(),

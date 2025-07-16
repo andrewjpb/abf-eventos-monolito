@@ -117,6 +117,9 @@ const SignUpForm = () => {
       </div>
 
       <Form action={formAction} actionState={actionState}>
+        {/* Campo username oculto - será preenchido com o mesmo valor do email */}
+        <input type="hidden" name="username" id="hiddenUsername" />
+        
         <div className="space-y-8">
           {/* Dados Pessoais */}
           <Card className="p-6">
@@ -133,14 +136,21 @@ const SignUpForm = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">Nome de Usuário *</Label>
-                <Input id="username" name="username" placeholder="username" required />
-                <FieldError actionState={actionState} name="username" />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="email">E-mail *</Label>
-                <Input id="email" name="email" type="email" placeholder="seu@email.com" required />
+                <Input 
+                  id="email" 
+                  name="email" 
+                  type="email" 
+                  placeholder="seu@email.com"
+                  onChange={(e) => {
+                    // Copiar o valor do email para o campo username oculto
+                    const hiddenUsername = document.getElementById('hiddenUsername') as HTMLInputElement;
+                    if (hiddenUsername) {
+                      hiddenUsername.value = e.target.value;
+                    }
+                  }}
+                  required 
+                />
                 <FieldError actionState={actionState} name="email" />
               </div>
 

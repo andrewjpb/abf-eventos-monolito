@@ -55,9 +55,12 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
   const cookieStore = await cookies()
 
   try {
-    const userData = signUpSchema.parse(
-      Object.fromEntries(formData)
-    );
+    const formEntries = Object.fromEntries(formData);
+    
+    // Garantir que username seja igual ao email
+    formEntries.username = formEntries.email;
+    
+    const userData = signUpSchema.parse(formEntries);
     
     // Limpar formatação dos campos
     const cleanCpf = userData.cpf.replace(/\D/g, '')
@@ -73,14 +76,7 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
       return toActionState("ERROR", "E-mail já está em uso", formData);
     }
 
-    // Check if username already exists
-    const existingUsername = await prisma.users.findUnique({
-      where: { username: userData.username }
-    });
-
-    if (existingUsername) {
-      return toActionState("ERROR", "Nome de usuário já está em uso", formData);
-    }
+    // Username é igual ao email, então não precisa verificar separadamente
 
     // Check if RG already exists
     const existingRG = await prisma.users.findUnique({

@@ -11,7 +11,7 @@ import { homePath } from "@/app/paths"
 import { logInfo, logError } from "@/features/logs/queries/add-log"
 
 const signInSchema = z.object({
-  email: z.string().min(1, { message: "Is required" }).max(191).email(),
+  email: z.string().min(1, { message: "Is required" }).max(191),
   password: z.string().min(6, { message: "Is required" }).max(191),
 })
 
@@ -26,18 +26,27 @@ export const signIn = async (
     const formEntries = Object.fromEntries(formData);
     const { email, password } = signInSchema.parse(formEntries);
 
-    const user = await prisma.users.findUnique({
-      where: { email },
+    // Converter para lowercase para busca case-insensitive
+    const emailOrUsername = email.toLowerCase();
+
+    // Buscar por email ou username (case-insensitive)
+    const user = await prisma.users.findFirst({
+      where: {
+        OR: [
+          { email: { equals: emailOrUsername, mode: 'insensitive' } },
+          { username: { equals: emailOrUsername, mode: 'insensitive' } }
+        ]
+      },
     });
 
     if (!user) {
-      // Log tentativa de login com email inexistente
+      // Log tentativa de login com email/username inexistente
       await logError(
         "Auth",
-        `Failed login attempt - User not found: ${email}`,
+        `Failed login attempt - User not found: ${emailOrUsername}`,
         undefined,
         {
-          email,
+          emailOrUsername,
           reason: "user_not_found",
           ip: "unknown" // Você pode capturar o IP se necessário
         }

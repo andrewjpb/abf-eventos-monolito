@@ -20,14 +20,16 @@ const SignInForm = () => {
     actionState={actionState}
   >
     <Label>Email</Label>
-    <Input name="email" placeholder="Email"
+    <Input 
+      name="email" 
+      placeholder="Digite seu email"
       defaultValue={actionState.payload?.get("email") as string}
     />
     <FieldError actionState={actionState} name="email" />
 
 
     <Label>Senha</Label>
-    <Input name="password" placeholder="Password" type="password" />
+    <Input name="password" placeholder="Digite sua senha" type="password" />
     <FieldError actionState={actionState} name="password" />
     
     <div className="flex justify-end">

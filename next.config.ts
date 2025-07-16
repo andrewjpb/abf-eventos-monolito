@@ -9,6 +9,26 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb', // Aumentar limite para 10MB
     },
   },
+  // Redirects para compatibilidade com URLs antigas
+  async redirects() {
+    return [
+      {
+        source: '/app/event/:id',
+        destination: '/eventos/:id',
+        permanent: true, // 301 redirect
+      },
+      {
+        source: '/app/event',
+        destination: '/eventos',
+        permanent: true,
+      },
+      {
+        source: '/app',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

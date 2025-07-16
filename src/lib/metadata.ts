@@ -86,10 +86,12 @@ export function generateEventMetadata({
       }
     },
     
-    other: {
-      "event:start_time": publishedTime,
-      "event:end_time": modifiedTime,
-    }
+    ...(publishedTime && modifiedTime && {
+      other: {
+        "event:start_time": publishedTime,
+        "event:end_time": modifiedTime,
+      }
+    })
   }
 }
 

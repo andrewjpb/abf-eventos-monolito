@@ -72,8 +72,6 @@ export async function generateMetadata({ params }: { params: EventPageProps }): 
   })
 }
 
-type EventPageProps = Promise<{ id: string }>
-
 export default async function EventPage({ params }: { params: EventPageProps }) {
   const { id } = await params
   const eventData = await getEvent(id)

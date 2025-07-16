@@ -3,11 +3,17 @@
 import { getAuth } from "@/features/auth/queries/get-auth"
 import { prisma } from "@/lib/prisma"
 import { OTPManager } from "@/lib/otp"
+import { logInfo, logError, logWarn } from "@/features/logs/queries/add-log"
 
 export async function verifyOTP(otpCode: string) {
   const auth = await getAuth()
   
   if (!auth || !auth.user) {
+    await logWarn("Auth.OTP", "Tentativa de verificação de OTP sem autenticação", null, {
+      hasAuth: !!auth,
+      hasUser: !!auth?.user,
+      action: "verify_otp"
+    })
     return { 
       status: "ERROR" as const, 
       message: "Usuário não autenticado" 
@@ -24,6 +30,10 @@ export async function verifyOTP(otpCode: string) {
     })
 
     if (!user) {
+      await logError("Auth.OTP", "Usuário não encontrado para verificação de OTP", auth.user.id, {
+        userId: auth.user.id,
+        action: "verify_otp"
+      })
       return { 
         status: "ERROR" as const, 
         message: "Usuário não encontrado" 
@@ -31,6 +41,11 @@ export async function verifyOTP(otpCode: string) {
     }
 
     if (user.email_verified) {
+      await logInfo("Auth.OTP", "Tentativa de verificação de OTP para email já verificado", auth.user.id, {
+        email: user.email,
+        emailVerified: true,
+        action: "verify_otp"
+      })
       return { 
         status: "SUCCESS" as const, 
         message: "Email já verificado",
@@ -46,6 +61,12 @@ export async function verifyOTP(otpCode: string) {
     })
 
     if (!verificationResult.valid) {
+      await logWarn("Auth.OTP", "Tentativa de verificação de OTP com código inválido", auth.user.id, {
+        email: user.email,
+        otpCode: otpCode,
+        verificationError: verificationResult.message,
+        action: "verify_otp"
+      })
       return { 
         status: "ERROR" as const, 
         message: verificationResult.message
@@ -60,6 +81,13 @@ export async function verifyOTP(otpCode: string) {
       }
     })
 
+    await logInfo("Auth.OTP", "Email verificado com sucesso via OTP", auth.user.id, {
+      email: user.email,
+      otpCode: otpCode,
+      emailVerified: true,
+      action: "verify_otp"
+    })
+
     return { 
       status: "SUCCESS" as const, 
       message: "Email verificado com sucesso!",
@@ -67,6 +95,12 @@ export async function verifyOTP(otpCode: string) {
     }
   } catch (error) {
     console.error("Erro ao verificar OTP:", error)
+    await logError("Auth.OTP", "Erro interno ao verificar código OTP", auth.user?.id, {
+      userId: auth.user?.id,
+      otpCode: otpCode,
+      error: String(error),
+      action: "verify_otp"
+    })
     return { 
       status: "ERROR" as const, 
       message: "Erro ao verificar código" 

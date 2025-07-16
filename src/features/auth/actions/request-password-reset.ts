@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid"
 import { prisma } from "@/lib/prisma"
 import { resend } from "@/lib/resend"
 import { toActionState, ActionState } from "@/components/form/utils/to-action-state"
+import { logInfo, logError, logWarn } from "@/features/logs/queries/add-log"
 
 const requestPasswordResetSchema = z.object({
   email: z.string().email("Email inválido")
@@ -38,6 +39,10 @@ export async function requestPasswordReset(
     // Por segurança, sempre retornamos sucesso mesmo se o email não existir
     if (!user) {
       console.log("❌ Usuário não encontrado, retornando sucesso fake")
+      await logWarn("Auth.passwordReset", `Tentativa de reset de senha para email inexistente: ${validatedData.email}`, null, {
+        email: validatedData.email,
+        userExists: false
+      })
       return toActionState("SUCCESS", "Email enviado com sucesso")
     }
 
@@ -65,6 +70,13 @@ export async function requestPasswordReset(
         expiresAt,
         used: false
       }
+    })
+
+    await logInfo("Auth.passwordReset", `Token de reset de senha gerado para usuário: ${user.name}`, user.id, {
+      email: user.email,
+      tokenId: token,
+      otpGenerated: true,
+      expiresAt: expiresAt.toISOString()
     })
 
     // Envia email com OTP
@@ -113,12 +125,29 @@ export async function requestPasswordReset(
     
     if (emailResult.error) {
       console.error("Erro no envio de email:", emailResult.error)
+      await logError("Auth.passwordReset", `Erro ao enviar email de reset de senha`, user.id, {
+        email: user.email,
+        emailError: emailResult.error,
+        tokenId: token
+      })
       return toActionState("ERROR", "Erro ao enviar email")
     }
+
+    await logInfo("Auth.passwordReset", `Email de reset de senha enviado com sucesso`, user.id, {
+      email: user.email,
+      emailId: emailResult.data?.id,
+      tokenId: token
+    })
 
     return toActionState("SUCCESS", "Email enviado com sucesso")
   } catch (error) {
     console.error("Erro ao solicitar reset de senha:", error)
+
+    await logError("Auth.passwordReset", `Erro no processo de reset de senha`, data?.email ? "sistema" : null, {
+      email: data?.email,
+      error: String(error),
+      errorType: error instanceof z.ZodError ? "validation" : "unknown"
+    })
 
     if (error instanceof z.ZodError) {
       return {

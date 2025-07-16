@@ -3,11 +3,16 @@
 import { getAuth } from "@/features/auth/queries/get-auth"
 import { prisma } from "@/lib/prisma"
 import { OTPManager } from "@/lib/otp"
+import { logInfo, logError, logWarn } from "@/features/logs/queries/add-log"
 
 export async function sendOTPVerification() {
   const auth = await getAuth()
   
   if (!auth || !auth.user) {
+    await logWarn("Auth.OTP", "Tentativa de envio de OTP sem autenticação", null, {
+      hasAuth: !!auth,
+      hasUser: !!auth?.user
+    })
     return { 
       status: "ERROR" as const, 
       message: "Usuário não autenticado" 
@@ -21,6 +26,10 @@ export async function sendOTPVerification() {
     })
 
     if (!user) {
+      await logError("Auth.OTP", "Usuário não encontrado na base de dados", auth.user.id, {
+        userId: auth.user.id,
+        action: "send_otp_verification"
+      })
       return { 
         status: "ERROR" as const, 
         message: "Usuário não encontrado" 
@@ -28,6 +37,10 @@ export async function sendOTPVerification() {
     }
 
     if (user.email_verified) {
+      await logInfo("Auth.OTP", "Tentativa de envio de OTP para email já verificado", auth.user.id, {
+        email: user.email,
+        emailVerified: true
+      })
       return { 
         status: "SUCCESS" as const, 
         message: "Email já verificado",
@@ -76,12 +89,22 @@ export async function sendOTPVerification() {
     })
 
     if (result.success) {
+      await logInfo("Auth.OTP", "Código OTP enviado com sucesso para verificação de email", auth.user.id, {
+        email: user.email,
+        purpose: "email_verification",
+        emailSent: true
+      })
       return { 
         status: "SUCCESS" as const, 
         message: result.message,
         emailVerified: false
       }
     } else {
+      await logError("Auth.OTP", "Falha ao enviar código OTP para verificação de email", auth.user.id, {
+        email: user.email,
+        purpose: "email_verification",
+        error: result.message
+      })
       return { 
         status: "ERROR" as const, 
         message: result.message
@@ -89,6 +112,11 @@ export async function sendOTPVerification() {
     }
   } catch (error) {
     console.error("Erro ao enviar OTP:", error)
+    await logError("Auth.OTP", "Erro interno ao processar envio de OTP", auth.user?.id, {
+      userId: auth.user?.id,
+      error: String(error),
+      action: "send_otp_verification"
+    })
     return { 
       status: "ERROR" as const, 
       message: "Erro ao enviar código de verificação" 

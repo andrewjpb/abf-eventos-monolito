@@ -31,20 +31,44 @@ export async function requestPasswordReset(
     // Verifica se o usuário existe
     console.log("🔍 Buscando usuário no banco...")
     const user = await prisma.users.findUnique({
-      where: { email: validatedData.email }
+      where: { email: validatedData.email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        active: true
+      }
     })
     
     console.log("👤 Usuário encontrado:", user ? `${user.name} (${user.email})` : "Não encontrado")
 
-    // Por segurança, sempre retornamos sucesso mesmo se o email não existir
+    // Validar se o usuário existe antes de enviar OTP
     if (!user) {
-      console.log("❌ Usuário não encontrado, retornando sucesso fake")
+      console.log("❌ Usuário não encontrado, retornando erro")
       await logWarn("Auth.passwordReset", `Tentativa de reset de senha para email inexistente: ${validatedData.email}`, undefined, {
         email: validatedData.email,
         userExists: false
       })
-      return toActionState("SUCCESS", "Email enviado com sucesso")
+      return toActionState("ERROR", "Email não encontrado. Verifique se o email está correto ou crie uma conta.", formData)
     }
+
+    // Validar se o usuário está ativo
+    if (!user.active) {
+      console.log("❌ Usuário inativo, retornando erro")
+      await logWarn("Auth.passwordReset", `Tentativa de reset de senha para usuário inativo: ${validatedData.email}`, user.id, {
+        email: validatedData.email,
+        userExists: true,
+        userActive: false
+      })
+      return toActionState("ERROR", "Conta inativa. Entre em contato com o administrador.", formData)
+    }
+
+    // Log de usuário válido encontrado
+    await logInfo("Auth.passwordReset", `Usuário válido encontrado para reset de senha: ${user.email}`, user.id, {
+      email: user.email,
+      userExists: true,
+      userActive: true
+    })
 
     // Gera código OTP de 6 dígitos
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
@@ -139,7 +163,7 @@ export async function requestPasswordReset(
       tokenId: token
     })
 
-    return toActionState("SUCCESS", "Email enviado com sucesso")
+    return toActionState("SUCCESS", "Código de verificação enviado com sucesso para seu email!")
   } catch (error) {
     console.error("Erro ao solicitar reset de senha:", error)
 

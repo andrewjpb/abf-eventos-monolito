@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Mail, ArrowLeft, Send, CheckCircle, Key, Eye, EyeOff, Shield } from "lucide-react"
+import { Mail, ArrowLeft, Send, CheckCircle, Key, Eye, EyeOff, Shield, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,6 +17,7 @@ import { requestPasswordReset } from "../actions/request-password-reset"
 import { resetPasswordWithOtp } from "../actions/reset-password-with-otp"
 import { EMPTY_ACTION_STATE } from "@/components/form/utils/to-action-state"
 import { signInPath } from "@/app/paths"
+// Alert component removed - using custom styling instead
 
 export function PasswordForgotForm() {
   const [emailActionState, emailAction] = useActionState(requestPasswordReset, EMPTY_ACTION_STATE)
@@ -26,6 +27,7 @@ export function PasswordForgotForm() {
   const [otp, setOtp] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [hasInteracted, setHasInteracted] = useState(false)
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -39,6 +41,13 @@ export function PasswordForgotForm() {
       setStep("reset")
     }
   }, [emailActionState.status, step])
+
+  // Reset hasInteracted quando há um novo estado de ação
+  useEffect(() => {
+    if (emailActionState.timestamp) {
+      setHasInteracted(false)
+    }
+  }, [emailActionState.timestamp])
 
   // Se o reset foi bem-sucedido
   if (resetActionState.status === "SUCCESS") {
@@ -107,11 +116,31 @@ export function PasswordForgotForm() {
                       placeholder="seu@email.com"
                       className="pl-10"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        setHasInteracted(true)
+                      }}
                       required
                     />
                   </div>
                   <FieldError actionState={emailActionState} name="email" />
+                  
+                  {/* Alerta de erro customizado */}
+                  {emailActionState.status === "ERROR" && emailActionState.message && !hasInteracted && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-500/50 bg-red-50 p-3 text-sm dark:border-red-500/30 dark:bg-red-950/20">
+                        <AlertCircle className="h-4 w-4 mt-0.5 text-red-600 dark:text-red-500 flex-shrink-0" />
+                        <p className="font-medium text-red-800 dark:text-red-200">
+                          {emailActionState.message}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 <div className="space-y-4">

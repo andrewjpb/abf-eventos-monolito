@@ -45,7 +45,10 @@ const SignUpForm = () => {
   // Verificar CNPJ quando o usuário parar de digitar
   useEffect(() => {
     const checkCnpj = async () => {
-      if (cnpjValue.length >= 14) {
+      // Limpar formatação para verificar o tamanho
+      const cleanCnpj = cnpjValue.replace(/\D/g, '')
+      
+      if (cleanCnpj.length === 14) {
         setIsCheckingCnpj(true)
         try {
           const company = await checkCnpjExists(cnpjValue)
@@ -251,11 +254,37 @@ const SignUpForm = () => {
                 )}
 
                 {companyInfo && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                    <p className="text-sm font-medium text-green-800">Empresa encontrada:</p>
-                    <p className="text-sm text-green-700">{companyInfo.name}</p>
-                    <p className="text-sm text-green-600">Segmento: {companyInfo.segment}</p>
-                    <Badge variant="secondary" className="mt-1">Empresa cadastrada</Badge>
+                  <div className={`p-3 border rounded-md ${companyInfo.active 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <p className={`text-sm font-medium ${companyInfo.active 
+                      ? 'text-green-800' 
+                      : 'text-blue-800'
+                    }`}>
+                      Empresa encontrada:
+                    </p>
+                    <p className={`text-sm ${companyInfo.active 
+                      ? 'text-green-700' 
+                      : 'text-blue-700'
+                    }`}>
+                      {companyInfo.name}
+                    </p>
+                    <p className={`text-sm ${companyInfo.active 
+                      ? 'text-green-600' 
+                      : 'text-blue-600'
+                    }`}>
+                      Segmento: {companyInfo.segment}
+                    </p>
+                    <Badge 
+                      variant={companyInfo.active ? "default" : "outline"} 
+                      className={`mt-1 ${companyInfo.active 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {companyInfo.active ? 'Empresa Associada' : 'Empresa Não Associada'}
+                    </Badge>
                   </div>
                 )}
 
@@ -280,6 +309,11 @@ const SignUpForm = () => {
                     </div>
                     <Badge variant="outline" className="mt-2">Não associado</Badge>
                   </div>
+                )}
+                
+                {/* Campo oculto para quando a empresa já existe */}
+                {companyInfo && (
+                  <input type="hidden" name="company_segment" value="" />
                 )}
               </div>
             </div>

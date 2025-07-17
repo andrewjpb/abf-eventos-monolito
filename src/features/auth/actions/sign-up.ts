@@ -115,7 +115,7 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
           name: "Empresa não associada", // Nome padrão para empresas não associadas
           cnpj: cleanCnpj,
           segment: userData.company_segment,
-          active: true
+          active: false
         }
       });
     } else if (!company) {

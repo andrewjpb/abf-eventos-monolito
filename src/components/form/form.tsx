@@ -43,7 +43,8 @@ const Form = ({ action, children, actionState, onSuccess, onError }: FormProps) 
             (input as HTMLInputElement).checked = value === 'true' || value === 'on'
           } else if (input.type === 'radio') {
             (input as HTMLInputElement).checked = input.value === value
-          } else {
+          } else if (input.type !== 'file') {
+            // Skip file inputs - they cannot be set programmatically
             input.value = value as string
           }
         }

@@ -315,6 +315,23 @@ export function EventScheduleManager({
                           />
                         </div>
 
+                        <div>
+                          <Label>Ordem</Label>
+                          <Input
+                            type="number"
+                            value={editFormData.order_index || 0}
+                            onChange={(e) => setEditFormData({
+                              ...editFormData,
+                              order_index: parseInt(e.target.value) || 0
+                            })}
+                            min="0"
+                            placeholder="0"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Define a ordem de exibição na programação
+                          </p>
+                        </div>
+
                         <div className="flex gap-2">
                           <Button
                             onClick={() => handleEditItem(item.id)}
@@ -354,6 +371,11 @@ export function EventScheduleManager({
                           <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                             {item.title}
                           </h4>
+                          {item.order_index > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              Ordem: {item.order_index}
+                            </Badge>
+                          )}
                         </div>
 
                         {/* Descrição */}

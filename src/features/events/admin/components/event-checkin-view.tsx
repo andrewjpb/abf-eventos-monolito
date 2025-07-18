@@ -14,6 +14,7 @@ import { getEventAttendees } from "../queries/get-event-attendees"
 import { EventCheckinItem } from "./event-checkin-item"
 import { AdminEventWithDetails } from "../types"
 import { PARTICIPANT_TYPE_OPTIONS, getParticipantTypeLabel } from "@/features/attendance-list/constants/participant-types"
+import { AddAttendeeForm } from "./add-attendee-form"
 
 type EventCheckinViewProps = {
   event: AdminEventWithDetails
@@ -272,6 +273,16 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
                 <Download className="h-4 w-4" />
                 Exportar Excel
               </Button>
+
+              <AddAttendeeForm 
+                eventId={event.id}
+                onSuccess={() => {
+                  // Recarregar lista após adicionar participante
+                  getEventAttendees(event.id).then((data) => {
+                    setAttendees(data)
+                  })
+                }}
+              />
             </div>
           </div>
         </Card>

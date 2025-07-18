@@ -431,12 +431,6 @@ export const upsertEvent = async (
     }
     revalidatePath('/') // Revalidar página inicial
 
-    if (eventId) {
-      return redirect(`/admin/events/${eventId}`)
-    }
-
-    return toActionState("SUCCESS", "Evento salvo com sucesso")
-
   } catch (error) {
     await logError("Event.upsert", `Erro ao ${eventId ? 'atualizar' : 'criar'} evento`, user.id, {
       eventId,
@@ -445,6 +439,13 @@ export const upsertEvent = async (
     })
     return fromErrorToActionState(error, formData)
   }
+  
+  // Redirect deve ficar fora do try-catch para não ser capturado
+  if (eventId) {
+    redirect(`/admin/events/${eventId}`)
+  }
+
+  return toActionState("SUCCESS", "Evento salvo com sucesso")
 }
 
 /**

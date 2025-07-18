@@ -70,4 +70,56 @@ const useConfirmDialog = ({
   return [dialogTrigger, dialog]
 }
 
+// Componente ConfirmDialog para uso direto
+type ConfirmDialogComponentProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description?: React.ReactNode
+  confirmText?: string
+  cancelText?: string
+  onConfirm: () => void
+  variant?: "default" | "destructive"
+}
+
+export const ConfirmDialog = ({
+  open,
+  onOpenChange,
+  title,
+  description,
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
+  onConfirm,
+  variant = "default"
+}: ConfirmDialogComponentProps) => {
+  const handleConfirm = () => {
+    onConfirm()
+    onOpenChange(false)
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          {description && (
+            <AlertDialogDescription asChild>
+              <div>{description}</div>
+            </AlertDialogDescription>
+          )}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{cancelText}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            className={variant === "destructive" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+          >
+            {confirmText}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 export { useConfirmDialog }

@@ -1,14 +1,16 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, XCircle, User, Mail, Building, MapPin, Briefcase, Phone, Hash } from "lucide-react"
+import { CheckCircle2, XCircle, User, Mail, Building, MapPin, Briefcase, Phone, Hash, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toggleCheckin } from "../actions/toggle-checkin"
+import { removeAttendeeFromEvent } from "../actions/remove-attendee"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { getParticipantTypeLabel, getParticipantTypeColor } from "@/features/attendance-list/constants/participant-types"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 
 type EventCheckinItemProps = {
   attendee: any
@@ -18,6 +20,8 @@ type EventCheckinItemProps = {
 
 export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinItemProps) {
   const [isPending, startTransition] = useTransition()
+  const [isRemoving, startRemoveTransition] = useTransition()
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false)
 
   const handleToggleCheckin = () => {
     const formData = new FormData()
@@ -36,6 +40,27 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
         }
       } catch (error) {
         toast.error("Erro ao alterar check-in")
+      }
+    })
+  }
+
+  const handleRemoveAttendee = () => {
+    const formData = new FormData()
+    formData.append("attendanceId", attendee.id)
+    formData.append("eventId", eventId)
+
+    startRemoveTransition(async () => {
+      try {
+        const result = await removeAttendeeFromEvent(null as any, formData)
+        
+        if (result.status === "SUCCESS") {
+          toast.success(result.message)
+          onUpdate?.()
+        } else {
+          toast.error(result.message || "Erro ao remover inscrito")
+        }
+      } catch (error) {
+        toast.error("Erro ao remover inscrito")
       }
     })
   }
@@ -131,13 +156,13 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
         </div>
       </div>
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       <div className="flex items-center gap-2">
         <Button
           variant={attendee.checked_in ? "outline" : "default"}
           size="sm"
           onClick={handleToggleCheckin}
-          disabled={isPending}
+          disabled={isPending || isRemoving}
           className={cn(
             "min-w-32",
             attendee.checked_in
@@ -166,7 +191,42 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
             </div>
           )}
         </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowRemoveDialog(true)}
+          disabled={isPending || isRemoving}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+        >
+          {isRemoving ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
+        </Button>
       </div>
+
+      {/* Dialog de confirmação para remover */}
+      <ConfirmDialog
+        open={showRemoveDialog}
+        onOpenChange={setShowRemoveDialog}
+        title="Remover inscrito"
+        description={
+          <>
+            Tem certeza que deseja remover <strong>{attendee.attendee_full_name}</strong> deste evento?
+            {attendee.participant_type === 'speaker' && (
+              <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-md text-sm">
+                <strong>Atenção:</strong> Este inscrito é um palestrante e também será removido da lista de palestrantes do evento.
+              </div>
+            )}
+          </>
+        }
+        confirmText="Remover"
+        cancelText="Cancelar"
+        onConfirm={handleRemoveAttendee}
+        variant="destructive"
+      />
     </div>
   )
 }

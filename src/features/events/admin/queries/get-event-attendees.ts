@@ -14,6 +14,7 @@ export async function getEventAttendees(eventId: string) {
             id: true,
             name: true,
             email: true,
+            email_verified: true,
             image_url: true,
             thumb_url: true,
             cnpj: true

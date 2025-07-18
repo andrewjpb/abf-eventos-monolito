@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, XCircle, User, Mail, Building, MapPin, Briefcase, Phone, Hash, Trash2 } from "lucide-react"
+import { CheckCircle2, XCircle, User, Mail, Building, MapPin, Briefcase, Phone, Hash, Trash2, ShieldCheck, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -104,6 +104,27 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
               className={cn("text-xs", getParticipantTypeColor(attendee.participant_type))}
             >
               {getParticipantTypeLabel(attendee.participant_type)}
+            </Badge>
+            <Badge 
+              variant="outline"
+              className={cn(
+                "text-xs flex items-center gap-1",
+                attendee.users?.email_verified 
+                  ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800" 
+                  : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+              )}
+            >
+              {attendee.users?.email_verified ? (
+                <>
+                  <ShieldCheck className="h-3 w-3" />
+                  Confirmado
+                </>
+              ) : (
+                <>
+                  <Clock className="h-3 w-3" />
+                  Rascunho
+                </>
+              )}
             </Badge>
           </div>
           

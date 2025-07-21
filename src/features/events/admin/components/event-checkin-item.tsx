@@ -126,6 +126,16 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
                 </>
               )}
             </Badge>
+            <Badge 
+              variant="outline"
+              className="text-xs bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
+            >
+              {new Date(attendee.created_at).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
+            </Badge>
           </div>
           
           {/* Grid de informações em 2 colunas */}

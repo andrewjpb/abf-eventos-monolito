@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, UserCheck, Users, CheckCircle2, XCircle, Search, Filter, Download } from "lucide-react"
+import { ArrowLeft, UserCheck, Users, CheckCircle2, XCircle, Search, Filter, Download, ChevronLeft, ChevronRight } from "lucide-react"
 import * as XLSX from 'xlsx'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -25,8 +25,11 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   const [filteredAttendees, setFilteredAttendees] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [participantTypeFilter, setParticipantTypeFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(20) // Mostrar 20 itens por página
 
   // Carregar participantes
   useEffect(() => {
@@ -46,17 +49,26 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
     loadAttendees()
   }, [event.id])
 
+  // Debounce search term
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+
+    return () => clearTimeout(timeout)
+  }, [searchTerm])
+
   // Filtrar participantes
   useEffect(() => {
     let filtered = attendees
 
     // Filtro por termo de busca
-    if (searchTerm) {
+    if (debouncedSearchTerm) {
       filtered = filtered.filter(attendee =>
-        attendee.attendee_full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        attendee.attendee_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (attendee.company?.name && attendee.company.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (attendee.company?.cnpj && attendee.company.cnpj.includes(searchTerm))
+        attendee.attendee_full_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        attendee.attendee_email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (attendee.company?.name && attendee.company.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
+        (attendee.company?.cnpj && attendee.company.cnpj.includes(debouncedSearchTerm))
       )
     }
 
@@ -71,13 +83,20 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
 
     // Filtro por tipo de participante
     if (participantTypeFilter !== "all") {
-      filtered = filtered.filter(attendee => 
+      filtered = filtered.filter(attendee =>
         attendee.participant_type === participantTypeFilter
       )
     }
 
     setFilteredAttendees(filtered)
-  }, [attendees, searchTerm, statusFilter, participantTypeFilter])
+    setCurrentPage(1) // Reset para primeira página quando filtros mudam
+  }, [attendees, debouncedSearchTerm, statusFilter, participantTypeFilter])
+
+  // Calcular paginação
+  const totalPages = Math.ceil(filteredAttendees.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentAttendees = filteredAttendees.slice(startIndex, endIndex)
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -116,7 +135,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
     const worksheet = XLSX.utils.json_to_sheet(dataToExport)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Participantes')
-    
+
     // Ajustar largura das colunas
     const columnWidths = [
       { wch: 25 }, // Nome
@@ -265,7 +284,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
                 </SelectContent>
               </Select>
 
-              <Button 
+              <Button
                 onClick={exportToExcel}
                 variant="outline"
                 className="flex items-center gap-2"
@@ -274,7 +293,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
                 Exportar Excel
               </Button>
 
-              <AddAttendeeForm 
+              <AddAttendeeForm
                 eventId={event.id}
                 onSuccess={() => {
                   // Recarregar lista após adicionar participante
@@ -291,14 +310,23 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       {/* Attendees List */}
       <motion.div variants={fadeIn}>
         <Card className="p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <UserCheck className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">
-              Participantes ({filteredAttendees.length})
-            </h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">
+                Participantes ({filteredAttendees.length})
+              </h2>
+            </div>
+
+            {/* Informação da paginação */}
+            {totalPages > 1 && (
+              <div className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages}
+              </div>
+            )}
           </div>
 
-          {filteredAttendees.length === 0 ? (
+          {currentAttendees.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
               <p className="text-muted-foreground">
@@ -309,25 +337,85 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
               </p>
             </div>
           ) : (
-            <motion.div
-              variants={stagger}
-              className="space-y-3"
-            >
-              {filteredAttendees.map((attendee) => (
-                <motion.div key={attendee.id} variants={fadeIn}>
-                  <EventCheckinItem
-                    attendee={attendee}
-                    eventId={event.id}
-                    onUpdate={() => {
-                      // Recarregar lista após update
-                      getEventAttendees(event.id).then((data) => {
-                        setAttendees(data)
-                      })
-                    }}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
+            <>
+              <motion.div
+                variants={stagger}
+                className="space-y-3"
+              >
+                {currentAttendees.map((attendee) => (
+                  <motion.div key={attendee.id} variants={fadeIn}>
+                    <EventCheckinItem
+                      attendee={attendee}
+                      eventId={event.id}
+                      onUpdate={() => {
+                        // Recarregar lista após update
+                        getEventAttendees(event.id).then((data) => {
+                          setAttendees(data)
+                        })
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              {/* Controles de Paginação */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {startIndex + 1} até {Math.min(endIndex, filteredAttendees.length)} de {filteredAttendees.length} participantes
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Anterior
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i
+                        } else {
+                          pageNumber = currentPage - 2 + i
+                        }
+
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNumber}
+                          </Button>
+                        )
+                      })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </Card>
       </motion.div>

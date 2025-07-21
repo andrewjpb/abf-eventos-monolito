@@ -96,6 +96,19 @@ async function uploadImageToMinIO(file: File, eventId: string, isThumb: boolean 
 }
 
 /**
+ * Converte data do formulário para Date mantendo o fuso horário local
+ */
+function parseLocalDate(dateString: string): Date {
+  // Se já tem horário, usar como está
+  if (dateString.includes('T')) {
+    return new Date(dateString)
+  }
+  
+  // Se é só data (YYYY-MM-DD), adicionar horário meio-dia para evitar problemas de timezone
+  return new Date(dateString + 'T12:00:00.000')
+}
+
+/**
  * Gera slug único baseado no título
  */
 async function generateUniqueSlug(title: string, eventId?: string): Promise<string> {
@@ -275,7 +288,7 @@ export const upsertEvent = async (
           slug: data.slug,
           summary: data.summary,
           description: data.description,
-          date: new Date(data.date),
+          date: parseLocalDate(data.date),
           start_time: data.start_time,
           end_time: data.end_time,
           format: data.format,
@@ -393,7 +406,7 @@ export const upsertEvent = async (
           ticket_img_path: imagePath,
           summary: data.summary,
           description: data.description,
-          date: new Date(data.date),
+          date: parseLocalDate(data.date),
           start_time: data.start_time,
           end_time: data.end_time,
           format: data.format,

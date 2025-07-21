@@ -199,39 +199,25 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
               {temPatrocinadores && (
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground mb-2">Patrocinadores</span>
-                  {/* Apenas avatares dos patrocinadores */}
-                  <div className="flex -space-x-1">
-                    {event.sponsors?.slice(0, 4).map((sponsor, index) => (
-                      <div
-                        key={index}
-                        className="relative w-6 h-6 rounded-full overflow-hidden border border-background bg-card"
-                        style={{ zIndex: 10 - index }}
-                      >
+                  {/* Patrocinadores com mesmo estilo do card normal */}
+                  <div className="flex flex-wrap gap-2">
+                    {event.sponsors?.map((sponsor) => (
+                      <div key={sponsor.id} className="h-8 px-2 bg-muted rounded-md flex items-center justify-center">
                         {sponsor.image_url ? (
                           <Image
                             src={sponsor.image_url}
                             alt={sponsor.name}
-                            fill
-                            className="object-contain"
+                            width={60}
+                            height={24}
+                            className="max-w-full max-h-6 object-contain"
                           />
                         ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <span className="text-[8px] font-medium text-muted-foreground">
-                              {sponsor.name?.charAt(0) || "?"}
-                            </span>
-                          </div>
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {sponsor.name}
+                          </span>
                         )}
                       </div>
                     ))}
-
-                    {/* Mostrar indicador de mais patrocinadores caso existam */}
-                    {(event.sponsors?.length || 0) > 4 && (
-                      <div className="relative w-6 h-6 rounded-full bg-muted border border-background flex items-center justify-center z-0">
-                        <span className="text-[8px] text-muted-foreground font-medium">
-                          +{(event.sponsors?.length || 0) - 4}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

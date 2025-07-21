@@ -140,6 +140,32 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
                 : "Local a definir"}
           </span>
         </div>
+
+        {/* Patrocinadores */}
+        {event.sponsors && event.sponsors.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-border">
+            <p className="text-xs text-muted-foreground mb-2">Patrocinadores:</p>
+            <div className="flex flex-wrap gap-2">
+              {event.sponsors.map((sponsor) => (
+                <div key={sponsor.id} className="h-8 px-2 bg-muted rounded-md flex items-center justify-center">
+                  {sponsor.image_url ? (
+                    <Image
+                      src={sponsor.image_url}
+                      alt={sponsor.name}
+                      width={60}
+                      height={24}
+                      className="max-w-full max-h-6 object-contain"
+                    />
+                  ) : (
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {sponsor.name}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

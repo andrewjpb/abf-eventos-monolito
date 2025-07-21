@@ -353,7 +353,7 @@ export function EventDetail({
                       {/* Body - Grid de logos */}
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {event.sponsors.map((sponsor) => (
-                          <div key={sponsor.id} className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <div key={sponsor.id} className="flex items-center justify-center p-4 bg-gray-50 dark:bg-white rounded-lg border border-gray-200 dark:border-gray-600">
                             {sponsor.image_url ? (
                               <Image
                                 src={sponsor.image_url}

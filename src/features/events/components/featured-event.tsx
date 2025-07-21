@@ -202,7 +202,7 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
                   {/* Patrocinadores com mesmo estilo do card normal */}
                   <div className="flex flex-wrap gap-2">
                     {event.sponsors?.map((sponsor) => (
-                      <div key={sponsor.id} className="h-8 px-2 bg-muted rounded-md flex items-center justify-center">
+                      <div key={sponsor.id} className="h-8 px-2 bg-muted dark:bg-white rounded-md flex items-center justify-center">
                         {sponsor.image_url ? (
                           <Image
                             src={sponsor.image_url}

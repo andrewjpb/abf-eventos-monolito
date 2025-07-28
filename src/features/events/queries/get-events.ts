@@ -161,11 +161,46 @@ export async function getEvents(options: GetEventsOptions = {}) {
     })
   ])
 
+  // Buscar ordens dos patrocinadores para todos os eventos
+  const eventIds = events.map(e => e.id)
+  const sponsorOrders = await prisma.event_sponsor_order.findMany({
+    where: {
+      eventId: {
+        in: eventIds
+      }
+    }
+  })
+
+  // Criar mapa de ordens por evento e sponsor
+  const orderMap: Record<string, Record<string, number>> = {}
+  sponsorOrders.forEach(order => {
+    if (!orderMap[order.eventId]) {
+      orderMap[order.eventId] = {}
+    }
+    orderMap[order.eventId][order.sponsorId] = order.order
+  })
+
+  // Ordenar sponsors para cada evento
+  const eventsWithOrderedSponsors = events.map(event => {
+    const eventOrderMap = orderMap[event.id] || {}
+    const orderedSponsors = event.sponsors
+      .map(sponsor => ({
+        ...sponsor,
+        order: eventOrderMap[sponsor.id] || 0
+      }))
+      .sort((a, b) => a.order - b.order)
+
+    return {
+      ...event,
+      sponsors: orderedSponsors
+    }
+  })
+
   const hasNextPage = events.length === limit && totalCount > limit
   const nextCursor = hasNextPage ? events[events.length - 1]?.id : undefined
 
   return {
-    events,
+    events: eventsWithOrderedSponsors,
     metadata: {
       totalCount,
       hasNextPage,

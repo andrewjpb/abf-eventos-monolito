@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, XCircle, User, Mail, Building, MapPin, Briefcase, Phone, Hash, Trash2, ShieldCheck, Clock } from "lucide-react"
+import { CheckCircle2, XCircle, User, Mail, Building, MapPin, Briefcase, Phone, Hash, Trash2, ShieldCheck, Clock, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,14 +11,25 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { getParticipantTypeLabel, getParticipantTypeColor } from "@/features/attendance-list/constants/participant-types"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { formatNameForPrint } from "./printer-management"
+import { printAttendees } from "../actions/print-attendees"
+
+type Printer = {
+  id: string
+  name: string
+  ip: string
+  port: number
+  isActive: boolean
+}
 
 type EventCheckinItemProps = {
   attendee: any
   eventId: string
   onUpdate?: () => void
+  activePrinter?: Printer | null
 }
 
-export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinItemProps) {
+export function EventCheckinItem({ attendee, eventId, onUpdate, activePrinter }: EventCheckinItemProps) {
   const [isPending, startTransition] = useTransition()
   const [isRemoving, startRemoveTransition] = useTransition()
   const [showRemoveDialog, setShowRemoveDialog] = useState(false)
@@ -63,6 +74,38 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
         toast.error("Erro ao remover inscrito")
       }
     })
+  }
+
+  const handlePrintSingle = () => {
+    if (!activePrinter) {
+      toast.error("Nenhuma impressora ativa configurada")
+      return
+    }
+
+    // Preparar dados imediatamente
+    const printData = [{
+      qr: `https://linkedin.com/in/${attendee.attendee_email.split('@')[0]}`,
+      name: formatNameForPrint(attendee.attendee_full_name),
+      company: attendee.company?.name || "Não informado",
+      position: attendee.attendee_position || "Não informado"
+    }]
+
+    const formData = new FormData()
+    formData.append("printerIp", activePrinter.ip)
+    formData.append("printerPort", activePrinter.port.toString())
+    formData.append("printerName", activePrinter.name)
+    formData.append("eventId", eventId)
+    formData.append("attendees", JSON.stringify(printData))
+
+    // Enviar imediatamente para impressora (fire and forget)
+    printAttendees(null, formData).catch(() => {
+      // Silenciosamente ignora erros na impressão individual
+    })
+
+    // Mostrar feedback depois de enviar
+    setTimeout(() => {
+      toast.success(`Crachá de ${formatNameForPrint(attendee.attendee_full_name)} enviado para impressão`)
+    }, 100)
   }
 
   return (
@@ -189,6 +232,21 @@ export function EventCheckinItem({ attendee, eventId, onUpdate }: EventCheckinIt
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
+        {activePrinter && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrintSingle}
+            disabled={isPending || isRemoving}
+            className="min-w-28 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900"
+          >
+            <div className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </div>
+          </Button>
+        )}
+
         <Button
           variant={attendee.checked_in ? "outline" : "default"}
           size="sm"

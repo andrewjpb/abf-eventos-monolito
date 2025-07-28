@@ -9,12 +9,16 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { eventAdminPath } from "@/app/paths"
 import { getEventAttendees } from "../queries/get-event-attendees"
 import { EventCheckinItem } from "./event-checkin-item"
 import { AdminEventWithDetails } from "../types"
 import { PARTICIPANT_TYPE_OPTIONS, getParticipantTypeLabel } from "@/features/attendance-list/constants/participant-types"
 import { AddAttendeeForm } from "./add-attendee-form"
+import { PrinterManagement } from "./printer-management"
+import { printAttendees } from "../actions/print-attendees"
+import { toast } from "sonner"
 
 type EventCheckinViewProps = {
   event: AdminEventWithDetails
@@ -30,6 +34,8 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   const [participantTypeFilter, setParticipantTypeFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20) // Mostrar 20 itens por página
+  const [selectedAttendees, setSelectedAttendees] = useState<Set<string>>(new Set())
+  const [selectAll, setSelectAll] = useState(false)
 
   // Carregar participantes
   useEffect(() => {
@@ -90,6 +96,9 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
 
     setFilteredAttendees(filtered)
     setCurrentPage(1) // Reset para primeira página quando filtros mudam
+    // Reset seleção quando filtros mudam
+    setSelectedAttendees(new Set())
+    setSelectAll(false)
   }, [attendees, debouncedSearchTerm, statusFilter, participantTypeFilter])
 
   // Calcular paginação
@@ -97,6 +106,82 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentAttendees = filteredAttendees.slice(startIndex, endIndex)
+
+  // Funções de seleção
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(currentAttendees.map(a => a.id))
+      setSelectedAttendees(allIds)
+      setSelectAll(true)
+    } else {
+      setSelectedAttendees(new Set())
+      setSelectAll(false)
+    }
+  }
+
+  const handleSelectAttendee = (attendeeId: string, checked: boolean) => {
+    const newSelected = new Set(selectedAttendees)
+    if (checked) {
+      newSelected.add(attendeeId)
+    } else {
+      newSelected.delete(attendeeId)
+      setSelectAll(false)
+    }
+    setSelectedAttendees(newSelected)
+  }
+
+  // Verificar se todos estão selecionados
+  const allCurrentSelected = currentAttendees.length > 0 && 
+    currentAttendees.every(a => selectedAttendees.has(a.id))
+
+  // Função para imprimir selecionados
+  const handlePrintSelected = async (printer: any, printData: any[]) => {
+    try {
+      const formData = new FormData()
+      formData.append("printerIp", printer.ip)
+      formData.append("printerPort", printer.port.toString())
+      formData.append("printerName", printer.name)
+      formData.append("eventId", event.id)
+      formData.append("attendees", JSON.stringify(printData))
+
+      const result = await printAttendees(null, formData)
+      
+      if (result.status === "SUCCESS") {
+        toast.success(result.message)
+        // Limpar seleção após impressão bem-sucedida
+        setSelectedAttendees(new Set())
+        setSelectAll(false)
+      } else if (result.status === "WARNING") {
+        toast.warning(result.message)
+        // Limpar seleção mesmo com warning, pois provavelmente imprimiu
+        setSelectedAttendees(new Set())
+        setSelectAll(false)
+      } else {
+        toast.error(result.message)
+      }
+    } catch (error) {
+      toast.error("Erro ao enviar para impressão")
+    }
+  }
+
+  // Obter dados dos participantes selecionados
+  const getSelectedAttendeesData = () => {
+    return attendees.filter(a => selectedAttendees.has(a.id))
+  }
+
+  // Obter impressora ativa do localStorage
+  const [activePrinter, setActivePrinter] = useState<any>(null)
+
+  useEffect(() => {
+    const savedActivePrinter = localStorage.getItem("abf-active-printer")
+    if (savedActivePrinter) {
+      try {
+        setActivePrinter(JSON.parse(savedActivePrinter))
+      } catch (error) {
+        console.error("Erro ao carregar impressora ativa:", error)
+      }
+    }
+  }, [])
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -307,15 +392,41 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
         </Card>
       </motion.div>
 
+      {/* Printer Management */}
+      <motion.div variants={fadeIn}>
+        <PrinterManagement 
+          selectedAttendees={getSelectedAttendeesData()}
+          onPrintSelected={handlePrintSelected}
+          onActivePrinterChange={setActivePrinter}
+        />
+      </motion.div>
+
       {/* Attendees List */}
       <motion.div variants={fadeIn}>
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <UserCheck className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-semibold">
                 Participantes ({filteredAttendees.length})
               </h2>
+              {currentAttendees.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all"
+                    checked={allCurrentSelected}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <label htmlFor="select-all" className="text-sm text-muted-foreground cursor-pointer">
+                    Selecionar todos desta página
+                  </label>
+                </div>
+              )}
+              {selectedAttendees.size > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {selectedAttendees.size} selecionado(s)
+                </div>
+              )}
             </div>
 
             {/* Informação da paginação */}
@@ -344,16 +455,25 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
               >
                 {currentAttendees.map((attendee) => (
                   <motion.div key={attendee.id} variants={fadeIn}>
-                    <EventCheckinItem
-                      attendee={attendee}
-                      eventId={event.id}
-                      onUpdate={() => {
-                        // Recarregar lista após update
-                        getEventAttendees(event.id).then((data) => {
-                          setAttendees(data)
-                        })
-                      }}
-                    />
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={selectedAttendees.has(attendee.id)}
+                        onCheckedChange={(checked) => handleSelectAttendee(attendee.id, checked as boolean)}
+                      />
+                      <div className="flex-1">
+                        <EventCheckinItem
+                          attendee={attendee}
+                          eventId={event.id}
+                          activePrinter={activePrinter}
+                          onUpdate={() => {
+                            // Recarregar lista após update
+                            getEventAttendees(event.id).then((data) => {
+                              setAttendees(data)
+                            })
+                          }}
+                        />
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </motion.div>

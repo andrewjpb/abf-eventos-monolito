@@ -37,7 +37,9 @@ export async function printAttendees(
     if (!printerIp || !printerPort || !attendeesData) {
       return {
         status: "ERROR",
-        message: "Dados incompletos para impressão"
+        message: "Dados incompletos para impressão",
+        fieldErrors: {},
+        timestamp: Date.now()
       }
     }
 
@@ -46,7 +48,9 @@ export async function printAttendees(
     if (attendees.length === 0) {
       return {
         status: "ERROR",
-        message: "Nenhum participante selecionado para impressão"
+        message: "Nenhum participante selecionado para impressão",
+        fieldErrors: {},
+        timestamp: Date.now()
       }
     }
 
@@ -62,18 +66,21 @@ export async function printAttendees(
       console.warn(`Impressão falhou - mas pode ter sido enviada. Impressora: ${printerName} (${printerIp}:${printerPort})`)
       
       return {
-        status: "WARNING",
-        message: `Dados enviados para ${printerName}, mas conexão pode ter falhado. Verifique se a impressão foi realizada.`
+        status: "ERROR",
+        message: `Dados enviados para ${printerName}, mas conexão pode ter falhado. Verifique se a impressão foi realizada.`,
+        fieldErrors: {},
+        timestamp: Date.now()
       }
     }
 
     // Registrar log da ação
     await addLog({
-      user_id: user.id,
+      level: "INFO",
       action: "print_attendees",
-      entity_type: "event",
-      entity_id: eventId,
-      details: {
+      message: `${attendees.length} crachá(s) enviado(s) para impressão em ${printerName}`,
+      userId: user.id,
+      meta: {
+        eventId,
         printer: {
           name: printerName,
           ip: printerIp,
@@ -86,13 +93,17 @@ export async function printAttendees(
 
     return {
       status: "SUCCESS",
-      message: `${attendees.length} crachá(s) enviado(s) para impressão em ${printerName}`
+      message: `${attendees.length} crachá(s) enviado(s) para impressão em ${printerName}`,
+      fieldErrors: {},
+      timestamp: Date.now()
     }
   } catch (error) {
     console.error("Erro ao imprimir crachás:", error)
     return {
       status: "ERROR",
-      message: "Erro interno do servidor ao imprimir crachás"
+      message: "Erro interno do servidor ao imprimir crachás",
+      fieldErrors: {},
+      timestamp: Date.now()
     }
   }
 }
@@ -105,13 +116,25 @@ async function sendToPrinter(
   return new Promise((resolve) => {
     const client = new net.Socket()
     let dataWasSent = false
+    let resolved = false
 
-    // Timeout de 10 segundos
+    // Timeout reduzido para 3 segundos
     const timeout = setTimeout(() => {
-      client.destroy()
-      // Se os dados foram enviados, considerar sucesso mesmo com timeout
-      resolve(dataWasSent)
-    }, 10000)
+      if (!resolved) {
+        resolved = true
+        client.destroy()
+        // Se os dados foram enviados, considerar sucesso mesmo com timeout
+        resolve(dataWasSent)
+      }
+    }, 3000)
+
+    const resolveOnce = (success: boolean) => {
+      if (!resolved) {
+        resolved = true
+        clearTimeout(timeout)
+        resolve(success)
+      }
+    }
 
     client.connect(port, ip, () => {
       try {
@@ -120,32 +143,37 @@ async function sendToPrinter(
         client.write(jsonData)
         dataWasSent = true
         
-        // Dar um tempo para os dados serem enviados antes de fechar
+        // Resolver imediatamente após enviar os dados
         setTimeout(() => {
           client.end()
+          resolveOnce(true)
         }, 100)
       } catch (error) {
         console.error("Erro ao enviar dados:", error)
         client.destroy()
+        resolveOnce(false)
       }
     })
 
     client.on('close', () => {
-      clearTimeout(timeout)
-      resolve(dataWasSent)
+      resolveOnce(dataWasSent)
     })
 
     client.on('error', (error) => {
       console.error("Erro de conexão TCP:", error)
-      clearTimeout(timeout)
       client.destroy()
       // Se os dados foram enviados antes do erro, ainda considerar sucesso
-      resolve(dataWasSent)
+      resolveOnce(dataWasSent)
     })
 
     client.on('drain', () => {
       // Dados foram completamente enviados
       dataWasSent = true
+      // Resolver imediatamente quando o buffer foi drenado (dados enviados)
+      setTimeout(() => {
+        client.end()
+        resolveOnce(true)
+      }, 50)
     })
   })
 }
@@ -163,7 +191,9 @@ export async function testPrinterConnection(
     if (!printerIp || !printerPort) {
       return {
         status: "ERROR",
-        message: "IP e porta são obrigatórios"
+        message: "IP e porta são obrigatórios",
+        fieldErrors: {},
+        timestamp: Date.now()
       }
     }
 
@@ -172,19 +202,25 @@ export async function testPrinterConnection(
     if (success) {
       return {
         status: "SUCCESS",
-        message: `Conexão com ${printerName} testada com sucesso!`
+        message: `Conexão com ${printerName} testada com sucesso!`,
+        fieldErrors: {},
+        timestamp: Date.now()
       }
     } else {
       return {
         status: "ERROR",
-        message: `Falha ao conectar com ${printerName} (${printerIp}:${printerPort})`
+        message: `Falha ao conectar com ${printerName} (${printerIp}:${printerPort})`,
+        fieldErrors: {},
+        timestamp: Date.now()
       }
     }
   } catch (error) {
     console.error("Erro ao testar conexão:", error)
     return {
       status: "ERROR",
-      message: "Erro interno do servidor ao testar conexão"
+      message: "Erro interno do servidor ao testar conexão",
+      fieldErrors: {},
+      timestamp: Date.now()
     }
   }
 }

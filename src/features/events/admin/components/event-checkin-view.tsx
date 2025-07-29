@@ -110,7 +110,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   // Funções de seleção
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIds = new Set(currentAttendees.map(a => a.id))
+      const allIds = new Set(filteredAttendees.map(a => a.id))
       setSelectedAttendees(allIds)
       setSelectAll(true)
     } else {
@@ -131,8 +131,8 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   }
 
   // Verificar se todos estão selecionados
-  const allCurrentSelected = currentAttendees.length > 0 && 
-    currentAttendees.every(a => selectedAttendees.has(a.id))
+  const allCurrentSelected = filteredAttendees.length > 0 && 
+    filteredAttendees.every(a => selectedAttendees.has(a.id))
 
   // Função para imprimir selecionados
   const handlePrintSelected = async (printer: any, printData: any[]) => {
@@ -149,11 +149,6 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       if (result.status === "SUCCESS") {
         toast.success(result.message)
         // Limpar seleção após impressão bem-sucedida
-        setSelectedAttendees(new Set())
-        setSelectAll(false)
-      } else if (result.status === "WARNING") {
-        toast.warning(result.message)
-        // Limpar seleção mesmo com warning, pois provavelmente imprimiu
         setSelectedAttendees(new Set())
         setSelectAll(false)
       } else {
@@ -418,7 +413,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
                     onCheckedChange={handleSelectAll}
                   />
                   <label htmlFor="select-all" className="text-sm text-muted-foreground cursor-pointer">
-                    Selecionar todos desta página
+                    Adicionar todos
                   </label>
                 </div>
               )}

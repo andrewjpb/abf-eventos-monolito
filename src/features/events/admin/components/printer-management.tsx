@@ -68,6 +68,7 @@ export function PrinterManagement({
   const [activePrinter, setActivePrinter] = useState<Printer | null>(null)
   const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null)
   const [showRemoveDialog, setShowRemoveDialog] = useState<string | null>(null)
+  const [isPrinting, setIsPrinting] = useState(false)
 
   // Carregar impressoras do localStorage na inicialização
   useEffect(() => {
@@ -220,6 +221,8 @@ export function PrinterManagement({
       return
     }
 
+    setIsPrinting(true)
+
     try {
       // Preparar dados para impressão no formato que você mostrou
       const printData = selectedAttendees.map(attendee => ({
@@ -229,13 +232,14 @@ export function PrinterManagement({
         position: attendee.attendee_position || "Não informado"
       }))
 
-      // Aqui você faria a chamada para o backend que enviaria os dados via TCP
-      // Por enquanto, vamos simular
-      await onPrintSelected?.(activePrinter, printData)
-      
-      toast.success(`Enviando ${selectedAttendees.length} crachá(s) para impressão em ${activePrinter.name}`)
+      // Chamar a função do componente pai que faz a impressão real
+      if (onPrintSelected) {
+        await onPrintSelected(activePrinter, printData)
+      }
     } catch (error) {
       toast.error("Erro ao enviar para impressão")
+    } finally {
+      setIsPrinting(false)
     }
   }
 
@@ -251,10 +255,20 @@ export function PrinterManagement({
           {activePrinter && selectedAttendees.length > 0 && (
             <Button 
               onClick={handlePrintSelected}
-              className="bg-green-600 hover:bg-green-700"
+              disabled={isPrinting}
+              className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
             >
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir Selecionados ({selectedAttendees.length})
+              {isPrinting ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border border-white border-t-transparent" />
+                  Enviando para Impressora...
+                </>
+              ) : (
+                <>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimir Selecionados ({selectedAttendees.length})
+                </>
+              )}
             </Button>
           )}
           

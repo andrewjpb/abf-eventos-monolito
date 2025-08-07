@@ -263,7 +263,8 @@ export const upsertEvent = async (
           id: true,
           title: true,
           image_url: true,
-          addressId: true
+          addressId: true,
+          date: true
         }
       })
 
@@ -280,31 +281,44 @@ export const upsertEvent = async (
       // Criar ou atualizar endereço
       const addressId = await upsertAddress(addressData, existingEvent.addressId)
 
+      // Preparar data para update - só alterar se realmente mudou
+      const newDate = parseLocalDate(data.date)
+      const existingDate = existingEvent.date
+      const dateChanged = newDate.getTime() !== existingDate.getTime()
+
+      // Preparar dados de update
+      const updateData: any = {
+        title: data.title,
+        slug: data.slug,
+        summary: data.summary,
+        description: data.description,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        format: data.format,
+        vacancy_total: data.vacancy_total,
+        vacancies_per_brand: data.vacancies_per_brand,
+        minimum_quorum: data.minimum_quorum,
+        highlight: data.highlight,
+        isPublished: data.isPublished,
+        isStreaming: data.isStreaming,
+        transmission_link: data.transmission_link || '',
+        schedule_link: data.schedule_link || '',
+        free_online: data.free_online,
+        exclusive_for_members: data.exclusive_for_members,
+        addressId: addressId,
+        updatedAt: new Date()
+      }
+
+      // Só atualizar data se realmente mudou
+      if (dateChanged) {
+        updateData.date = newDate
+        changes['date'] = { from: existingDate.toISOString(), to: newDate.toISOString() }
+      }
+
       // Atualizar dados básicos do evento
       await prisma.events.update({
         where: { id: eventId },
-        data: {
-          title: data.title,
-          slug: data.slug,
-          summary: data.summary,
-          description: data.description,
-          date: parseLocalDate(data.date),
-          start_time: data.start_time,
-          end_time: data.end_time,
-          format: data.format,
-          vacancy_total: data.vacancy_total,
-          vacancies_per_brand: data.vacancies_per_brand,
-          minimum_quorum: data.minimum_quorum,
-          highlight: data.highlight,
-          isPublished: data.isPublished,
-          isStreaming: data.isStreaming,
-          transmission_link: data.transmission_link || '',
-          schedule_link: data.schedule_link || '',
-          free_online: data.free_online,
-          exclusive_for_members: data.exclusive_for_members,
-          addressId: addressId,
-          updatedAt: new Date()
-        }
+        data: updateData
       })
 
       // Upload de imagem principal se fornecida

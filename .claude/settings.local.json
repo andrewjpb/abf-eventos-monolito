@@ -1,19 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(npm install:*)",
-      "Bash(grep:*)",
-      "Bash(docker build:*)",
-      "Bash(sed:*)",
-      "Bash(rm:*)",
-      "Bash(npm run docker:build:*)",
-      "Bash(rg:*)",
-      "Bash(npx shadcn@latest add:*)",
-      "Bash(npx prisma migrate dev:*)",
-      "Bash(node:*)"
+      "Bash(git checkout:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run docker:build:*)"
     ],
     "deny": []
   }

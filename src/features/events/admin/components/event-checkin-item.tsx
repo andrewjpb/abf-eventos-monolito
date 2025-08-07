@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import { getParticipantTypeLabel, getParticipantTypeColor } from "@/features/attendance-list/constants/participant-types"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { formatNameForPrint } from "./printer-management"
-import { printAttendees } from "../actions/print-attendees"
+import { useClientPrinter, type PrinterData } from "../utils/client-printer"
 
 type Printer = {
   id: string
@@ -33,6 +33,9 @@ export function EventCheckinItem({ attendee, eventId, onUpdate, activePrinter }:
   const [isPending, startTransition] = useTransition()
   const [isRemoving, startRemoveTransition] = useTransition()
   const [showRemoveDialog, setShowRemoveDialog] = useState(false)
+  const [isPrinting, setIsPrinting] = useState(false)
+  
+  const { printBadges } = useClientPrinter()
 
   const handleToggleCheckin = () => {
     const formData = new FormData()
@@ -76,36 +79,37 @@ export function EventCheckinItem({ attendee, eventId, onUpdate, activePrinter }:
     })
   }
 
-  const handlePrintSingle = () => {
+  const handlePrintSingle = async () => {
     if (!activePrinter) {
       toast.error("Nenhuma impressora ativa configurada")
       return
     }
 
-    // Preparar dados imediatamente
-    const printData = [{
-      qr: `https://linkedin.com/in/${attendee.attendee_email.split('@')[0]}`,
-      name: formatNameForPrint(attendee.attendee_full_name),
-      company: attendee.company?.name || "Não informado",
-      position: attendee.attendee_position || "Não informado"
-    }]
+    setIsPrinting(true)
 
-    const formData = new FormData()
-    formData.append("printerIp", activePrinter.ip)
-    formData.append("printerPort", activePrinter.port.toString())
-    formData.append("printerName", activePrinter.name)
-    formData.append("eventId", eventId)
-    formData.append("attendees", JSON.stringify(printData))
+    try {
+      // Preparar dados para impressão client-side
+      const printData: PrinterData[] = [{
+        qr: `https://linkedin.com/in/${attendee.attendee_email?.split('@')[0] || attendee.id}`,
+        name: formatNameForPrint(attendee.attendee_full_name),
+        company: attendee.company?.name || "Empresa não associada",
+        position: attendee.attendee_position || "Não informado"
+      }]
 
-    // Enviar imediatamente para impressora (fire and forget)
-    printAttendees(null, formData).catch(() => {
-      // Silenciosamente ignora erros na impressão individual
-    })
-
-    // Mostrar feedback depois de enviar
-    setTimeout(() => {
-      toast.success(`Crachá de ${formatNameForPrint(attendee.attendee_full_name)} enviado para impressão`)
-    }, 100)
+      // Enviar via fetch client-side
+      const success = await printBadges(activePrinter, printData)
+      
+      if (success) {
+        toast.success(`Crachá de ${formatNameForPrint(attendee.attendee_full_name)} enviado para impressão`)
+      } else {
+        toast.error(`Falha na comunicação com ${activePrinter.ip}:${activePrinter.port}. Verifique a conexão de rede.`)
+      }
+    } catch (error) {
+      console.error("Erro ao imprimir crachá:", error)
+      toast.error("Erro ao imprimir crachá")
+    } finally {
+      setIsPrinting(false)
+    }
   }
 
   return (
@@ -237,13 +241,20 @@ export function EventCheckinItem({ attendee, eventId, onUpdate, activePrinter }:
             variant="outline"
             size="sm"
             onClick={handlePrintSingle}
-            disabled={isPending || isRemoving}
+            disabled={isPending || isRemoving || isPrinting}
             className="min-w-28 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900"
           >
-            <div className="flex items-center gap-2">
-              <Printer className="h-4 w-4" />
-              Imprimir
-            </div>
+            {isPrinting ? (
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                Imprimindo...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Printer className="h-4 w-4" />
+                Imprimir
+              </div>
+            )}
           </Button>
         )}
 

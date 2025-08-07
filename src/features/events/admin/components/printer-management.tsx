@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { useClientPrinter, type PrinterData } from "../utils/client-printer"
 
 type Printer = {
   id: string
@@ -21,7 +22,7 @@ type Printer = {
 type PrinterManagementProps = {
   onPrinterAdded?: (printer: Printer) => void
   selectedAttendees: any[]
-  onPrintSelected?: (printer: Printer, attendees: any[]) => void
+  onPrintSelected?: () => void
   onActivePrinterChange?: (printer: Printer | null) => void
 }
 
@@ -69,6 +70,8 @@ export function PrinterManagement({
   const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null)
   const [showRemoveDialog, setShowRemoveDialog] = useState<string | null>(null)
   const [isPrinting, setIsPrinting] = useState(false)
+  
+  const { printBadges, testPrinter } = useClientPrinter()
 
   // Carregar impressoras do localStorage na inicialização
   useEffect(() => {
@@ -110,7 +113,8 @@ export function PrinterManagement({
     } else {
       localStorage.removeItem(ACTIVE_PRINTER_STORAGE_KEY)
     }
-  }, [activePrinter])
+    onActivePrinterChange?.(activePrinter)
+  }, [activePrinter, onActivePrinterChange])
 
   const validateIP = (ip: string) => {
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/
@@ -121,15 +125,17 @@ export function PrinterManagement({
     setIsTestingConnection(printer.id)
     
     try {
-      // Simular teste de conexão (em produção, você faria uma chamada real)
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const success = await testPrinter(printer)
       
-      // Por enquanto, vamos considerar sempre bem-sucedido
-      // Em produção, você faria uma requisição para o backend testar a conexão TCP
-      toast.success(`Conexão com ${printer.name} testada com sucesso!`)
-      return true
+      if (success) {
+        toast.success(`Conexão com ${printer.name} testada com sucesso!`)
+      } else {
+        toast.error(`Falha na comunicação com ${printer.name}. Verifique se o módulo está rodando em ${printer.ip}:${printer.port}`)
+      }
+      
+      return success
     } catch (error) {
-      toast.error(`Falha ao conectar com ${printer.name}`)
+      toast.error(`Erro ao testar conexão com ${printer.name}`)
       return false
     } finally {
       setIsTestingConnection(null)
@@ -193,7 +199,6 @@ export function PrinterManagement({
     if (activePrinter?.id === printerId) {
       setActivePrinter(null)
       localStorage.removeItem(ACTIVE_PRINTER_STORAGE_KEY)
-      onActivePrinterChange?.(null)
     }
     
     setShowRemoveDialog(null)
@@ -206,7 +211,6 @@ export function PrinterManagement({
       ...p,
       isActive: p.id === printer.id
     })))
-    onActivePrinterChange?.(printer)
     toast.success(`${printer.name} definida como impressora ativa`)
   }
 
@@ -224,20 +228,32 @@ export function PrinterManagement({
     setIsPrinting(true)
 
     try {
-      // Preparar dados para impressão no formato que você mostrou
-      const printData = selectedAttendees.map(attendee => ({
-        qr: `https://linkedin.com/in/${attendee.attendee_email.split('@')[0]}`, // Exemplo de QR
+      // Preparar dados para impressão no formato especificado
+      const printData: PrinterData[] = selectedAttendees.map(attendee => ({
+        qr: `https://linkedin.com/in/${attendee.attendee_email?.split('@')[0] || attendee.id}`,
         name: formatNameForPrint(attendee.attendee_full_name),
-        company: attendee.company?.name || "Não informado",
+        company: attendee.company?.name || "Empresa não associada",
         position: attendee.attendee_position || "Não informado"
       }))
 
-      // Chamar a função do componente pai que faz a impressão real
-      if (onPrintSelected) {
-        await onPrintSelected(activePrinter, printData)
+      console.log('Enviando dados para impressão:', printData)
+
+      // Enviar via fetch para o IP configurado
+      const success = await printBadges(activePrinter, printData)
+      
+      if (success) {
+        toast.success(`${printData.length} crachá(s) enviado(s) para impressão em ${activePrinter.ip}:${activePrinter.port}`)
+        
+        // Chamar callback opcional para atualizar estado pai
+        if (onPrintSelected) {
+          onPrintSelected()
+        }
+      } else {
+        toast.error(`Falha na comunicação com ${activePrinter.ip}:${activePrinter.port}. Verifique a conexão de rede.`)
       }
     } catch (error) {
-      toast.error("Erro ao enviar para impressão")
+      console.error("Erro ao enviar para impressão:", error)
+      toast.error("Erro ao enviar para impressão. Verifique a conexão com o módulo de impressão.")
     } finally {
       setIsPrinting(false)
     }
@@ -269,25 +285,6 @@ export function PrinterManagement({
                   Imprimir Selecionados ({selectedAttendees.length})
                 </>
               )}
-            </Button>
-          )}
-          
-          {printers.length > 0 && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                setPrinters([])
-                setActivePrinter(null)
-                localStorage.removeItem(PRINTERS_STORAGE_KEY)
-                localStorage.removeItem(ACTIVE_PRINTER_STORAGE_KEY)
-                onActivePrinterChange?.(null)
-                toast.success("Todas as impressoras foram removidas!")
-              }}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Limpar Todas
             </Button>
           )}
           
@@ -469,10 +466,6 @@ export function PrinterManagement({
               {showRemoveDialog ? printers.find(p => p.id === showRemoveDialog)?.name : ""}
             </strong>
             ?
-            <br />
-            <span className="text-sm text-muted-foreground mt-2 block">
-              Esta ação não pode ser desfeita e a impressora será removida permanentemente do localStorage.
-            </span>
           </>
         }
         confirmText="Remover"

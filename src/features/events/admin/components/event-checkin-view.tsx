@@ -17,7 +17,6 @@ import { AdminEventWithDetails } from "../types"
 import { PARTICIPANT_TYPE_OPTIONS, getParticipantTypeLabel } from "@/features/attendance-list/constants/participant-types"
 import { AddAttendeeForm } from "./add-attendee-form"
 import { PrinterManagement } from "./printer-management"
-import { printAttendees } from "../actions/print-attendees"
 import { toast } from "sonner"
 
 type EventCheckinViewProps = {
@@ -134,29 +133,11 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   const allCurrentSelected = filteredAttendees.length > 0 && 
     filteredAttendees.every(a => selectedAttendees.has(a.id))
 
-  // Função para imprimir selecionados
-  const handlePrintSelected = async (printer: any, printData: any[]) => {
-    try {
-      const formData = new FormData()
-      formData.append("printerIp", printer.ip)
-      formData.append("printerPort", printer.port.toString())
-      formData.append("printerName", printer.name)
-      formData.append("eventId", event.id)
-      formData.append("attendees", JSON.stringify(printData))
-
-      const result = await printAttendees(null, formData)
-      
-      if (result.status === "SUCCESS") {
-        toast.success(result.message)
-        // Limpar seleção após impressão bem-sucedida
-        setSelectedAttendees(new Set())
-        setSelectAll(false)
-      } else {
-        toast.error(result.message)
-      }
-    } catch (error) {
-      toast.error("Erro ao enviar para impressão")
-    }
+  // Callback quando impressão é bem sucedida
+  const handlePrintSuccess = () => {
+    // Limpar seleção após impressão bem-sucedida
+    setSelectedAttendees(new Set())
+    setSelectAll(false)
   }
 
   // Obter dados dos participantes selecionados
@@ -391,7 +372,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       <motion.div variants={fadeIn}>
         <PrinterManagement 
           selectedAttendees={getSelectedAttendeesData()}
-          onPrintSelected={handlePrintSelected}
+          onPrintSelected={handlePrintSuccess}
           onActivePrinterChange={setActivePrinter}
         />
       </motion.div>

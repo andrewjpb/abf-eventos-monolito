@@ -46,9 +46,13 @@ export async function getEvents(options: GetEventsOptions = {}) {
 
   // Filtrar eventos passados ou futuros
   const hoje = new Date()
+  const inicioDoProximoDia = new Date(hoje)
+  inicioDoProximoDia.setDate(hoje.getDate() + 1)
+  inicioDoProximoDia.setHours(0, 0, 0, 0)
+  
   where.date = past
     ? { lt: hoje } // Eventos passados (data < hoje)
-    : { gte: hoje } // Eventos futuros (data >= hoje)
+    : { lt: inicioDoProximoDia } // Eventos futuros (data < início do próximo dia)
 
   // Filtrar por termo de busca
   if (search) {

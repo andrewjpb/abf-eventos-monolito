@@ -18,7 +18,7 @@ export default async function Home() {
   const upcomingEvents = await getEvents({
     onlyHighlighted: false,
     past: false,
-    limit: 9
+    limit: 30 // Aumentado para garantir que eventos de setembro apareçam
   })
 
   const featuredEvent = highlightedEvents.events[0]

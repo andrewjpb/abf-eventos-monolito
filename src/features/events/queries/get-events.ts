@@ -45,9 +45,12 @@ export async function getEvents(options: GetEventsOptions = {}) {
   const where: any = {}
 
   // Filtrar eventos passados ou futuros
+  // Usar componentes locais para evitar problemas de timezone
   const hoje = new Date()
-  const inicioDeHoje = new Date(hoje)
-  inicioDeHoje.setHours(0, 0, 0, 0) // Início de hoje (00:00:00)
+  const ano = hoje.getFullYear()
+  const mes = hoje.getMonth()
+  const dia = hoje.getDate()
+  const inicioDeHoje = new Date(ano, mes, dia, 0, 0, 0, 0) // Início de hoje no timezone local
   
   where.date = past
     ? { lt: inicioDeHoje } // Eventos passados (data < início de hoje)

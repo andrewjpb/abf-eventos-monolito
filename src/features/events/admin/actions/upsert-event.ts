@@ -99,13 +99,24 @@ async function uploadImageToMinIO(file: File, eventId: string, isThumb: boolean 
  * Converte data do formulário para Date mantendo o fuso horário local
  */
 function parseLocalDate(dateString: string): Date {
-  // Se já tem horário, usar como está
+  // Se tem formato datetime-local (YYYY-MM-DDTHH:mm)
   if (dateString.includes('T')) {
-    return new Date(dateString)
+    // Adicionar segundos se não tiver
+    if (dateString.split('T')[1].split(':').length === 2) {
+      dateString += ':00'
+    }
+    // Criar Date assumindo que é horário local
+    const [datePart, timePart] = dateString.split('T')
+    const [year, month, day] = datePart.split('-').map(Number)
+    const [hours, minutes, seconds = 0] = timePart.split(':').map(Number)
+    
+    // Criar Date usando componentes locais para evitar conversão de timezone
+    return new Date(year, month - 1, day, hours, minutes, seconds)
   }
   
-  // Se é só data (YYYY-MM-DD), adicionar horário meio-dia para evitar problemas de timezone
-  return new Date(dateString + 'T12:00:00.000')
+  // Se é só data (YYYY-MM-DD), criar no início do dia local
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Date(year, month - 1, day, 0, 0, 0)
 }
 
 /**

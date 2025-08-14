@@ -4,7 +4,7 @@
 import { ActionState, fromErrorToActionState, toActionState } from "@/components/form/utils/to-action-state"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
-import { nanoid } from "nanoid"
+import { randomUUID } from "crypto"
 import { revalidatePath } from "next/cache"
 import { eventsPath, eventPath } from "@/app/paths"
 import { redirect } from "next/navigation"
@@ -124,7 +124,7 @@ export const upsertEvent = async (
 
     } else {
       // Criar novo evento
-      const newEventId = nanoid()
+      const newEventId = randomUUID()
 
       // Gerar um slug baseado no título
       const slug = data.title

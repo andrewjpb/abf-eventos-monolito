@@ -3,7 +3,7 @@
 
 import { ActionState, fromErrorToActionState, toActionState } from "@/components/form/utils/to-action-state"
 import { prisma } from "@/lib/prisma"
-import { nanoid } from "nanoid"
+import { randomUUID } from "crypto"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
@@ -45,7 +45,7 @@ export const addScheduleItem = async (
     }
 
     // Criar item da programação
-    const scheduleId = nanoid()
+    const scheduleId = randomUUID()
     await prisma.event_schedule.create({
       data: {
         id: scheduleId,

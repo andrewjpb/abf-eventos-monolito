@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { getAuthWithPermissionOrRedirect } from "@/features/auth/queries/get-auth-with-permission-or-redirect"
 import { logInfo } from "@/features/logs/queries/add-log"
 import { PARTICIPANT_TYPES } from "@/features/attendance-list/constants/participant-types"
-import { nanoid } from "nanoid"
+import { randomUUID } from "crypto"
 
 // Associar palestrante ao evento
 export async function associateEventSpeaker(
@@ -122,7 +122,7 @@ export async function associateEventSpeaker(
         try {
           const newAttendance = await tx.attendance_list.create({
             data: {
-              id: nanoid(),
+              id: randomUUID(),
               eventId: eventId,
               userId: speaker.users.id,
               company_cnpj: userInfo.cnpj,

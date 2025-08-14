@@ -3,7 +3,7 @@
 import { ActionState, fromErrorToActionState, toActionState } from "@/components/form/utils/to-action-state"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
-import { nanoid } from "nanoid"
+import { randomUUID } from "crypto"
 import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
@@ -163,7 +163,7 @@ async function upsertAddress(addressData: {
   cityId: string
   stateId: string
 }, existingAddressId?: string): Promise<string> {
-  const addressId = existingAddressId || nanoid()
+  const addressId = existingAddressId || randomUUID()
   
   if (existingAddressId) {
     // Atualizar endereço existente
@@ -286,6 +286,15 @@ export const upsertEvent = async (
         return toActionState("ERROR", "Evento não encontrado")
       }
 
+      // GARANTIA: Nunca alterar o ID do evento
+      if (existingEvent.id !== eventId) {
+        await logError("Event.update", `ERRO CRÍTICO: Tentativa de alterar ID do evento de ${existingEvent.id} para ${eventId}`, user.id, {
+          originalId: existingEvent.id,
+          attemptedId: eventId
+        })
+        return toActionState("ERROR", "Erro crítico: Tentativa de alterar ID do evento")
+      }
+
       const changes: any = {}
       if (existingEvent.title !== data.title) changes['title'] = { from: existingEvent.title, to: data.title }
 
@@ -376,7 +385,7 @@ export const upsertEvent = async (
 
     } else {
       // Criar novo evento
-      newEventId = nanoid()
+      newEventId = randomUUID()
 
       let imageUrl = ""
       let imagePath = ""

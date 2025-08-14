@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Printer, Plus, Trash2, Settings, CheckCircle2 } from "lucide-react"
+import { Printer, Plus, Trash2, CheckCircle2, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { useClientPrinter, type PrinterData } from "../utils/client-printer"
+import { ManualPrintModal } from "./manual-print-modal"
 
 type Printer = {
   id: string
@@ -67,11 +68,11 @@ export function PrinterManagement({
     port: "9100"
   })
   const [activePrinter, setActivePrinter] = useState<Printer | null>(null)
-  const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null)
   const [showRemoveDialog, setShowRemoveDialog] = useState<string | null>(null)
   const [isPrinting, setIsPrinting] = useState(false)
+  const [showManualPrintModal, setShowManualPrintModal] = useState(false)
   
-  const { printBadges, testPrinter } = useClientPrinter()
+  const { printBadges } = useClientPrinter()
 
   // Carregar impressoras do localStorage na inicialização
   useEffect(() => {
@@ -119,27 +120,6 @@ export function PrinterManagement({
   const validateIP = (ip: string) => {
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/
     return ipRegex.test(ip) && ip.split('.').every(part => parseInt(part) <= 255)
-  }
-
-  const testPrinterConnection = async (printer: Printer) => {
-    setIsTestingConnection(printer.id)
-    
-    try {
-      const success = await testPrinter(printer)
-      
-      if (success) {
-        toast.success(`Conexão com ${printer.name} testada com sucesso!`)
-      } else {
-        toast.error(`Falha na comunicação com ${printer.name}. Verifique se o módulo está rodando em ${printer.ip}:${printer.port}`)
-      }
-      
-      return success
-    } catch (error) {
-      toast.error(`Erro ao testar conexão com ${printer.name}`)
-      return false
-    } finally {
-      setIsTestingConnection(null)
-    }
   }
 
   const addPrinter = () => {
@@ -394,24 +374,17 @@ export function PrinterManagement({
               </div>
 
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => testPrinterConnection(printer)}
-                  disabled={isTestingConnection === printer.id}
-                >
-                  {isTestingConnection === printer.id ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
-                      Testando...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      Testar
-                    </div>
-                  )}
-                </Button>
+                {printer.isActive && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowManualPrintModal(true)}
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Impressão Manual
+                  </Button>
+                )}
 
                 {!printer.isActive && (
                   <Button
@@ -472,6 +445,13 @@ export function PrinterManagement({
         cancelText="Cancelar"
         onConfirm={() => showRemoveDialog && removePrinter(showRemoveDialog)}
         variant="destructive"
+      />
+
+      {/* Modal de Impressão Manual */}
+      <ManualPrintModal
+        open={showManualPrintModal}
+        onOpenChange={setShowManualPrintModal}
+        activePrinter={activePrinter}
       />
     </Card>
   )

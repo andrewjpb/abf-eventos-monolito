@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git checkout:*)",
       "Bash(npm run lint)",
-      "Bash(npm run docker:build:*)"
+      "Bash(npm run docker:build:*)",
+      "Bash(ping:*)"
     ],
     "deny": []
   }

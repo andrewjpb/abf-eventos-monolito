@@ -62,7 +62,7 @@ const eventSchema = z.object({
 async function uploadImageToMinIO(file: File, eventId: string, isThumb: boolean = false) {
   try {
     const extension = file.name.split('.').pop() || 'jpg'
-    const uniqueId = nanoid(10)
+    const uniqueId = randomUUID().substring(0, 10)
     const prefix = isThumb ? 'thumb-' : ''
     const fileName = `${prefix}${Date.now()}-${uniqueId}.${extension}`
     const filePath = `${EVENTS_PREFIX}${eventId}/${fileName}`

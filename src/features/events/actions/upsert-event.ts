@@ -132,7 +132,7 @@ export const upsertEvent = async (
         .replace(/[^\w\s]/gi, '')
         .replace(/\s+/g, '-') +
         '-' +
-        nanoid(5).toLowerCase();
+        randomUUID().substring(0, 8).toLowerCase();
 
       await prisma.events.create({
         data: {

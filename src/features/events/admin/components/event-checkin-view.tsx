@@ -31,6 +31,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [participantTypeFilter, setParticipantTypeFilter] = useState("all")
+  const [attendeeTypeFilter, setAttendeeTypeFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20) // Mostrar 20 itens por página
   const [selectedAttendees, setSelectedAttendees] = useState<Set<string>>(new Set())
@@ -93,12 +94,19 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
       )
     }
 
+    // Filtro por tipo de inscrição
+    if (attendeeTypeFilter !== "all") {
+      filtered = filtered.filter(attendee =>
+        attendee.attendee_type === attendeeTypeFilter
+      )
+    }
+
     setFilteredAttendees(filtered)
     setCurrentPage(1) // Reset para primeira página quando filtros mudam
     // Reset seleção quando filtros mudam
     setSelectedAttendees(new Set())
     setSelectAll(false)
-  }, [attendees, debouncedSearchTerm, statusFilter, participantTypeFilter])
+  }, [attendees, debouncedSearchTerm, statusFilter, participantTypeFilter, attendeeTypeFilter])
 
   // Calcular paginação
   const totalPages = Math.ceil(filteredAttendees.length / itemsPerPage)
@@ -345,6 +353,17 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
                 </SelectContent>
               </Select>
 
+              <Select value={attendeeTypeFilter} onValueChange={setAttendeeTypeFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filtrar por inscrição" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as inscrições</SelectItem>
+                  <SelectItem value="in_person">Presencial</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Button
                 onClick={exportToExcel}
                 variant="outline"
@@ -417,7 +436,7 @@ export function EventCheckinView({ event }: EventCheckinViewProps) {
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
               <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== "all" || participantTypeFilter !== "all"
+                {searchTerm || statusFilter !== "all" || participantTypeFilter !== "all" || attendeeTypeFilter !== "all"
                   ? "Nenhum participante encontrado com os filtros aplicados"
                   : "Nenhum participante inscrito neste evento"
                 }

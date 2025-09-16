@@ -146,12 +146,28 @@ export function EventCheckinItem({ attendee, eventId, onUpdate, activePrinter }:
             >
               {attendee.checked_in ? "Presente" : "Pendente"}
             </Badge>
-            <Badge 
+            <Badge
               variant="outline"
-              className={cn("text-xs", getParticipantTypeColor(attendee.participant_type))}
+              className={cn(
+                "text-xs",
+                getParticipantTypeColor(attendee.participant_type)
+              )}
             >
               {getParticipantTypeLabel(attendee.participant_type)}
             </Badge>
+            {attendee.attendee_type && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs",
+                  attendee.attendee_type === 'in_person'
+                    ? "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800"
+                    : "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800"
+                )}
+              >
+                {attendee.attendee_type === 'in_person' ? 'Presencial' : 'Online'}
+              </Badge>
+            )}
             <Badge 
               variant="outline"
               className={cn(

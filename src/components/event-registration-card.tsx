@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, CheckCircle, AlertCircle, Calendar, X, Mail, ArrowLeft, ExternalLink } from "lucide-react"
+import { Users, CheckCircle, AlertCircle, Calendar, X, Mail, ArrowLeft, ExternalLink, Wifi, PlayCircle } from "lucide-react"
 import { canUserRegister } from "@/features/attendance-list/actions/can-user-register"
 import { registerAttendee } from "@/features/attendance-list/actions/register-attendee"
 import { cancelRegistration } from "@/features/attendance-list/actions/cancel-registration"
@@ -47,6 +47,7 @@ export function EventRegistrationCard({
   const [otpValue, setOtpValue] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   const [isSendingOTP, setIsSendingOTP] = useState(false)
+  const [selectedAttendeeType, setSelectedAttendeeType] = useState<'in_person' | 'online' | null>(null)
 
   const handleSendOTP = async () => {
     if (!user) return
@@ -58,7 +59,9 @@ export function EventRegistrationCard({
       if (result.status === 'SUCCESS') {
         if (result.emailVerified) {
           // Email já verificado, pode prosseguir com a inscrição
-          await proceedWithRegistration()
+          if(selectedAttendeeType) {
+            await proceedWithRegistration(selectedAttendeeType)
+          }
         } else {
           setVerificationStep('otp-sent')
           toast.success(result.message)
@@ -87,9 +90,11 @@ export function EventRegistrationCard({
         setVerificationStep('verified')
         toast.success(result.message)
         // Prosseguir com a inscrição após verificação
-        setTimeout(() => {
-          proceedWithRegistration()
-        }, 1000)
+        if (selectedAttendeeType) {
+          setTimeout(() => {
+            void proceedWithRegistration(selectedAttendeeType)
+          }, 1000)
+        }
       } else {
         toast.error(result.message)
       }
@@ -100,7 +105,7 @@ export function EventRegistrationCard({
     }
   }
 
-  const proceedWithRegistration = async () => {
+  const proceedWithRegistration = async (attendeeType: 'in_person' | 'online') => {
 
     startTransition(async () => {
       try {
@@ -139,7 +144,7 @@ export function EventRegistrationCard({
         formData.append("attendee_rg", user.rg || "")
         formData.append("attendee_cpf", cleanCPF)
         formData.append("mobile_phone", user.mobilePhone || "")
-        formData.append("attendee_type", "REGISTERED")
+        formData.append("attendee_type", attendeeType)
 
         const result = await registerAttendee(EMPTY_ACTION_STATE, formData)
 
@@ -156,7 +161,8 @@ export function EventRegistrationCard({
     })
   }
 
-  const handleRegister = () => {
+  const handleRegister = (attendeeType: 'in_person' | 'online') => {
+    setSelectedAttendeeType(attendeeType)
     if (!user) {
       toast.error("Você precisa estar logado para se inscrever")
       return
@@ -164,9 +170,9 @@ export function EventRegistrationCard({
 
     // Verificar se o email está verificado
     if (user.email_verified === false) {
-      handleSendOTP()
+      void handleSendOTP()
     } else {
-      proceedWithRegistration()
+      void proceedWithRegistration(attendeeType)
     }
   }
 
@@ -512,6 +518,83 @@ export function EventRegistrationCard({
     )
   }
 
+  const isHybrid = event.format === 'HYBRID' || event.format === 'HIBRIDO'
+
+  if (isHybrid) {
+    const canRegisterInPerson = companyRemainingVacancies !== undefined && companyRemainingVacancies > 0
+    const canRegisterOnline = event.isStreaming
+
+    return (
+      <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg h-12 w-12 items-center justify-center flex">
+              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                Confirmar Presença
+              </h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Escolha o formato da sua participação.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            {canRegisterInPerson && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleRegister('in_person')}
+                  disabled={isPending || isSendingOTP}
+                  className="h-12 text-sm border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                >
+                  {isPending && selectedAttendeeType === 'in_person' ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-blue-700 border-t-transparent rounded-full animate-spin mr-2" />
+                      {isSendingOTP ? 'Enviando...' : 'Confirmando...'}
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-start w-full">
+                      <Users className="w-5 h-5 mr-3" />
+                      <div className="text-left">
+                        <p className="font-semibold">Presencial</p>
+                        <p className="text-xs font-normal">{companyRemainingVacancies} {companyRemainingVacancies === 1 ? 'vaga disponível' : 'vagas disponíveis'}</p>
+                      </div>
+                    </div>
+                  )}
+                </Button>
+            )}
+            {canRegisterOnline && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleRegister('online')}
+                  disabled={isPending || isSendingOTP}
+                  className="h-12 text-sm border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 hover:border-green-300 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"
+                >
+                  {isPending && selectedAttendeeType === 'online' ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-green-700 border-t-transparent rounded-full animate-spin mr-2" />
+                      {isSendingOTP ? 'Enviando...' : 'Confirmando...'}
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-start w-full">
+                      <PlayCircle className="w-5 h-5 mr-3" />
+                      <div className="text-left">
+                        <p className="font-semibold">Online</p>
+                        <p className="text-xs font-normal">Acesso à transmissão ao vivo</p>
+                      </div>
+                    </div>
+                  )}
+                </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="w-full border-0 shadow-sm dark:bg-gray-800 dark:border dark:border-gray-700">
       <CardContent className="p-4">
@@ -530,7 +613,7 @@ export function EventRegistrationCard({
           <Button
             variant="outline"
             size="default"
-            onClick={handleRegister}
+            onClick={() => handleRegister(event.format === 'ONLINE' ? 'online' : 'in_person')}
             disabled={isPending || isSendingOTP}
             className="h-10 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
           >

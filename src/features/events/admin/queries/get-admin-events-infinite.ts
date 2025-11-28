@@ -198,8 +198,36 @@ export async function getAdminEventsInfinite(
   const eventsToReturn = hasNextPage ? events.slice(0, limit) : events
   const nextCursor = hasNextPage ? eventsToReturn[eventsToReturn.length - 1]?.id : undefined
 
+  // Buscar contagem de marcas únicas para os eventos retornados
+  let brandsCountByEvent: Record<string, number> = {}
+
+  if (eventsToReturn.length > 0) {
+    const eventIds = eventsToReturn.map(e => e.id)
+
+    const brandsCount = await prisma.$queryRaw<Array<{ eventId: string; uniqueBrandsCount: number }>>`
+      SELECT
+        "eventId",
+        COUNT(DISTINCT company_cnpj)::int as "uniqueBrandsCount"
+      FROM attendance_list
+      WHERE "eventId" = ANY(${eventIds}::text[])
+      GROUP BY "eventId"
+    `
+
+    // Criar um map para facilitar o merge
+    brandsCountByEvent = brandsCount.reduce((acc, item) => {
+      acc[item.eventId] = item.uniqueBrandsCount
+      return acc
+    }, {} as Record<string, number>)
+  }
+
+  // Merge das contagens com os eventos
+  const eventsWithBrandsCount = eventsToReturn.map(event => ({
+    ...event,
+    uniqueBrandsCount: brandsCountByEvent[event.id] || 0
+  }))
+
   return {
-    events: eventsToReturn as AdminEventSummary[],
+    events: eventsWithBrandsCount as AdminEventSummary[],
     metadata: {
       hasNextPage,
       cursor: nextCursor

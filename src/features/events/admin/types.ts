@@ -22,8 +22,8 @@ export type AdminEventWithDetails = events & {
 }
 
 // Tipo simplificado para listagem
-export type AdminEventSummary = Pick<events, 
-  'id' | 'title' | 'slug' | 'image_url' | 'thumb_url' | 'summary' | 'date' | 'format' | 
+export type AdminEventSummary = Pick<events,
+  'id' | 'title' | 'slug' | 'image_url' | 'thumb_url' | 'summary' | 'date' | 'format' |
   'vacancy_total' | 'highlight' | 'isPublished' | 'exclusive_for_members' | 'created_at' | 'updatedAt'
 > & {
   address: {
@@ -33,6 +33,7 @@ export type AdminEventSummary = Pick<events,
   _count: {
     attendance_list: number
   }
+  uniqueBrandsCount?: number
 }
 
 // Status do evento para admin

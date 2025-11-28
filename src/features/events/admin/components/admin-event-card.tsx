@@ -155,6 +155,15 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
                   {event._count.attendance_list}/{event.vacancy_total} inscritos ({occupancyRate}%)
                 </span>
               </div>
+
+              {event.uniqueBrandsCount !== undefined && event.uniqueBrandsCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    {event.uniqueBrandsCount} {event.uniqueBrandsCount === 1 ? 'marca inscrita' : 'marcas inscritas'}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Data de criação */}

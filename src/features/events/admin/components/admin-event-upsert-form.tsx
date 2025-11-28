@@ -611,9 +611,9 @@ export function AdminEventUpsertForm({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="vacancy_total">Total de Vagas *</Label>
+                <Label htmlFor="vacancy_total">Total de Vagas Presenciais *</Label>
                 <Input
                   id="vacancy_total"
                   name="vacancy_total"
@@ -623,8 +623,28 @@ export function AdminEventUpsertForm({
                   required
                 />
                 <FieldError actionState={actionState} name="vacancy_total" />
+                <p className="text-xs text-muted-foreground">
+                  Quantidade de vagas para inscrições presenciais
+                </p>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="vacancy_online">Total de Vagas Online</Label>
+                <Input
+                  id="vacancy_online"
+                  name="vacancy_online"
+                  type="number"
+                  min="0"
+                  defaultValue={event?.vacancy_online || 0}
+                />
+                <FieldError actionState={actionState} name="vacancy_online" />
+                <p className="text-xs text-muted-foreground">
+                  Quantidade de vagas para inscrições online (0 = sem vagas online)
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="vacancies_per_brand">Vagas por Marca</Label>
                 <Input

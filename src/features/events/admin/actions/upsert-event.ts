@@ -35,6 +35,7 @@ const eventSchema = z.object({
     message: "Formato deve ser PRESENCIAL, ONLINE ou HIBRIDO"
   }),
   vacancy_total: z.coerce.number().min(1, { message: "Total de vagas deve ser maior que 0" }),
+  vacancy_online: z.coerce.number().min(0, { message: "Vagas online deve ser maior ou igual a 0" }),
   vacancies_per_brand: z.coerce.number().min(0, { message: "Vagas por marca deve ser maior ou igual a 0" }),
   minimum_quorum: z.coerce.number().min(0, { message: "Quórum mínimo deve ser maior ou igual a 0" }),
   highlight: z.preprocess((val) => val === "true" || val === true || val === "on", z.boolean().default(false)),
@@ -316,6 +317,7 @@ export const upsertEvent = async (
         end_time: data.end_time,
         format: data.format,
         vacancy_total: data.vacancy_total,
+        vacancy_online: data.vacancy_online,
         vacancies_per_brand: data.vacancies_per_brand,
         minimum_quorum: data.minimum_quorum,
         highlight: data.highlight,
@@ -445,6 +447,7 @@ export const upsertEvent = async (
           end_time: data.end_time,
           format: data.format,
           vacancy_total: data.vacancy_total,
+          vacancy_online: data.vacancy_online,
           vacancies_per_brand: data.vacancies_per_brand,
           minimum_quorum: data.minimum_quorum,
           highlight: data.highlight,

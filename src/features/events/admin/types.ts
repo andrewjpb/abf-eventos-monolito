@@ -24,7 +24,7 @@ export type AdminEventWithDetails = events & {
 // Tipo simplificado para listagem
 export type AdminEventSummary = Pick<events,
   'id' | 'title' | 'slug' | 'image_url' | 'thumb_url' | 'summary' | 'date' | 'format' |
-  'vacancy_total' | 'highlight' | 'isPublished' | 'exclusive_for_members' | 'created_at' | 'updatedAt'
+  'vacancy_total' | 'vacancy_online' | 'free_online' | 'highlight' | 'isPublished' | 'exclusive_for_members' | 'created_at' | 'updatedAt'
 > & {
   address: {
     cities: Pick<cities, 'name'>
@@ -34,6 +34,8 @@ export type AdminEventSummary = Pick<events,
     attendance_list: number
   }
   uniqueBrandsCount?: number
+  presentialCount?: number
+  onlineCount?: number
 }
 
 // Status do evento para admin
@@ -62,6 +64,7 @@ export interface EventFormData {
   end_time: string
   format: string
   vacancy_total: number
+  vacancy_online: number
   vacancies_per_brand: number
   minimum_quorum: number
   highlight: boolean

@@ -83,6 +83,7 @@ model events {
   isStreaming          Boolean           @default(false)
   transmission_link    String            @default("")
   vacancy_total        Int
+  vacancy_online       Int               @default(0)
   vacancies_per_brand  Int
   minimum_quorum       Int
   highlight            Boolean

@@ -23,13 +23,15 @@ export const canUserRegister = cache(async (eventId: string) => {
       title: true,
       date: true,
       vacancy_total: true,
+      vacancy_online: true,
       vacancies_per_brand: true,
       isPublished: true,
       exclusive_for_members: true,
-      // Contar inscrições totais
-      _count: {
+      free_online: true,
+      attendance_list: {
         select: {
-          attendance_list: true
+          attendee_type: true,
+          company_cnpj: true
         }
       }
     }
@@ -84,13 +86,9 @@ export const canUserRegister = cache(async (eventId: string) => {
     }
   }
 
-  // Verificar se há vagas disponíveis
-  if (event._count.attendance_list >= event.vacancy_total) {
-    return {
-      canRegister: false,
-      message: "Não há mais vagas disponíveis para este evento"
-    }
-  }
+  // Contar inscrições presenciais e online
+  const presentialCount = event.attendance_list.filter(a => a.attendee_type === 'in_person').length
+  const onlineCount = event.attendance_list.filter(a => a.attendee_type === 'online').length
 
   // Verificar se o usuário já está inscrito
   const existingAttendance = await prisma.attendance_list.findFirst({
@@ -109,18 +107,52 @@ export const canUserRegister = cache(async (eventId: string) => {
     }
   }
 
-  // Verificar a quantidade de inscrições da empresa do usuário
-  const companyAttendanceCount = await prisma.attendance_list.count({
-    where: {
-      eventId,
-      company_cnpj: user.companyId
-    }
-  })
+  // Contar inscrições da empresa do usuário (separadas por tipo)
+  const companyPresentialCount = event.attendance_list.filter(
+    a => a.company_cnpj === user.companyId && a.attendee_type === 'in_person'
+  ).length
+  const companyOnlineCount = event.attendance_list.filter(
+    a => a.company_cnpj === user.companyId && a.attendee_type === 'online'
+  ).length
 
-  if (companyAttendanceCount >= event.vacancies_per_brand) {
+  // Calcular vagas disponíveis
+  const presentialVacanciesAvailable = event.vacancy_total - presentialCount
+  const onlineVacanciesAvailable = event.vacancy_online - onlineCount
+
+  // Se free_online = true, inscrições online não consomem vagas da marca
+  // Caso contrário, devem respeitar o limite de vacancies_per_brand
+  const canRegisterPresential = presentialVacanciesAvailable > 0 &&
+    companyPresentialCount < event.vacancies_per_brand
+
+  let canRegisterOnline = false
+  if (event.free_online) {
+    // Quando free_online = true, apenas verifica se há vagas online disponíveis
+    canRegisterOnline = onlineVacanciesAvailable > 0
+  } else {
+    // Quando free_online = false, verifica vagas online E limite da marca
+    canRegisterOnline = onlineVacanciesAvailable > 0 &&
+      (companyPresentialCount + companyOnlineCount) < event.vacancies_per_brand
+  }
+
+  // Se não pode se inscrever em nenhum tipo
+  if (!canRegisterPresential && !canRegisterOnline) {
+    if (presentialVacanciesAvailable <= 0 && onlineVacanciesAvailable <= 0) {
+      return {
+        canRegister: false,
+        message: "Não há mais vagas disponíveis para este evento"
+      }
+    }
+
+    if (companyPresentialCount >= event.vacancies_per_brand) {
+      return {
+        canRegister: false,
+        message: `Sua empresa já atingiu o limite de ${event.vacancies_per_brand} inscrições para este evento`
+      }
+    }
+
     return {
       canRegister: false,
-      message: `Sua empresa já atingiu o limite de ${event.vacancies_per_brand} inscrições para este evento`
+      message: "Não há vagas disponíveis no momento"
     }
   }
 
@@ -132,15 +164,20 @@ export const canUserRegister = cache(async (eventId: string) => {
 
   return {
     canRegister: true,
+    canRegisterPresential,
+    canRegisterOnline,
     message: "Você pode se inscrever neste evento",
     event: {
       id: event.id,
       title: event.title,
       date: event.date,
       totalVacancies: event.vacancy_total,
-      remainingVacancies: event.vacancy_total - event._count.attendance_list,
+      onlineVacancies: event.vacancy_online,
+      remainingPresentialVacancies: presentialVacanciesAvailable,
+      remainingOnlineVacancies: onlineVacanciesAvailable,
       vacanciesPerBrand: event.vacancies_per_brand,
-      companyRemainingVacancies: event.vacancies_per_brand - companyAttendanceCount
+      companyRemainingPresentialVacancies: event.vacancies_per_brand - companyPresentialCount,
+      freeOnline: event.free_online
     },
     userInfo: {
       id: user.id,

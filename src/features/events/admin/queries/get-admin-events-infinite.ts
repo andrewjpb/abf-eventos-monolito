@@ -168,6 +168,8 @@ export async function getAdminEventsInfinite(
       date: true,
       format: true,
       vacancy_total: true,
+      vacancy_online: true,
+      free_online: true,
       highlight: true,
       isPublished: true,
       exclusive_for_members: true,
@@ -198,8 +200,10 @@ export async function getAdminEventsInfinite(
   const eventsToReturn = hasNextPage ? events.slice(0, limit) : events
   const nextCursor = hasNextPage ? eventsToReturn[eventsToReturn.length - 1]?.id : undefined
 
-  // Buscar contagem de marcas únicas para os eventos retornados
+  // Buscar contagem de marcas únicas e inscrições por tipo para os eventos retornados
   let brandsCountByEvent: Record<string, number> = {}
+  let presentialCountByEvent: Record<string, number> = {}
+  let onlineCountByEvent: Record<string, number> = {}
 
   if (eventsToReturn.length > 0) {
     const eventIds = eventsToReturn.map(e => e.id)
@@ -213,17 +217,38 @@ export async function getAdminEventsInfinite(
       GROUP BY "eventId"
     `
 
-    // Criar um map para facilitar o merge
+    const enrollmentsByType = await prisma.$queryRaw<Array<{
+      eventId: string;
+      presentialCount: number;
+      onlineCount: number
+    }>>`
+      SELECT
+        "eventId",
+        COUNT(CASE WHEN attendee_type = 'in_person' THEN 1 END)::int as "presentialCount",
+        COUNT(CASE WHEN attendee_type = 'online' THEN 1 END)::int as "onlineCount"
+      FROM attendance_list
+      WHERE "eventId" = ANY(${eventIds}::text[])
+      GROUP BY "eventId"
+    `
+
+    // Criar maps para facilitar o merge
     brandsCountByEvent = brandsCount.reduce((acc, item) => {
       acc[item.eventId] = item.uniqueBrandsCount
       return acc
     }, {} as Record<string, number>)
+
+    enrollmentsByType.forEach(item => {
+      presentialCountByEvent[item.eventId] = item.presentialCount
+      onlineCountByEvent[item.eventId] = item.onlineCount
+    })
   }
 
   // Merge das contagens com os eventos
   const eventsWithBrandsCount = eventsToReturn.map(event => ({
     ...event,
-    uniqueBrandsCount: brandsCountByEvent[event.id] || 0
+    uniqueBrandsCount: brandsCountByEvent[event.id] || 0,
+    presentialCount: presentialCountByEvent[event.id] || 0,
+    onlineCount: onlineCountByEvent[event.id] || 0
   }))
 
   return {

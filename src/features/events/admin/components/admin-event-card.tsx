@@ -151,9 +151,17 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
 
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className={getOccupancyColor(occupancyRate)}>
-                  {event._count.attendance_list}/{event.vacancy_total} inscritos ({occupancyRate}%)
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span className={getOccupancyColor(occupancyRate)}>
+                    Presencial: {event.presentialCount || 0}/{event.vacancy_total} ({occupancyRate}%)
+                  </span>
+                  {event.vacancy_online > 0 && (
+                    <span className="text-muted-foreground text-xs">
+                      Online: {event.onlineCount || 0}/{event.vacancy_online}
+                      {event.free_online && <span className="ml-1 text-green-600">(Gratuito)</span>}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {event.uniqueBrandsCount !== undefined && event.uniqueBrandsCount > 0 && (

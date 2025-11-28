@@ -699,9 +699,9 @@ export function AdminEventUpsertForm({
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="free_online">Evento gratuito online</Label>
+                  <Label htmlFor="free_online">Liberar vagas online ilimitadas para marcas</Label>
                   <p className="text-sm text-muted-foreground">
-                    Marcar se for um evento online gratuito
+                    Inscrições online não consomem vagas da marca, mas respeitam o limite total de vagas online
                   </p>
                 </div>
                 <Switch

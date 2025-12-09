@@ -209,18 +209,29 @@ export const getEvent = cache(async (id: string) => {
   }
 
   // Calcular vagas restantes por empresa (se o usuário estiver logado)
+  // Separar contagem de presencial e online
   let companyRemainingVacancies = 0
   let companyAttendees = 0
   if (user && user.companyId) {
-    // Contar quantos inscritos da mesma empresa já estão cadastrados
+    // Contar quantos inscritos PRESENCIAIS da mesma empresa já estão cadastrados
+    const companyPresentialCount = await prisma.attendance_list.count({
+      where: {
+        eventId: id,
+        company_cnpj: user.companyId,
+        attendee_type: 'in_person'
+      }
+    })
+
+    // Total de inscritos da empresa (para exibição)
     companyAttendees = await prisma.attendance_list.count({
       where: {
         eventId: id,
         company_cnpj: user.companyId
       }
     })
-    
-    companyRemainingVacancies = Math.max(0, event.vacancies_per_brand - companyAttendees)
+
+    // Vagas restantes da empresa baseadas apenas em inscrições presenciais
+    companyRemainingVacancies = Math.max(0, event.vacancies_per_brand - companyPresentialCount)
   }
 
   // Verificar se o usuário pode se inscrever (apenas se estiver logado e não estiver registrado)
@@ -243,6 +254,21 @@ export const getEvent = cache(async (id: string) => {
     hasEventCreatePermission = await checkUserPermission(user.id, "events.create")
   }
 
+  // Calcular vagas presenciais e online separadamente
+  const presentialCount = await prisma.attendance_list.count({
+    where: {
+      eventId: id,
+      attendee_type: 'in_person'
+    }
+  })
+
+  const onlineCount = await prisma.attendance_list.count({
+    where: {
+      eventId: id,
+      attendee_type: 'online'
+    }
+  })
+
   return {
     event: eventWithOrderedRelations,
     isRegistered,
@@ -250,10 +276,10 @@ export const getEvent = cache(async (id: string) => {
     isAdmin,
     user,
     canRegister,
-    remainingVacancies: Math.max(0, event.vacancy_total - event._count.attendance_list),
+    remainingVacancies: Math.max(0, event.vacancy_total - presentialCount),
     companyRemainingVacancies,
     companyAttendees,
-    occupationPercentage: Math.min(100, Math.round((event._count.attendance_list / event.vacancy_total) * 100)),
+    occupationPercentage: Math.min(100, Math.round((presentialCount / event.vacancy_total) * 100)),
     hasEventCreatePermission
   }
 })

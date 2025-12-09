@@ -119,8 +119,10 @@ export const canUserRegister = cache(async (eventId: string) => {
   const presentialVacanciesAvailable = event.vacancy_total - presentialCount
   const onlineVacanciesAvailable = event.vacancy_online - onlineCount
 
-  // Se free_online = true, inscrições online não consomem vagas da marca
-  // Caso contrário, devem respeitar o limite de vacancies_per_brand
+  // Regras de validação de vagas por marca:
+  // - Presencial: SEMPRE valida contra vacancies_per_brand
+  // - Online com free_online=true: NÃO valida contra vacancies_per_brand
+  // - Online com free_online=false: valida APENAS vagas online contra vacancies_per_brand
   const canRegisterPresential = presentialVacanciesAvailable > 0 &&
     companyPresentialCount < event.vacancies_per_brand
 
@@ -129,9 +131,9 @@ export const canUserRegister = cache(async (eventId: string) => {
     // Quando free_online = true, apenas verifica se há vagas online disponíveis
     canRegisterOnline = onlineVacanciesAvailable > 0
   } else {
-    // Quando free_online = false, verifica vagas online E limite da marca
+    // Quando free_online = false, verifica vagas online E limite da marca (apenas online)
     canRegisterOnline = onlineVacanciesAvailable > 0 &&
-      (companyPresentialCount + companyOnlineCount) < event.vacancies_per_brand
+      companyOnlineCount < event.vacancies_per_brand
   }
 
   // Se não pode se inscrever em nenhum tipo

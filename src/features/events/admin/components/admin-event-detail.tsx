@@ -241,13 +241,14 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
                   <div>
                     <p className="font-medium">
                       <span className={getOccupancyColor(occupancyRate)}>
-                        {event._count.attendance_list}/{event.vacancy_total} inscritos
+                        {event._count.attendance_list} inscritos totais
                       </span>
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {occupancyRate}% de ocupação
-                      {isFull && " - Evento lotado"}
-                      {isAlmostFull && !isFull && " - Quase lotado"}
+                      Presencial: {event.presentialCount}/{event.vacancy_total} ({Math.round((event.presentialCount / event.vacancy_total) * 100)}%)
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Online: {event.onlineCount}/{event.vacancy_online} ({Math.round((event.onlineCount / event.vacancy_online) * 100)}%)
                     </p>
                   </div>
                 </div>
@@ -373,12 +374,20 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Total de vagas</p>
+                <p className="text-muted-foreground">Vagas presenciais</p>
                 <p className="font-medium">{event.vacancy_total}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Vagas online</p>
+                <p className="font-medium">{event.vacancy_online}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Vagas por marca</p>
                 <p className="font-medium">{event.vacancies_per_brand}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Online gratuito</p>
+                <p className="font-medium">{event.free_online ? 'Sim' : 'Não'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Quórum mínimo</p>

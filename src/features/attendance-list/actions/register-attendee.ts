@@ -64,7 +64,9 @@ export const registerAttendee = async (
         start_time: true,
         end_time: true,
         vacancy_total: true,
+        vacancy_online: true,
         vacancies_per_brand: true,
+        free_online: true,
         address: {
           include: {
             cities: true,
@@ -100,33 +102,91 @@ export const registerAttendee = async (
       return toActionState("ERROR", "Não é possível se inscrever em um evento já realizado")
     }
 
-    // Verificar se o evento já atingiu o número máximo de participantes
-    if (event._count.attendance_list >= event.vacancy_total) {
-      await logWarn("AttendanceList.register", `Tentativa de inscrição em evento lotado`, user.id, {
-        eventId: data.eventId,
-        vacancyTotal: event.vacancy_total,
-        currentAttendances: event._count.attendance_list
-      })
-      return toActionState("ERROR", "Este evento já atingiu o número máximo de participantes")
-    }
+    // Verificar vagas disponíveis baseado no tipo de inscrição
+    const isOnlineRegistration = data.attendee_type === 'online'
+    const isPresentialRegistration = data.attendee_type === 'in_person'
 
-    // Verificar quantas inscrições a empresa já tem neste evento
-    const companyAttendanceCount = await prisma.attendance_list.count({
+    // Contar inscrições presenciais e online separadamente
+    const presentialCount = await prisma.attendance_list.count({
       where: {
         eventId: data.eventId,
-        company_cnpj: data.company_cnpj
+        attendee_type: 'in_person'
       }
     })
 
-    if (companyAttendanceCount >= event.vacancies_per_brand) {
-      await logWarn("AttendanceList.register", `Tentativa de inscrição acima do limite por empresa`, user.id, {
+    const onlineCount = await prisma.attendance_list.count({
+      where: {
         eventId: data.eventId,
-        companyCnpj: data.company_cnpj,
-        vacanciesPerBrand: event.vacancies_per_brand,
-        currentCompanyAttendances: companyAttendanceCount
+        attendee_type: 'online'
+      }
+    })
+
+    // Validar vagas presenciais
+    if (isPresentialRegistration && presentialCount >= event.vacancy_total) {
+      await logWarn("AttendanceList.register", `Tentativa de inscrição presencial em evento lotado`, user.id, {
+        eventId: data.eventId,
+        vacancyTotal: event.vacancy_total,
+        currentPresentialAttendances: presentialCount
       })
-      return toActionState("ERROR", `Sua empresa já atingiu o limite de ${event.vacancies_per_brand} inscrições para este evento`)
+      return toActionState("ERROR", "Este evento já atingiu o número máximo de participantes presenciais")
     }
+
+    // Validar vagas online
+    if (isOnlineRegistration && onlineCount >= event.vacancy_online) {
+      await logWarn("AttendanceList.register", `Tentativa de inscrição online em evento lotado`, user.id, {
+        eventId: data.eventId,
+        vacancyOnline: event.vacancy_online,
+        currentOnlineAttendances: onlineCount
+      })
+      return toActionState("ERROR", "Este evento já atingiu o número máximo de participantes online")
+    }
+
+    // Verificar limite de vagas por marca
+    // Regras:
+    // - Presencial: SEMPRE valida contra vacancies_per_brand
+    // - Online com free_online=true: NÃO valida contra vacancies_per_brand
+    // - Online com free_online=false: valida APENAS inscrições online contra vacancies_per_brand
+
+    if (isPresentialRegistration) {
+      // Para presencial: contar apenas inscrições presenciais da empresa
+      const companyPresentialCount = await prisma.attendance_list.count({
+        where: {
+          eventId: data.eventId,
+          company_cnpj: data.company_cnpj,
+          attendee_type: 'in_person'
+        }
+      })
+
+      if (companyPresentialCount >= event.vacancies_per_brand) {
+        await logWarn("AttendanceList.register", `Tentativa de inscrição presencial acima do limite por empresa`, user.id, {
+          eventId: data.eventId,
+          companyCnpj: data.company_cnpj,
+          vacanciesPerBrand: event.vacancies_per_brand,
+          currentCompanyPresentialAttendances: companyPresentialCount
+        })
+        return toActionState("ERROR", `Sua empresa já atingiu o limite de ${event.vacancies_per_brand} inscrições presenciais para este evento`)
+      }
+    } else if (isOnlineRegistration && !event.free_online) {
+      // Para online com free_online=false: contar apenas inscrições online da empresa
+      const companyOnlineCount = await prisma.attendance_list.count({
+        where: {
+          eventId: data.eventId,
+          company_cnpj: data.company_cnpj,
+          attendee_type: 'online'
+        }
+      })
+
+      if (companyOnlineCount >= event.vacancies_per_brand) {
+        await logWarn("AttendanceList.register", `Tentativa de inscrição online acima do limite por empresa`, user.id, {
+          eventId: data.eventId,
+          companyCnpj: data.company_cnpj,
+          vacanciesPerBrand: event.vacancies_per_brand,
+          currentCompanyOnlineAttendances: companyOnlineCount
+        })
+        return toActionState("ERROR", `Sua empresa já atingiu o limite de ${event.vacancies_per_brand} inscrições online para este evento`)
+      }
+    }
+    // Se for online com free_online=true, não valida limite por marca
 
     // Verificar se o usuário já está inscrito neste evento
     const existingAttendance = await prisma.attendance_list.findFirst({

@@ -153,10 +153,27 @@ export async function getAdminEvent(eventId: string): Promise<AdminEventWithDeta
   // Buscar patrocinadores e apoiadores ordenados
   const { sponsors, supporters } = await getOrderedSponsorsAndSupporters(eventId)
 
+  // Contar inscrições presenciais e online separadamente
+  const presentialCount = await prisma.attendance_list.count({
+    where: {
+      eventId,
+      attendee_type: 'in_person'
+    }
+  })
+
+  const onlineCount = await prisma.attendance_list.count({
+    where: {
+      eventId,
+      attendee_type: 'online'
+    }
+  })
+
   return {
     ...event,
     sponsors,
-    supporters
+    supporters,
+    presentialCount,
+    onlineCount
   } as AdminEventWithDetails
 }
 
@@ -217,9 +234,26 @@ export async function getAdminEventBySlug(slug: string): Promise<AdminEventWithD
   // Buscar patrocinadores e apoiadores ordenados
   const { sponsors, supporters } = await getOrderedSponsorsAndSupporters(event.id)
 
+  // Contar inscrições presenciais e online separadamente
+  const presentialCount = await prisma.attendance_list.count({
+    where: {
+      eventId: event.id,
+      attendee_type: 'in_person'
+    }
+  })
+
+  const onlineCount = await prisma.attendance_list.count({
+    where: {
+      eventId: event.id,
+      attendee_type: 'online'
+    }
+  })
+
   return {
     ...event,
     sponsors,
-    supporters
+    supporters,
+    presentialCount,
+    onlineCount
   } as AdminEventWithDetails
 }

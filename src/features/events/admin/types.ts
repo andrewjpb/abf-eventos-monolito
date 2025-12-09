@@ -19,6 +19,8 @@ export type AdminEventWithDetails = events & {
     supporters: number
     schedule: number
   }
+  presentialCount: number
+  onlineCount: number
 }
 
 // Tipo simplificado para listagem

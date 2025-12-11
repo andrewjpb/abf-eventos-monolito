@@ -39,7 +39,7 @@ export type EnrollmentWithDetails = attendance_list & {
     address: {
       cities: { name: string };
       states: { name: string };
-    };
+    } | null;
   };
   users: users;
   company: company;
@@ -51,7 +51,7 @@ export type EventEnrollmentStats = {
     address: {
       cities: { name: string };
       states: { name: string };
-    };
+    } | null;
   };
   totalEnrollments: number;
   checkedInCount: number;

@@ -72,6 +72,19 @@ export function EventDetail({
       return "Evento Online"
     }
 
+    // Evento internacional
+    if (event.is_international) {
+      const partes = [
+        event.location_name,
+        event.location_address,
+        event.location_city,
+        event.location_state,
+        event.location_country
+      ].filter(Boolean)
+      return partes.join(", ")
+    }
+
+    // Evento nacional
     if (!event.address) {
       return "Local a definir"
     }
@@ -280,7 +293,7 @@ export function EventDetail({
             </Card>
 
             {/* Card de Endereço - Não mostrar para eventos online */}
-            {event.address && event.format?.toUpperCase() !== "ONLINE" && (
+            {(event.address || event.is_international) && event.format?.toUpperCase() !== "ONLINE" && (
               <Card className="w-full border-0 shadow-sm bg-gray-50 dark:bg-gray-800/50 mt-4">
                 <CardContent className="p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -290,26 +303,52 @@ export function EventDetail({
                         <MapPinIcon className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-gray-900 dark:text-white font-medium">
-                          {event.address.street}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {event.address.postal_code} - {event.address.cities.name}/{event.address.states.uf}
-                        </p>
+                        {event.is_international ? (
+                          <>
+                            <p className="text-gray-900 dark:text-white font-medium">
+                              {event.location_name}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {event.location_address && `${event.location_address} - `}
+                              {event.location_city}{event.location_state && `, ${event.location_state}`} - {event.location_country}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-gray-900 dark:text-white font-medium">
+                              {event.address?.street}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {event.address?.postal_code} - {event.address?.cities?.name}/{event.address?.states?.uf}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    {/* Lado Direito */}
+                    {/* Lado Direito - Link para mapas */}
                     <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                      <a
-                        href={`https://waze.com/ul?q=${encodeURIComponent(`${event.address.street}, ${event.address.number}, ${event.address.cities.name}, ${event.address.states.uf}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                      >
-                        <MapPinIcon className="w-5 h-5" />
-                        <span className="text-sm font-medium">Abrir no Waze</span>
-                      </a>
+                      {event.is_international ? (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.location_name}, ${event.location_address}, ${event.location_city}, ${event.location_country}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        >
+                          <MapPinIcon className="w-5 h-5" />
+                          <span className="text-sm font-medium">Abrir no Google Maps</span>
+                        </a>
+                      ) : (
+                        <a
+                          href={`https://waze.com/ul?q=${encodeURIComponent(`${event.address?.street}, ${event.address?.number}, ${event.address?.cities?.name}, ${event.address?.states?.uf}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        >
+                          <MapPinIcon className="w-5 h-5" />
+                          <span className="text-sm font-medium">Abrir no Waze</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -2,10 +2,10 @@ import { events, address, speakers, sponsors, supporters, attendance_list, citie
 
 // Tipo completo do evento para admin com todos os relacionamentos
 export type AdminEventWithDetails = events & {
-  address: address & {
+  address: (address & {
     cities: cities
     states: states
-  }
+  }) | null
   speakers: Array<speakers & {
     users: Pick<users, 'id' | 'name' | 'email' | 'position' | 'image_url'>
   }>
@@ -26,12 +26,13 @@ export type AdminEventWithDetails = events & {
 // Tipo simplificado para listagem
 export type AdminEventSummary = Pick<events,
   'id' | 'title' | 'slug' | 'image_url' | 'thumb_url' | 'summary' | 'date' | 'format' |
-  'vacancy_total' | 'vacancy_online' | 'free_online' | 'highlight' | 'isPublished' | 'exclusive_for_members' | 'created_at' | 'updatedAt'
+  'vacancy_total' | 'vacancy_online' | 'free_online' | 'highlight' | 'isPublished' | 'exclusive_for_members' | 'created_at' | 'updatedAt' |
+  'is_international' | 'location_city' | 'location_state' | 'location_country'
 > & {
   address: {
     cities: Pick<cities, 'name'>
     states: Pick<states, 'uf'>
-  }
+  } | null
   _count: {
     attendance_list: number
   }

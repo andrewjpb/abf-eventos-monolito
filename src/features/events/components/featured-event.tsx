@@ -24,6 +24,11 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
 
   // Formatar o local
   const formatarLocal = () => {
+    // Evento internacional
+    if (event.is_international) {
+      return `${event.location_name || event.location_city} - ${event.location_city}${event.location_state ? `, ${event.location_state}` : ''} - ${event.location_country}`
+    }
+    // Evento nacional
     if (event.address?.cities?.name && event.address?.states?.uf) {
       return `${event.address.street || "Água Branca"} - ${event.address.cities.name} - ${event.address.states.uf}`
     }

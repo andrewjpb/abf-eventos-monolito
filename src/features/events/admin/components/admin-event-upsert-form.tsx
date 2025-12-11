@@ -88,6 +88,7 @@ export function AdminEventUpsertForm({
   )
 
   // Estados para endereço
+  const [isInternational, setIsInternational] = useState<boolean>(event?.is_international || false)
   const [selectedState, setSelectedState] = useState<string>(event?.address?.stateId || '')
   const [filteredCities, setFilteredCities] = useState(
     cities.filter(city => city.stateId === (event?.address?.stateId || '') && city.stateId !== null)
@@ -96,8 +97,9 @@ export function AdminEventUpsertForm({
   // Atualizar cidades filtradas quando o estado inicial for carregado
   useEffect(() => {
     if (event?.address?.stateId) {
-      setSelectedState(event.address.stateId)
-      setFilteredCities(cities.filter(city => city.stateId === event.address.stateId && city.stateId !== null))
+      const stateId = event.address.stateId
+      setSelectedState(stateId)
+      setFilteredCities(cities.filter(city => city.stateId === stateId && city.stateId !== null))
     }
   }, [event?.address?.stateId, cities])
 
@@ -501,103 +503,186 @@ export function AdminEventUpsertForm({
 
             {/* Campos de Endereço */}
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 dark:text-white">Endereço do Evento</h4>
-              
-              {/* Rua */}
-              <div className="space-y-2">
-                <Label htmlFor="street">Rua/Logradouro *</Label>
-                <Input
-                  id="street"
-                  name="street"
-                  placeholder="Ex: Rua das Flores"
-                  defaultValue={event?.address?.street}
-                  required
-                />
-                <FieldError actionState={actionState} name="street" />
-              </div>
-
-              {/* Número e Complemento */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="number">Número *</Label>
-                  <Input
-                    id="number"
-                    name="number"
-                    placeholder="Ex: 123"
-                    defaultValue={event?.address?.number}
-                    required
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900 dark:text-white">Endereço do Evento</h4>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="is_international" className="text-sm">Evento Internacional</Label>
+                  <Switch
+                    id="is_international"
+                    name="is_international"
+                    checked={isInternational}
+                    onCheckedChange={setIsInternational}
                   />
-                  <FieldError actionState={actionState} name="number" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="complement">Complemento</Label>
-                  <Input
-                    id="complement"
-                    name="complement"
-                    placeholder="Ex: Sala 101, Andar 2"
-                    defaultValue={event?.address?.complement}
-                  />
-                  <FieldError actionState={actionState} name="complement" />
                 </div>
               </div>
 
-              {/* Estado */}
-              <div className="space-y-2">
-                <Label htmlFor="stateId">Estado *</Label>
-                <Select 
-                  name="stateId" 
-                  defaultValue={event?.address?.stateId}
-                  onValueChange={handleStateChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {states.map(state => (
-                      <SelectItem key={state.id} value={state.id}>
-                        {state.name} ({state.uf})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FieldError actionState={actionState} name="stateId" />
-              </div>
+              {/* Campo hidden para enviar o valor do switch */}
+              <input type="hidden" name="is_international_value" value={isInternational ? "true" : "false"} />
 
-              {/* Cidade */}
-              <div className="space-y-2">
-                <Label htmlFor="cityId">Cidade *</Label>
-                <Select 
-                  name="cityId" 
-                  defaultValue={event?.address?.cityId}
-                  disabled={!selectedState}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={selectedState ? "Selecione a cidade" : "Selecione o estado primeiro"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredCities.map(city => (
-                      <SelectItem key={city.id} value={city.id}>
-                        {city.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FieldError actionState={actionState} name="cityId" />
-              </div>
+              {isInternational ? (
+                // Campos para evento internacional
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="location_name">Nome do Local *</Label>
+                    <Input
+                      id="location_name"
+                      name="location_name"
+                      placeholder="Ex: Miami Beach Convention Center"
+                      defaultValue={event?.location_name}
+                      required={isInternational}
+                    />
+                    <FieldError actionState={actionState} name="location_name" />
+                  </div>
 
-              {/* CEP */}
-              <div className="space-y-2">
-                <Label htmlFor="postal_code">CEP *</Label>
-                <Input
-                  id="postal_code"
-                  name="postal_code"
-                  placeholder="Ex: 12345-678"
-                  defaultValue={event?.address?.postal_code}
-                  required
-                />
-                <FieldError actionState={actionState} name="postal_code" />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location_address">Endereço Completo *</Label>
+                    <Input
+                      id="location_address"
+                      name="location_address"
+                      placeholder="Ex: 1901 Convention Center Dr"
+                      defaultValue={event?.location_address}
+                      required={isInternational}
+                    />
+                    <FieldError actionState={actionState} name="location_address" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="location_city">Cidade *</Label>
+                      <Input
+                        id="location_city"
+                        name="location_city"
+                        placeholder="Ex: Miami Beach"
+                        defaultValue={event?.location_city}
+                        required={isInternational}
+                      />
+                      <FieldError actionState={actionState} name="location_city" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="location_state">Estado/Província</Label>
+                      <Input
+                        id="location_state"
+                        name="location_state"
+                        placeholder="Ex: Florida"
+                        defaultValue={event?.location_state}
+                      />
+                      <FieldError actionState={actionState} name="location_state" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location_country">País *</Label>
+                    <Input
+                      id="location_country"
+                      name="location_country"
+                      placeholder="Ex: Estados Unidos"
+                      defaultValue={event?.location_country}
+                      required={isInternational}
+                    />
+                    <FieldError actionState={actionState} name="location_country" />
+                  </div>
+                </>
+              ) : (
+                // Campos para evento nacional (Brasil)
+                <>
+                  {/* Rua */}
+                  <div className="space-y-2">
+                    <Label htmlFor="street">Rua/Logradouro *</Label>
+                    <Input
+                      id="street"
+                      name="street"
+                      placeholder="Ex: Rua das Flores"
+                      defaultValue={event?.address?.street}
+                      required={!isInternational}
+                    />
+                    <FieldError actionState={actionState} name="street" />
+                  </div>
+
+                  {/* Número e Complemento */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="number">Número *</Label>
+                      <Input
+                        id="number"
+                        name="number"
+                        placeholder="Ex: 123"
+                        defaultValue={event?.address?.number}
+                        required={!isInternational}
+                      />
+                      <FieldError actionState={actionState} name="number" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="complement">Complemento</Label>
+                      <Input
+                        id="complement"
+                        name="complement"
+                        placeholder="Ex: Sala 101, Andar 2"
+                        defaultValue={event?.address?.complement}
+                      />
+                      <FieldError actionState={actionState} name="complement" />
+                    </div>
+                  </div>
+
+                  {/* Estado */}
+                  <div className="space-y-2">
+                    <Label htmlFor="stateId">Estado *</Label>
+                    <Select
+                      name="stateId"
+                      defaultValue={event?.address?.stateId}
+                      onValueChange={handleStateChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {states.map(state => (
+                          <SelectItem key={state.id} value={state.id}>
+                            {state.name} ({state.uf})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError actionState={actionState} name="stateId" />
+                  </div>
+
+                  {/* Cidade */}
+                  <div className="space-y-2">
+                    <Label htmlFor="cityId">Cidade *</Label>
+                    <Select
+                      name="cityId"
+                      defaultValue={event?.address?.cityId}
+                      disabled={!selectedState}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={selectedState ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCities.map(city => (
+                          <SelectItem key={city.id} value={city.id}>
+                            {city.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError actionState={actionState} name="cityId" />
+                  </div>
+
+                  {/* CEP */}
+                  <div className="space-y-2">
+                    <Label htmlFor="postal_code">CEP *</Label>
+                    <Input
+                      id="postal_code"
+                      name="postal_code"
+                      placeholder="Ex: 12345-678"
+                      defaultValue={event?.address?.postal_code}
+                      required={!isInternational}
+                    />
+                    <FieldError actionState={actionState} name="postal_code" />
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

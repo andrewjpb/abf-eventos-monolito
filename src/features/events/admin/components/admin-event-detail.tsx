@@ -227,12 +227,30 @@ export function AdminEventDetail({ event }: AdminEventDetailProps) {
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">
-                      {event.address.cities.name}, {event.address.states.uf}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {event.address.street}, {event.address.number}
-                    </p>
+                    {event.is_international ? (
+                      <>
+                        <p className="font-medium">
+                          {event.location_city}{event.location_state ? `, ${event.location_state}` : ''} - {event.location_country}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {event.location_name}
+                        </p>
+                        {event.location_address && (
+                          <p className="text-sm text-muted-foreground">
+                            {event.location_address}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-medium">
+                          {event.address?.cities?.name}, {event.address?.states?.uf}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {event.address?.street}, {event.address?.number}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
 

@@ -157,6 +157,11 @@ export async function getAdminEvents(
         exclusive_for_members: true,
         created_at: true,
         updatedAt: true,
+        // Campos de evento internacional
+        is_international: true,
+        location_city: true,
+        location_state: true,
+        location_country: true,
         address: {
           select: {
             cities: {

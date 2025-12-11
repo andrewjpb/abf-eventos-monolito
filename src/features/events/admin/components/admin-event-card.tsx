@@ -145,7 +145,10 @@ export function AdminEventCard({ event }: AdminEventCardProps) {
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <span className="truncate">
-                  {event.address.cities.name}, {event.address.states.uf}
+                  {event.is_international
+                    ? `${event.location_city}, ${event.location_country}`
+                    : `${event.address?.cities?.name}, ${event.address?.states?.uf}`
+                  }
                 </span>
               </div>
 

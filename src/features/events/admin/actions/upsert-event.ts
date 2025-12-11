@@ -45,13 +45,21 @@ const eventSchema = z.object({
   schedule_link: z.string().optional(),
   free_online: z.preprocess((val) => val === "true" || val === true || val === "on", z.boolean().default(false)),
   exclusive_for_members: z.preprocess((val) => val === "true" || val === true || val === "on", z.boolean().default(false)),
-  // Campos do endereço
-  street: z.string().min(1, { message: "Rua é obrigatória" }),
-  number: z.string().min(1, { message: "Número é obrigatório" }),
+  // Flag de evento internacional
+  is_international_value: z.preprocess((val) => val === "true" || val === true, z.boolean().default(false)),
+  // Campos do endereço nacional (opcional se internacional)
+  street: z.string().optional(),
+  number: z.string().optional(),
   complement: z.string().optional(),
-  postal_code: z.string().min(1, { message: "CEP é obrigatório" }),
-  cityId: z.string().min(1, { message: "Cidade é obrigatória" }),
-  stateId: z.string().min(1, { message: "Estado é obrigatório" }),
+  postal_code: z.string().optional(),
+  cityId: z.string().optional(),
+  stateId: z.string().optional(),
+  // Campos do endereço internacional (opcional se nacional)
+  location_name: z.string().optional(),
+  location_address: z.string().optional(),
+  location_city: z.string().optional(),
+  location_state: z.string().optional(),
+  location_country: z.string().optional(),
   speakerIds: z.string().optional(),
   sponsorIds: z.string().optional(),
   supporterIds: z.string().optional(),
@@ -245,6 +253,19 @@ export const upsertEvent = async (
 
     const data = eventSchema.parse(formDataObject)
 
+    const isInternational = data.is_international_value
+
+    // Validação condicional baseada no tipo de evento
+    if (isInternational) {
+      if (!data.location_name || !data.location_city || !data.location_country) {
+        return toActionState("ERROR", "Para eventos internacionais, nome do local, cidade e país são obrigatórios")
+      }
+    } else {
+      if (!data.street || !data.number || !data.postal_code || !data.cityId || !data.stateId) {
+        return toActionState("ERROR", "Para eventos nacionais, rua, número, CEP, cidade e estado são obrigatórios")
+      }
+    }
+
     let newEventId = eventId
     let imageUploadResult = null
     let thumbUploadResult = null
@@ -257,15 +278,15 @@ export const upsertEvent = async (
     const sponsorIds = data.sponsorIds ? data.sponsorIds.split(',').filter(id => id.trim()) : []
     const supporterIds = data.supporterIds ? data.supporterIds.split(',').filter(id => id.trim()) : []
 
-    // Preparar dados do endereço
-    const addressData = {
-      street: data.street,
-      number: data.number,
+    // Preparar dados do endereço (apenas para eventos nacionais)
+    const addressData = !isInternational ? {
+      street: data.street!,
+      number: data.number!,
       complement: data.complement,
-      postal_code: data.postal_code,
-      cityId: data.cityId,
-      stateId: data.stateId
-    }
+      postal_code: data.postal_code!,
+      cityId: data.cityId!,
+      stateId: data.stateId!
+    } : null
 
     if (eventId) {
       // Atualizar evento existente
@@ -299,8 +320,11 @@ export const upsertEvent = async (
       const changes: any = {}
       if (existingEvent.title !== data.title) changes['title'] = { from: existingEvent.title, to: data.title }
 
-      // Criar ou atualizar endereço
-      const addressId = await upsertAddress(addressData, existingEvent.addressId)
+      // Criar ou atualizar endereço (apenas para eventos nacionais)
+      let addressId: string | null = null
+      if (!isInternational && addressData) {
+        addressId = await upsertAddress(addressData, existingEvent.addressId || undefined)
+      }
 
       // Preparar data para update - só alterar se realmente mudou
       const newDate = parseLocalDate(data.date)
@@ -327,7 +351,15 @@ export const upsertEvent = async (
         schedule_link: data.schedule_link || '',
         free_online: data.free_online,
         exclusive_for_members: data.exclusive_for_members,
-        addressId: addressId,
+        // Campos de evento internacional
+        is_international: isInternational,
+        location_name: isInternational ? data.location_name : '',
+        location_address: isInternational ? data.location_address : '',
+        location_city: isInternational ? data.location_city : '',
+        location_state: isInternational ? data.location_state : '',
+        location_country: isInternational ? data.location_country : '',
+        // Endereço nacional (null para internacional)
+        addressId: isInternational ? null : addressId,
         updatedAt: new Date()
       }
 
@@ -426,8 +458,11 @@ export const upsertEvent = async (
         }
       }
 
-      // Criar endereço
-      const addressId = await upsertAddress(addressData)
+      // Criar endereço (apenas para eventos nacionais)
+      let addressId: string | null = null
+      if (!isInternational && addressData) {
+        addressId = await upsertAddress(addressData)
+      }
 
       // Criar evento
       await prisma.events.create({
@@ -457,6 +492,14 @@ export const upsertEvent = async (
           schedule_link: data.schedule_link || '',
           free_online: data.free_online,
           exclusive_for_members: data.exclusive_for_members,
+          // Campos de evento internacional
+          is_international: isInternational,
+          location_name: isInternational ? data.location_name : '',
+          location_address: isInternational ? data.location_address : '',
+          location_city: isInternational ? data.location_city : '',
+          location_state: isInternational ? data.location_state : '',
+          location_country: isInternational ? data.location_country : '',
+          // Endereço nacional (null para internacional)
           addressId: addressId,
           created_at: new Date(),
           updatedAt: new Date()

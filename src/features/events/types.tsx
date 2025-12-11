@@ -3,10 +3,10 @@ import { events, address, speakers, sponsors, supporters, attendance_list, citie
 
 // Tipo de evento com todos os relacionamentos
 export type EventWithDetails = events & {
-  address: address & {
+  address: (address & {
     cities: cities
     states: states
-  }
+  }) | null
   speakers?: Array<speakers & {
     users: users & {
       company?: company

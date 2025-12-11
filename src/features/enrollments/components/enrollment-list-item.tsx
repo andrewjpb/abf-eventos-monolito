@@ -77,7 +77,12 @@ export function EnrollmentListItem({ enrollment }: EnrollmentListItemProps) {
             <div className="flex items-center space-x-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {enrollment.events.address.cities.name}, {enrollment.events.address.states.name}
+                {enrollment.events.is_international
+                  ? `${enrollment.events.location_city}, ${enrollment.events.location_country}`
+                  : enrollment.events.address
+                    ? `${enrollment.events.address.cities.name}, ${enrollment.events.address.states.name}`
+                    : 'Local a definir'
+                }
               </span>
             </div>
             <div className="text-sm text-muted-foreground">

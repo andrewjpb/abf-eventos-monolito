@@ -48,7 +48,12 @@ export function EventEnrollmentDetail({ stats }: EventEnrollmentDetailProps) {
               <div className="flex items-center text-muted-foreground">
                 <MapPin className="h-4 w-4 mr-1" />
                 <span className="text-sm">
-                  {event.address.cities.name}, {event.address.states.name}
+                  {event.is_international
+                    ? `${event.location_city}, ${event.location_country}`
+                    : event.address
+                      ? `${event.address.cities.name}, ${event.address.states.name}`
+                      : 'Local a definir'
+                  }
                 </span>
               </div>
               <div className="text-sm text-muted-foreground">

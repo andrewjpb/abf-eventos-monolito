@@ -133,11 +133,13 @@ export function EventCard({ event, variant = "normal" }: EventCardProps) {
         <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
           <MapPinIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
           <span className="truncate">
-            {event.address?.cities?.name && event.address?.states?.uf
-              ? `${event.address.cities.name} - ${event.address.states.uf}`
-              : event.isStreaming
-                ? "Evento Online"
-                : "Local a definir"}
+            {event.is_international
+              ? `${event.location_city} - ${event.location_country}`
+              : event.address?.cities?.name && event.address?.states?.uf
+                ? `${event.address.cities.name} - ${event.address.states.uf}`
+                : event.isStreaming
+                  ? "Evento Online"
+                  : "Local a definir"}
           </span>
         </div>
 

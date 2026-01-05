@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  allowedDevOrigins: [
+    'eventos.abf.com.br',
+    'www.eventos.abf.com.br',
+  ],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

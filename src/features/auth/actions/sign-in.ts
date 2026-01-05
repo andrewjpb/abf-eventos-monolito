@@ -19,12 +19,18 @@ export const signIn = async (
   _actionState: ActionState,
   formData: FormData
 ) => {
+  console.log("[signIn] Iniciando processo de login...")
+
   const cookieStore = await cookies()
   let userForLog: { id: string; email: string; username: string } | null = null
 
   try {
+    console.log("[signIn] Parseando FormData...")
     const formEntries = Object.fromEntries(formData);
+    console.log("[signIn] FormData entries:", Object.keys(formEntries))
+
     const { email, password } = signInSchema.parse(formEntries);
+    console.log("[signIn] Email/Username:", email)
 
     // Converter para lowercase para busca case-insensitive
     const emailOrUsername = email.toLowerCase();
@@ -102,10 +108,15 @@ export const signIn = async (
     }
 
     // Criar sessão
+    console.log("[signIn] Criando sessão para usuário:", user.id)
     const session = await lucia.createSession(user.id, {});
+    console.log("[signIn] Sessão criada:", session.id)
+
     const sessionCookie = lucia.createSessionCookie(session.id);
+    console.log("[signIn] Cookie criado:", sessionCookie.name, "| Atributos:", JSON.stringify(sessionCookie.attributes))
 
     cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+    console.log("[signIn] Cookie definido com sucesso")
 
     // Log login bem-sucedido
     await logInfo(

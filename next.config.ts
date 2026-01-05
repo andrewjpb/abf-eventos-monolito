@@ -1,12 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  deploymentId: process.env.DEPLOYMENT_ID || Date.now().toString(),
   eslint: {
     ignoreDuringBuilds: true,
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb', // Aumentar limite para 10MB
+      bodySizeLimit: '10mb',
+      allowedOrigins: [
+        'eventos.abf.com.br',
+        'www.eventos.abf.com.br',
+        'localhost:3000',
+        'localhost:3111',
+        'localhost',
+        '10.0.0.23',
+        '10.0.0.23:3111',
+      ],
     },
   },
   // Redirects para compatibilidade com URLs antigas

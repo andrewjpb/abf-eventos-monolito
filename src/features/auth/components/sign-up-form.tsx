@@ -34,9 +34,10 @@ const SignUpForm = () => {
     const loadSegments = async () => {
       try {
         const segments = await getCompanySegments()
-        setAvailableSegments(segments)
+        setAvailableSegments(segments || [])
       } catch (error) {
         console.error('Erro ao carregar segmentos:', error)
+        setAvailableSegments([])
       }
     }
     loadSegments()
@@ -290,22 +291,29 @@ const SignUpForm = () => {
 
                 {showNewCompanyFields && cnpjValue.length >= 14 && (
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-sm font-medium text-yellow-800 mb-3">CNPJ não encontrado. Selecione o segmento da empresa:</p>
-                    <div className="space-y-2">
-                      <Label htmlFor="company_segment">Segmento da Empresa *</Label>
-                      <Select name="company_segment" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o segmento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableSegments.map((segment) => (
-                            <SelectItem key={segment} value={segment}>
-                              {segment}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FieldError actionState={actionState} name="company_segment" />
+                    <p className="text-sm font-medium text-yellow-800 mb-3">CNPJ não encontrado. Preencha os dados da empresa:</p>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="company_name">Nome da Empresa *</Label>
+                        <Input id="company_name" name="company_name" placeholder="Nome da empresa" required />
+                        <FieldError actionState={actionState} name="company_name" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="company_segment">Segmento da Empresa *</Label>
+                        <Select name="company_segment" required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o segmento" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(availableSegments || []).map((segment) => (
+                              <SelectItem key={segment} value={segment}>
+                                {segment}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FieldError actionState={actionState} name="company_segment" />
+                      </div>
                     </div>
                     <Badge variant="outline" className="mt-2">Não associado</Badge>
                   </div>

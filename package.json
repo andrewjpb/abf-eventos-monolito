@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "docker:build": "docker build -t andrewjpb/abf-eventos-monolito .",
+    "docker:build": "docker build --build-arg DEPLOYMENT_ID=$(date +%s) --build-arg NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=xoZ/fVTV7LnrZb++FpDvaT3DFqiMAuYxxhKIqtTeds0= -t andrewjpb/abf-eventos-monolito .",
     "docker:push": "docker push andrewjpb/abf-eventos-monolito",
+    "docker:deploy": "npm run docker:build && npm run docker:push",
     "seed:permissions": "tsx scripts/seed-permissions-and-roles.ts"
   },
   "dependencies": {

@@ -42,6 +42,7 @@ const signUpSchema = z
     city: z.string().min(1, { message: "Cidade é obrigatória" }).max(100),
     state: z.string().min(1, { message: "Estado é obrigatório" }).max(50),
     company_segment: z.string().optional(),
+    company_name: z.string().optional(),
   })
   .superRefine(({ password, confirmPassword }, ctx) => {
     if (password !== confirmPassword) {
@@ -178,6 +179,16 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
         );
         return toActionState("ERROR", "CNPJ não encontrado. Selecione um segmento para cadastrar a empresa.", formData);
       }
+
+      if (!userData.company_name || userData.company_name.trim() === "") {
+        await logWarn(
+          "Auth",
+          `Tentativa de cadastro com CNPJ inexistente sem nome da empresa: ${cleanCnpj}`,
+          undefined,
+          { cnpj: cleanCnpj, email: userData.email }
+        );
+        return toActionState("ERROR", "CNPJ não encontrado. Informe o nome da empresa.", formData);
+      }
       
       // Criar nova empresa apenas se CNPJ não existe e segmento foi fornecido
       const companyId = uuidv4();
@@ -186,13 +197,13 @@ export const signUp = async (prevState: ActionState, formData: FormData) => {
           "Auth",
           `Criando nova empresa com CNPJ: ${cleanCnpj}`,
           undefined,
-          { cnpj: cleanCnpj, segment: userData.company_segment, email: userData.email }
+          { cnpj: cleanCnpj, companyName: userData.company_name, segment: userData.company_segment, email: userData.email }
         );
         
         company = await prisma.company.create({
           data: {
             id: companyId,
-            name: "Empresa não associada", // Nome padrão para empresas não associadas
+            name: userData.company_name!.trim(),
             cnpj: cleanCnpj,
             segment: userData.company_segment,
             active: false

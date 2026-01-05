@@ -3,8 +3,14 @@ import "./globals.css";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Header } from "./_navigation/header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 import Footer from "./_navigation/footer";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -90,11 +96,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: "/manifest.json",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   category: "eventos",
   verification: {
     google: "google-site-verification=CODIGO_DE_VERIFICACAO_AQUI",

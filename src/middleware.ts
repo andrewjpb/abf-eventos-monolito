@@ -4,11 +4,10 @@ import type { NextRequest } from "next/server"
 // Rotas que requerem autenticação
 const protectedRoutes = ["/admin", "/account"]
 
-// Rotas públicas (não requerem autenticação)
-const publicRoutes = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password"]
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  console.log("[middleware] Request:", request.method, pathname)
 
   // Verificar se é uma rota protegida
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
@@ -18,19 +17,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  console.log("[middleware] Rota protegida detectada:", pathname)
+
   // Verificar se existe o cookie de sessão do Lucia
-  // O nome padrão do cookie do Lucia é "auth_session"
   const sessionCookie = request.cookies.get("auth_session")
+
+  console.log("[middleware] Cookie auth_session:", sessionCookie?.value ? "PRESENTE (***" + sessionCookie.value.slice(-8) + ")" : "AUSENTE")
 
   // Se não tem cookie de sessão, redireciona para login
   if (!sessionCookie?.value) {
+    console.log("[middleware] Redirecionando para /sign-in")
     const signInUrl = new URL("/sign-in", request.url)
-    // Adiciona a URL original como parâmetro para redirect após login
     signInUrl.searchParams.set("redirect", pathname)
     return NextResponse.redirect(signInUrl)
   }
 
-  // Se tem cookie, permite acesso (a validação completa é feita no servidor)
+  console.log("[middleware] Acesso permitido")
   return NextResponse.next()
 }
 

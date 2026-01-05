@@ -24,6 +24,12 @@ COPY . .
 # Gerar o Prisma Client para o ambiente correto
 RUN npx prisma generate
 
+# Definir variáveis para o build do Next.js
+ARG DEPLOYMENT_ID
+ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+ENV DEPLOYMENT_ID=${DEPLOYMENT_ID}
+ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+
 # Construir a aplicação
 RUN npm run build
 

@@ -4,8 +4,46 @@ import type { NextRequest } from "next/server"
 // Rotas que requerem autenticação
 const protectedRoutes = ["/admin", "/account"]
 
+// Padrões de bots e requisições maliciosas
+const botPatterns = [
+  /^\/wp-/,              // WordPress
+  /^\/wordpress/i,       // WordPress
+  /\.php$/,              // Arquivos PHP
+  /\.php\//,             // PHP com path
+  /^\/xmlrpc/,           // WordPress XMLRPC
+  /^\/\.env/,            // Tentativa de ler .env
+  /^\/config\./,         // Arquivos de config
+  /^\/admin\.php/,       // Admin PHP
+  /^\/wp-login/,         // WordPress login
+  /^\/wp-content/,       // WordPress content
+  /^\/wp-includes/,      // WordPress includes
+  /^\/\.well-known\/.*\.php/, // PHP em .well-known
+]
+
+// Padrões de spam SEO (slugs de produtos)
+const spamPatterns = [
+  /slug=.*shoe/i,
+  /slug=.*nike/i,
+  /slug=.*adidas/i,
+  /slug=.*asics/i,
+  /slug=.*puma/i,
+  /slug=.*shirt/i,
+  /slug=.*pants/i,
+]
+
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, search } = request.nextUrl
+  const fullPath = pathname + search
+
+  // Bloquear bots e requisições maliciosas (silenciosamente)
+  if (botPatterns.some(pattern => pattern.test(pathname))) {
+    return new Response('Not Found', { status: 404 })
+  }
+
+  // Bloquear spam SEO
+  if (spamPatterns.some(pattern => pattern.test(fullPath))) {
+    return new Response('Not Found', { status: 404 })
+  }
 
   console.log("[middleware] Request:", request.method, pathname)
 
@@ -38,8 +76,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Proteger rotas admin e account
-    "/admin/:path*",
-    "/account/:path*",
+    // Aplicar middleware em todas as rotas exceto assets estáticos
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$|.*\\.webp$).*)",
   ],
 }

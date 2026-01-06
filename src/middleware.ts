@@ -45,6 +45,17 @@ export function middleware(request: NextRequest) {
     return new Response('Not Found', { status: 404 })
   }
 
+  // Bloquear Server Actions inválidas (IDs muito curtos ou suspeitos)
+  const actionId = request.headers.get('Next-Action')
+  if (actionId) {
+    // IDs válidos do Next.js são hashes longos (40+ caracteres)
+    // Se for muito curto (como "x") ou padrão suspeito, bloqueia
+    if (actionId.length < 10 || /^[a-z]$/i.test(actionId)) {
+      console.log("[middleware] Bloqueado: Server Action inválida, ID:", actionId)
+      return new Response('Bad Request', { status: 400 })
+    }
+  }
+
   console.log("[middleware] Request:", request.method, pathname)
 
   // Verificar se é uma rota protegida

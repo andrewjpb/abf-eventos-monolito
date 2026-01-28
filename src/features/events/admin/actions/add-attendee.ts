@@ -16,6 +16,7 @@ export async function addAttendeeToEvent(
     const userId = formData.get("userId") as string
     const eventId = formData.get("eventId") as string
     const participantType = formData.get("participantType") as string || DEFAULT_PARTICIPANT_TYPE
+    const attendeeType = formData.get("attendeeType") as string || "in_person"
 
     // Verificar permissão
     const { user, error } = await getAuthWithPermission("events.create")
@@ -102,7 +103,7 @@ export async function addAttendeeToEvent(
         attendee_rg: attendeeUser.rg,
         attendee_cpf: attendeeUser.cpf,
         mobile_phone: attendeeUser.mobile_phone,
-        attendee_type: "admin_add", // Identificar que foi adicionado pelo admin
+        attendee_type: attendeeType,
         participant_type: participantType,
         checked_in: false
       }
@@ -121,6 +122,7 @@ export async function addAttendeeToEvent(
         eventId: eventId,
         eventTitle: event.title,
         participantType: participantType,
+        attendeeType: attendeeType,
         addedBy: "admin"
       }
     )
@@ -144,7 +146,8 @@ export async function addAttendeeToEvent(
         error: errorMessage,
         userId: formData.get("userId"),
         eventId: formData.get("eventId"),
-        participantType: formData.get("participantType")
+        participantType: formData.get("participantType"),
+        attendeeType: formData.get("attendeeType")
       }
     )
 

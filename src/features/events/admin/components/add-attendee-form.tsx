@@ -46,6 +46,7 @@ export function AddAttendeeForm({ eventId, onSuccess }: AddAttendeeFormProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [participantType, setParticipantType] = useState("participant")
+  const [attendeeType, setAttendeeType] = useState("in_person")
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<User[]>([])
 
@@ -98,6 +99,7 @@ export function AddAttendeeForm({ eventId, onSuccess }: AddAttendeeFormProps) {
     formData.append("userId", selectedUser.id)
     formData.append("eventId", eventId)
     formData.append("participantType", participantType)
+    formData.append("attendeeType", attendeeType)
 
     startTransition(async () => {
       try {
@@ -109,6 +111,7 @@ export function AddAttendeeForm({ eventId, onSuccess }: AddAttendeeFormProps) {
           setSelectedUser(null)
           setSearchTerm("")
           setParticipantType("participant")
+          setAttendeeType("in_person")
           onSuccess?.()
         } else {
           toast.error(result.message || "Erro ao adicionar inscrito")
@@ -123,6 +126,7 @@ export function AddAttendeeForm({ eventId, onSuccess }: AddAttendeeFormProps) {
     setSelectedUser(null)
     setSearchTerm("")
     setParticipantType("participant")
+    setAttendeeType("in_person")
     setSearchResults([])
   }
 
@@ -225,6 +229,20 @@ export function AddAttendeeForm({ eventId, onSuccess }: AddAttendeeFormProps) {
                     {option.label}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Modalidade de Participação */}
+          <div className="space-y-2">
+            <Label htmlFor="attendeeType">Modalidade de Participação</Label>
+            <Select value={attendeeType} onValueChange={setAttendeeType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a modalidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="in_person">Presencial</SelectItem>
+                <SelectItem value="online">Online</SelectItem>
               </SelectContent>
             </Select>
           </div>

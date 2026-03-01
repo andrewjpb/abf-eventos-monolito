@@ -116,8 +116,8 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
 
           {/* Título e descrição */}
           <div className="mb-6">
-            <div className="flex gap-4 justify-start mb-3">
-              <div className="flex-shrink-0 bg-primary text-primary-foreground text-center rounded-md overflow-hidden w-16">
+            <div className="flex gap-4 justify-start items-start mb-3">
+              <div className="flex-shrink-0 bg-primary text-primary-foreground text-center rounded-md overflow-hidden w-16 h-fit">
                 <div className="text-2xl font-bold py-1">
                   {obterDia()}
                 </div>

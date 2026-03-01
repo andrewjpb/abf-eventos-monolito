@@ -1,6 +1,7 @@
 // /features/banners/components/banners-sidebar.tsx
 import { getBanners } from "../queries/get-banners"
 import { BannersCarousel } from "./banners-carousel"
+import { BannersMobileModal } from "./banners-mobile-modal"
 
 interface BannersSidebarProps {
   limit?: number;
@@ -25,16 +26,19 @@ export async function BannersSidebar({
   }
 
   return (
-    <div className="h-full w-full relative rounded-lg overflow-hidden">
-      {/* Adaptação responsiva da proporção */}
-      <div className="h-full w-full 
-        aspect-[16/9] sm:aspect-[3/4] md:aspect-[3/4] lg:aspect-[4/5] xl:aspect-auto 
-        max-h-[200px] sm:max-h-none">
-        <BannersCarousel
-          banners={banners}
-          interval={interval}
-        />
+    <>
+      {/* Mobile/Tablet: modal popup */}
+      <BannersMobileModal banners={banners} interval={interval} />
+
+      {/* Desktop: sidebar normal */}
+      <div className="hidden lg:block w-full relative rounded-lg overflow-hidden h-full">
+        <div className="w-full h-full">
+          <BannersCarousel
+            banners={banners}
+            interval={interval}
+          />
+        </div>
       </div>
-    </div>
+    </>
   )
 }

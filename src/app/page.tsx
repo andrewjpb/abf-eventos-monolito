@@ -29,8 +29,8 @@ export default async function Home() {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
         <Suspense fallback={<div className="flex justify-center p-0"><Spinner /></div>}>
           <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
-            <div className="sm:grid sm:grid-cols-12 sm:gap-4 md:gap-5 lg:gap-6 sm:min-h-[770px]">
-              <div className="sm:col-span-7 md:col-span-8 lg:col-span-8 xl:col-span-8 mb-4 sm:mb-0">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 lg:gap-6">
+              <div className="lg:col-span-8 mb-4 lg:mb-0">
                 {featuredEvent && (
                   <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
                     <FeaturedEvent event={featuredEvent as any} />
@@ -38,9 +38,9 @@ export default async function Home() {
                 )}
               </div>
 
-              <div className="sm:col-span-5 md:col-span-4 lg:col-span-4 xl:col-span-4 min-h-[770px]">
+              <div className="lg:col-span-4 lg:min-h-[770px]">
                 <Suspense fallback={
-                  <div className="flex justify-center items-center h-full min-h-[770px] rounded-lg bg-card/50">
+                  <div className="flex justify-center items-center h-full rounded-lg bg-card/50">
                     <Spinner />
                   </div>
                 }>

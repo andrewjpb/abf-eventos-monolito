@@ -24,6 +24,10 @@ export function FeaturedEvent({ event }: FeaturedEventProps) {
 
   // Formatar o local
   const formatarLocal = () => {
+    // Evento somente online
+    if (event.format === "online" || event.format === "ONLINE") {
+      return "Evento Online"
+    }
     // Evento internacional
     if (event.is_international) {
       return `${event.location_name || event.location_city} - ${event.location_city}${event.location_state ? `, ${event.location_state}` : ''} - ${event.location_country}`

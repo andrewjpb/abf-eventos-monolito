@@ -607,7 +607,10 @@ export function EventRegistrationCard({
               Confirmar Presença
             </h3>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              {displayVacancies} {displayVacancies === 1 ? 'vaga disponível' : 'vagas disponíveis'}
+              {event.format === 'ONLINE' || event.isStreaming
+                ? 'Vagas ilimitadas'
+                : `${displayVacancies} ${displayVacancies === 1 ? 'vaga disponível' : 'vagas disponíveis'}`
+              }
             </p>
           </div>
           <Button

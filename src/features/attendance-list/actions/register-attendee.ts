@@ -121,8 +121,8 @@ export const registerAttendee = async (
       }
     })
 
-    // Validar vagas presenciais
-    if (isPresentialRegistration && presentialCount >= event.vacancy_total) {
+    // Validar vagas presenciais (0 = ilimitado)
+    if (isPresentialRegistration && event.vacancy_total > 0 && presentialCount >= event.vacancy_total) {
       await logWarn("AttendanceList.register", `Tentativa de inscrição presencial em evento lotado`, user.id, {
         eventId: data.eventId,
         vacancyTotal: event.vacancy_total,
@@ -131,8 +131,8 @@ export const registerAttendee = async (
       return toActionState("ERROR", "Este evento já atingiu o número máximo de participantes presenciais")
     }
 
-    // Validar vagas online
-    if (isOnlineRegistration && onlineCount >= event.vacancy_online) {
+    // Validar vagas online (0 = ilimitado)
+    if (isOnlineRegistration && event.vacancy_online > 0 && onlineCount >= event.vacancy_online) {
       await logWarn("AttendanceList.register", `Tentativa de inscrição online em evento lotado`, user.id, {
         eventId: data.eventId,
         vacancyOnline: event.vacancy_online,
@@ -157,7 +157,7 @@ export const registerAttendee = async (
         }
       })
 
-      if (companyPresentialCount >= event.vacancies_per_brand) {
+      if (event.vacancies_per_brand > 0 && companyPresentialCount >= event.vacancies_per_brand) {
         await logWarn("AttendanceList.register", `Tentativa de inscrição presencial acima do limite por empresa`, user.id, {
           eventId: data.eventId,
           companyCnpj: data.company_cnpj,
@@ -176,7 +176,7 @@ export const registerAttendee = async (
         }
       })
 
-      if (companyOnlineCount >= event.vacancies_per_brand) {
+      if (event.vacancies_per_brand > 0 && companyOnlineCount >= event.vacancies_per_brand) {
         await logWarn("AttendanceList.register", `Tentativa de inscrição online acima do limite por empresa`, user.id, {
           eventId: data.eventId,
           companyCnpj: data.company_cnpj,

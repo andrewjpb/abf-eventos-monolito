@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "docker:build": "docker build --build-arg DEPLOYMENT_ID=$(date +%s) --build-arg NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=xoZ/fVTV7LnrZb++FpDvaT3DFqiMAuYxxhKIqtTeds0= -t andrewjpb/abf-eventos-monolito .",
+    "docker:build": "docker build --platform linux/amd64 --build-arg DEPLOYMENT_ID=$(date +%s) --build-arg NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=xoZ/fVTV7LnrZb++FpDvaT3DFqiMAuYxxhKIqtTeds0= -t andrewjpb/abf-eventos-monolito .",
     "docker:push": "docker push andrewjpb/abf-eventos-monolito",
-    "docker:deploy": "npm run docker:build && npm run docker:push",
+    "docker:deploy": "npm run docker:build && npm run docker:push && npm run docker:remote-update",
+    "docker:remote-update": "sshpass -p 'Ni7aemue@' ssh -o StrictHostKeyChecking=no suporte@10.0.0.23 \"echo 'Ni7aemue@' | sudo -S docker pull andrewjpb/abf-eventos-monolito:latest && echo 'Ni7aemue@' | sudo -S docker stop eventos && echo 'Ni7aemue@' | sudo -S docker rm eventos && echo 'Ni7aemue@' | sudo -S docker run -d --name eventos --restart unless-stopped --network services-abf_default -p 3111:3000 -e DATABASE_URL='postgresql://postgres:Ni7aemue@postgres16:5432/eventos_prod?schema=public' -e S3_ACCESS_KEY_ID=IiTRDzVJ0r1nEZfCq0QV -e S3_SECRET_ACCESS_KEY=byjMoguCQDgiB86IBLSw5s3Q0BoQ49n2LkKWi8s3 -e S3_BUCKET_NAME=abf-ti -e RESEND_API_KEY=re_jAP5gHi2_Q8uTJMj6vgdjTGpTe9FjNaZ4 -e NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=xoZ/fVTV7LnrZb++FpDvaT3DFqiMAuYxxhKIqtTeds0= andrewjpb/abf-eventos-monolito:latest\"",
     "seed:permissions": "tsx scripts/seed-permissions-and-roles.ts"
   },
   "dependencies": {

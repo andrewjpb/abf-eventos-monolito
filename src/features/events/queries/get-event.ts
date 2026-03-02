@@ -231,7 +231,10 @@ export const getEvent = cache(async (id: string) => {
     })
 
     // Vagas restantes da empresa baseadas apenas em inscrições presenciais
-    companyRemainingVacancies = Math.max(0, event.vacancies_per_brand - companyPresentialCount)
+    // vacancies_per_brand = 0 significa sem limite
+    companyRemainingVacancies = event.vacancies_per_brand === 0
+      ? Infinity
+      : Math.max(0, event.vacancies_per_brand - companyPresentialCount)
   }
 
   // Verificar se o usuário pode se inscrever (apenas se estiver logado e não estiver registrado)
@@ -269,6 +272,15 @@ export const getEvent = cache(async (id: string) => {
     }
   })
 
+  // vacancy_total = 0 significa ilimitado
+  const remainingVacancies = event.vacancy_total === 0
+    ? Infinity
+    : Math.max(0, event.vacancy_total - presentialCount)
+
+  const occupationPercentage = event.vacancy_total === 0
+    ? 0
+    : Math.min(100, Math.round((presentialCount / event.vacancy_total) * 100))
+
   return {
     event: eventWithOrderedRelations,
     isRegistered,
@@ -276,10 +288,10 @@ export const getEvent = cache(async (id: string) => {
     isAdmin,
     user,
     canRegister,
-    remainingVacancies: Math.max(0, event.vacancy_total - presentialCount),
+    remainingVacancies,
     companyRemainingVacancies,
     companyAttendees,
-    occupationPercentage: Math.min(100, Math.round((presentialCount / event.vacancy_total) * 100)),
+    occupationPercentage,
     hasEventCreatePermission
   }
 })

@@ -87,6 +87,10 @@ export function AdminEventUpsertForm({
     event?.supporters?.map(s => s.id) || []
   )
 
+  // Estado para formato do evento
+  const [selectedFormat, setSelectedFormat] = useState<string>(event?.format || '')
+  const [freeOnline, setFreeOnline] = useState<boolean>(event?.free_online || false)
+
   // Estados para endereço
   const [isInternational, setIsInternational] = useState<boolean>(event?.is_international || false)
   const [selectedState, setSelectedState] = useState<string>(event?.address?.stateId || '')
@@ -486,7 +490,7 @@ export function AdminEventUpsertForm({
             {/* Formato */}
             <div className="space-y-2">
               <Label htmlFor="format">Formato do Evento *</Label>
-              <Select name="format" defaultValue={event?.format}>
+              <Select name="format" defaultValue={event?.format} onValueChange={setSelectedFormat}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o formato" />
                 </SelectTrigger>
@@ -501,8 +505,8 @@ export function AdminEventUpsertForm({
               <FieldError actionState={actionState} name="format" />
             </div>
 
-            {/* Campos de Endereço */}
-            <div className="space-y-4">
+            {/* Campos de Endereço - ocultos para eventos online */}
+            {selectedFormat !== 'ONLINE' && <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-gray-900 dark:text-white">Endereço do Evento</h4>
                 <div className="flex items-center gap-2">
@@ -683,7 +687,7 @@ export function AdminEventUpsertForm({
                   </div>
                 </>
               )}
-            </div>
+            </div>}
           </CardContent>
         </Card>
 
@@ -696,64 +700,125 @@ export function AdminEventUpsertForm({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="vacancy_total">Total de Vagas Presenciais *</Label>
-                <Input
-                  id="vacancy_total"
-                  name="vacancy_total"
-                  type="number"
-                  min="1"
-                  defaultValue={event?.vacancy_total}
-                  required
-                />
-                <FieldError actionState={actionState} name="vacancy_total" />
-                <p className="text-xs text-muted-foreground">
-                  Quantidade de vagas para inscrições presenciais
-                </p>
-              </div>
+            {selectedFormat === 'ONLINE' ? (
+              <>
+                {/* Evento online: vagas ilimitadas, enviar valores padrão */}
+                <input type="hidden" name="vacancy_total" value="0" />
+                <input type="hidden" name="vacancy_online" value="0" />
+                <input type="hidden" name="vacancies_per_brand" value="0" />
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Evento online — vagas ilimitadas. Não é necessário configurar limites de vagas.
+                  </p>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="vacancy_online">Total de Vagas Online</Label>
-                <Input
-                  id="vacancy_online"
-                  name="vacancy_online"
-                  type="number"
-                  min="0"
-                  defaultValue={event?.vacancy_online || 0}
-                />
-                <FieldError actionState={actionState} name="vacancy_online" />
-                <p className="text-xs text-muted-foreground">
-                  Quantidade de vagas para inscrições online (0 = sem vagas online)
-                </p>
-              </div>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="minimum_quorum">Quórum Mínimo</Label>
+                    <Input
+                      id="minimum_quorum"
+                      name="minimum_quorum"
+                      type="number"
+                      min="0"
+                      defaultValue={event?.minimum_quorum}
+                    />
+                    <FieldError actionState={actionState} name="minimum_quorum" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="vacancy_total">Total de Vagas Presenciais *</Label>
+                    <Input
+                      id="vacancy_total"
+                      name="vacancy_total"
+                      type="number"
+                      min="1"
+                      defaultValue={event?.vacancy_total}
+                      required
+                    />
+                    <FieldError actionState={actionState} name="vacancy_total" />
+                    <p className="text-xs text-muted-foreground">
+                      Quantidade de vagas para inscrições presenciais
+                    </p>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="vacancies_per_brand">Vagas por Marca</Label>
-                <Input
-                  id="vacancies_per_brand"
-                  name="vacancies_per_brand"
-                  type="number"
-                  min="0"
-                  defaultValue={event?.vacancies_per_brand}
-                />
-                <FieldError actionState={actionState} name="vacancies_per_brand" />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vacancy_online">Total de Vagas Online</Label>
+                    <Input
+                      id="vacancy_online"
+                      name="vacancy_online"
+                      type="number"
+                      min="0"
+                      defaultValue={event?.vacancy_online || 0}
+                    />
+                    <FieldError actionState={actionState} name="vacancy_online" />
+                    <p className="text-xs text-muted-foreground">
+                      Quantidade de vagas para inscrições online (0 = sem vagas online)
+                    </p>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="minimum_quorum">Quórum Mínimo</Label>
-                <Input
-                  id="minimum_quorum"
-                  name="minimum_quorum"
-                  type="number"
-                  min="0"
-                  defaultValue={event?.minimum_quorum}
-                />
-                <FieldError actionState={actionState} name="minimum_quorum" />
-              </div>
-            </div>
+                <Separator />
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900 dark:text-white text-sm">Controle por Marca</h4>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="free_online">Liberar vagas online ilimitadas para marcas</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Inscrições online não consomem vagas da marca, mas respeitam o limite total de vagas online
+                      </p>
+                    </div>
+                    <Switch
+                      id="free_online"
+                      name="free_online"
+                      checked={freeOnline}
+                      onCheckedChange={setFreeOnline}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="vacancies_per_brand" className={freeOnline ? "text-muted-foreground" : ""}>
+                        Vagas por Marca
+                      </Label>
+                      <Input
+                        id="vacancies_per_brand"
+                        name="vacancies_per_brand"
+                        type="number"
+                        min="0"
+                        defaultValue={event?.vacancies_per_brand}
+                        disabled={freeOnline}
+                        className={freeOnline ? "opacity-50" : ""}
+                      />
+                      <FieldError actionState={actionState} name="vacancies_per_brand" />
+                      <p className="text-xs text-muted-foreground">
+                        {freeOnline
+                          ? "Desativado — vagas online ilimitadas ativas"
+                          : "Limite de vagas por marca (0 = sem limite)"
+                        }
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="minimum_quorum">Quórum Mínimo</Label>
+                      <Input
+                        id="minimum_quorum"
+                        name="minimum_quorum"
+                        type="number"
+                        min="0"
+                        defaultValue={event?.minimum_quorum}
+                      />
+                      <FieldError actionState={actionState} name="minimum_quorum" />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -782,19 +847,6 @@ export function AdminEventUpsertForm({
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="free_online">Liberar vagas online ilimitadas para marcas</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Inscrições online não consomem vagas da marca, mas respeitam o limite total de vagas online
-                  </p>
-                </div>
-                <Switch
-                  id="free_online"
-                  name="free_online"
-                  defaultChecked={event?.free_online}
-                />
-              </div>
             </div>
 
             {/* Links */}

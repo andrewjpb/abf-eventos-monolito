@@ -1,6 +1,6 @@
-FROM node:21.7.3-alpine AS base
+# ---- Stage 1: Build ----
+FROM node:21.7.3-alpine AS builder
 
-# Definir diretório de trabalho
 WORKDIR /app
 
 # Configurar npm para melhor handling de rede
@@ -9,32 +9,43 @@ RUN npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retries 5 && \
     npm config set registry https://registry.npmjs.org/
 
-# Copiar arquivos de configuração de dependências
+# Instalar dependências
 COPY package*.json ./
-
-# Limpar cache do npm e instalar dependências com retry
 RUN npm cache clean --force && \
     npm install --legacy-peer-deps --verbose || \
     (sleep 5 && npm install --legacy-peer-deps --verbose) || \
     (sleep 10 && npm install --legacy-peer-deps --verbose)
 
-# Copiar todos os arquivos do projeto
+# Copiar source e gerar Prisma Client
 COPY . .
-
-# Gerar o Prisma Client para o ambiente correto
 RUN npx prisma generate
 
-# Definir variáveis para o build do Next.js
+# Variáveis para o build
 ARG DEPLOYMENT_ID
 ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 ENV DEPLOYMENT_ID=${DEPLOYMENT_ID}
 ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
 
-# Construir a aplicação
+# Build da aplicação
 RUN npm run build
 
-# Expor a porta 3000
+# ---- Stage 2: Runtime ----
+FROM node:21.7.3-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copiar apenas o necessário do build
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Copiar Prisma (schema + engine gerada)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+
 EXPOSE 3000
 
-# Iniciar a aplicação
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

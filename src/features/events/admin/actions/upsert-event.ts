@@ -34,7 +34,7 @@ const eventSchema = z.object({
   format: z.enum(['PRESENCIAL', 'ONLINE', 'HIBRIDO'], {
     message: "Formato deve ser PRESENCIAL, ONLINE ou HIBRIDO"
   }),
-  vacancy_total: z.coerce.number().min(1, { message: "Total de vagas deve ser maior que 0" }),
+  vacancy_total: z.coerce.number().min(0, { message: "Total de vagas deve ser maior ou igual a 0" }),
   vacancy_online: z.coerce.number().min(0, { message: "Vagas online deve ser maior ou igual a 0" }),
   vacancies_per_brand: z.coerce.number().min(0, { message: "Vagas por marca deve ser maior ou igual a 0" }),
   minimum_quorum: z.coerce.number().min(0, { message: "Quórum mínimo deve ser maior ou igual a 0" }),
@@ -255,14 +255,16 @@ export const upsertEvent = async (
 
     const isInternational = data.is_international_value
 
-    // Validação condicional baseada no tipo de evento
-    if (isInternational) {
-      if (!data.location_name || !data.location_city || !data.location_country) {
-        return toActionState("ERROR", "Para eventos internacionais, nome do local, cidade e país são obrigatórios")
-      }
-    } else {
-      if (!data.street || !data.number || !data.postal_code || !data.cityId || !data.stateId) {
-        return toActionState("ERROR", "Para eventos nacionais, rua, número, CEP, cidade e estado são obrigatórios")
+    // Validação condicional baseada no tipo de evento (pular endereço para eventos online)
+    if (data.format !== 'ONLINE') {
+      if (isInternational) {
+        if (!data.location_name || !data.location_city || !data.location_country) {
+          return toActionState("ERROR", "Para eventos internacionais, nome do local, cidade e país são obrigatórios")
+        }
+      } else {
+        if (!data.street || !data.number || !data.postal_code || !data.cityId || !data.stateId) {
+          return toActionState("ERROR", "Para eventos nacionais, rua, número, CEP, cidade e estado são obrigatórios")
+        }
       }
     }
 

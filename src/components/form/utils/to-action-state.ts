@@ -24,6 +24,7 @@ export const fromErrorToActionState = (
 
   if (error instanceof ZodError) {
     return {
+      status: "ERROR",
       message: error.errors[0].message,
       fieldErrors: error.flatten().fieldErrors,
       payload: formData,

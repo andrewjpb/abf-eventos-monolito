@@ -7,22 +7,11 @@ import { accountProfilePath } from "@/app/paths"
 import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { logInfo, logError } from "@/features/logs/queries/add-log"
 import { z } from "zod"
-import * as Minio from 'minio'
-import { nanoid } from "nanoid"
+import { minioClient, S3_BUCKETS, generateUniqueFileName, getFileBuffer, getPublicUrl } from "@/lib/minio"
 
-// Cliente MinIO
-const minioClient = new Minio.Client({
-  endPoint: '10.0.0.23',
-  port: 9001,
-  useSSL: false,
-  accessKey: process.env.S3_ACCESS_KEY_ID,
-  secretKey: process.env.S3_SECRET_ACCESS_KEY,
-})
-
-const BUCKET_NAME = "eventos"
+const BUCKET_NAME = S3_BUCKETS.EVENTOS
 const USERS_PREFIX = "users/"
 
-// Schema para validação da imagem
 const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1MB
 const imageSchema = z.object({
   image_file: z.any()
@@ -30,37 +19,6 @@ const imageSchema = z.object({
       message: "É necessário fornecer uma imagem"
     })
 })
-
-// Gera um nome de arquivo único para o upload
-const generateUniqueFileName = (originalName: string = "image.jpg"): string => {
-  const extension = originalName.split('.').pop() || 'jpg'
-  const uniqueId = nanoid(10)
-  return `${Date.now()}-${uniqueId}.${extension}`
-}
-
-// Função para obter o buffer do arquivo
-async function getFileBuffer(file: any): Promise<{ buffer: Buffer, type: string, size: number, name: string }> {
-  if (file instanceof Blob || (typeof file === 'object' && file !== null && 'arrayBuffer' in file && typeof file.arrayBuffer === 'function')) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    return {
-      buffer,
-      type: file.type || 'image/jpeg',
-      size: buffer.length,
-      name: file.name || 'image.jpg'
-    };
-  }
-
-  if (Buffer.isBuffer(file)) {
-    return {
-      buffer: file,
-      type: 'application/octet-stream',
-      size: file.length,
-      name: 'buffer.bin'
-    };
-  }
-
-  throw new Error("Formato de arquivo inválido");
-}
 
 export const updateProfileImage = async (
   _actionState: ActionState,
@@ -127,7 +85,7 @@ export const updateProfileImage = async (
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // URL pública da imagem
-      const publicUrl = `https://s3.abfti.com.br/${BUCKET_NAME}/${filePath}`;
+      const publicUrl = getPublicUrl(BUCKET_NAME, filePath)
       const thumbUrl = publicUrl; // Por enquanto usando a mesma URL
       
       // Atualizar o URL da imagem no usuário

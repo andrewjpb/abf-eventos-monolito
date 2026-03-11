@@ -1,33 +1,13 @@
 // /features/sponsors/actions/upload-sponsor-image.ts
 "use server"
 
-import { nanoid } from "nanoid"
-import { getAuthOrRedirect } from "@/features/auth/queries/get-auth-or-rerdirect"
 import { logError, logInfo } from "@/features/logs/queries/add-log"
-import * as Minio from 'minio'
 import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 import { toActionState } from "@/components/form/utils/to-action-state"
+import { minioClient, S3_BUCKETS, generateUniqueFileName, getPublicUrl } from "@/lib/minio"
 
-// Usar o cliente MinIO existente
-const minioClient = new Minio.Client({
-  endPoint: '10.0.0.23',
-  port: 9001,
-  useSSL: false,
-  accessKey: process.env.S3_ACCESS_KEY_ID,
-  secretKey: process.env.S3_SECRET_ACCESS_KEY,
-})
-
-const BUCKET_NAME = "eventos"
+const BUCKET_NAME = S3_BUCKETS.EVENTOS
 const SPONSORS_PREFIX = "sponsors/"
-
-/**
- * Gera um nome de arquivo único para o upload
- */
-const generateUniqueFileName = (originalFileName: string): string => {
-  const extension = originalFileName.split('.').pop() || 'jpg'
-  const uniqueId = nanoid(10)
-  return `${Date.now()}-${uniqueId}.${extension}`
-}
 
 /**
  * Faz upload da imagem para o bucket do MinIO
@@ -76,7 +56,7 @@ export async function uploadSponsorImage(formData: FormData) {
     )
 
     // URL pública da imagem
-    const publicUrl = `https://s3.abfti.com.br/${BUCKET_NAME}/${filePath}`
+    const publicUrl = getPublicUrl(BUCKET_NAME, filePath)
 
     await logInfo("Sponsor.uploadImage", `Imagem de patrocinador enviada com sucesso: ${filePath}`, user.id, {
       filePath,

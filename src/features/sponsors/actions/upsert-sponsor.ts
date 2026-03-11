@@ -10,20 +10,10 @@ import { revalidatePath } from "next/cache"
 import { sponsorsPath, sponsorPath } from "@/app/paths"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-import * as Minio from 'minio'
 import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
+import { minioClient, S3_BUCKETS, getPublicUrl } from "@/lib/minio"
 
-// Cliente MinIO
-const minioClient = new Minio.Client({
-  endPoint: '10.0.0.23',
-  port: 9001,
-  useSSL: false,
-  accessKey: process.env.S3_ACCESS_KEY_ID,
-  secretKey: process.env.S3_SECRET_ACCESS_KEY,
-})
-
-const BUCKET_NAME = "eventos"
-// Seguindo o padrão existente: images/sponsors/full_size/{id do sponsor}
+const BUCKET_NAME = S3_BUCKETS.EVENTOS
 const SPONSORS_IMAGE_PREFIX = "eventos/images/sponsors/full_size/"
 
 // Schema para validação
@@ -65,7 +55,7 @@ async function uploadImageToMinIO(file: File, sponsorId: string) {
     )
 
     // URL pública da imagem
-    const publicUrl = `https://s3.abfti.com.br/${BUCKET_NAME}/${filePath}`
+    const publicUrl = getPublicUrl(BUCKET_NAME, filePath)
 
     return {
       success: true,

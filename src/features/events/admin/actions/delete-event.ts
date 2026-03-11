@@ -6,18 +6,9 @@ import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-per
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-import * as Minio from 'minio'
+import { minioClient, S3_BUCKETS } from "@/lib/minio"
 
-// Cliente MinIO
-const minioClient = new Minio.Client({
-  endPoint: '10.0.0.23',
-  port: 9001,
-  useSSL: false,
-  accessKey: process.env.S3_ACCESS_KEY_ID,
-  secretKey: process.env.S3_SECRET_ACCESS_KEY,
-})
-
-const BUCKET_NAME = "eventos"
+const BUCKET_NAME = S3_BUCKETS.EVENTOS
 
 /**
  * Remove imagens do evento do MinIO

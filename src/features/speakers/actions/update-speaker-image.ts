@@ -3,24 +3,14 @@
 
 import { ActionState, fromErrorToActionState, toActionState } from "@/components/form/utils/to-action-state"
 import { prisma } from "@/lib/prisma"
-import { nanoid } from "nanoid"
 import { getAuthWithPermission } from "@/features/auth/queries/get-auth-with-permission"
 import { revalidatePath } from "next/cache"
 import { speakerPath, speakersPath } from "@/app/paths"
 import { logError, logInfo, logWarn } from "@/features/logs/queries/add-log"
-import * as Minio from 'minio'
+import { minioClient, S3_BUCKETS, generateUniqueFileName, getFileBuffer, getPublicUrl } from "@/lib/minio"
 import { z } from "zod"
 
-// Cliente MinIO
-const minioClient = new Minio.Client({
-  endPoint: '10.0.0.23',
-  port: 9001,
-  useSSL: false,
-  accessKey: process.env.S3_ACCESS_KEY_ID,
-  secretKey: process.env.S3_SECRET_ACCESS_KEY,
-})
-
-const BUCKET_NAME = "eventos"
+const BUCKET_NAME = S3_BUCKETS.EVENTOS
 const SPEAKERS_PREFIX = "speakers/"
 
 // Schema para validação da imagem
@@ -29,87 +19,7 @@ const imageSchema = z.object({
     .refine(file => file !== null && file !== undefined, {
       message: "É necessário fornecer uma imagem para o usuário"
     })
-});
-
-/**
- * Gera um nome de arquivo único para o upload
- */
-const generateUniqueFileName = (originalName: string = "image.jpg"): string => {
-  const extension = originalName.split('.').pop() || 'jpg'
-  const uniqueId = nanoid(10)
-  return `${Date.now()}-${uniqueId}.${extension}`
-}
-
-/**
- * Função otimizada para obter o buffer do arquivo
- */
-async function getFileBuffer(file: any): Promise<{ buffer: Buffer, type: string, size: number, name: string }> {
-  // Para arquivos do tipo File/Blob do navegador
-  if (file instanceof Blob || (typeof file === 'object' && file !== null && 'arrayBuffer' in file && typeof file.arrayBuffer === 'function')) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    return {
-      buffer,
-      type: file.type || 'image/jpeg',
-      size: buffer.length,
-      name: file.name || 'image.jpg'
-    };
-  }
-
-  // Para buffers
-  if (Buffer.isBuffer(file)) {
-    return {
-      buffer: file,
-      type: 'application/octet-stream',
-      size: file.length,
-      name: 'buffer.bin'
-    };
-  }
-
-  // Para FormData entries ou objetos
-  if (typeof file === 'object' && file !== null) {
-    // Tentar extrair o arquivo real se for um FormData entry
-    const actualFile = file.valueOf?.() ?? file;
-
-    if (actualFile instanceof Blob || 'arrayBuffer' in actualFile) {
-      return getFileBuffer(actualFile);
-    }
-
-    // Se tem um stream()
-    if (typeof file.stream === 'function') {
-      const chunks = [];
-      for await (const chunk of file.stream()) {
-        chunks.push(chunk);
-      }
-      const buffer = Buffer.concat(chunks);
-      return {
-        buffer,
-        type: file.type || 'application/octet-stream',
-        size: buffer.length,
-        name: file.name || 'streamed-file.bin'
-      };
-    }
-
-    // Se tem dados em buffer
-    if (file.data && Buffer.isBuffer(file.data)) {
-      return {
-        buffer: file.data,
-        type: file.type || 'application/octet-stream',
-        size: file.data.length,
-        name: file.name || 'data-file.bin'
-      };
-    }
-  }
-
-  // Falha segura - converter para string como último recurso
-  const stringData = String(file);
-  const buffer = Buffer.from(stringData);
-  return {
-    buffer,
-    type: 'text/plain',
-    size: buffer.length,
-    name: 'text-file.txt'
-  };
-}
+})
 
 export const updateSpeakerImage = async (
   speakerId: string,
@@ -210,7 +120,7 @@ export const updateSpeakerImage = async (
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // URL pública da imagem
-      const publicUrl = `https://s3.abfti.com.br/${BUCKET_NAME}/${filePath}`;
+      const publicUrl = getPublicUrl(BUCKET_NAME, filePath)
 
       // Atualizar o URL da imagem no usuário
       await prisma.users.update({

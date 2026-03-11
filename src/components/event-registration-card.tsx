@@ -154,6 +154,11 @@ export function EventRegistrationCard({
           router.refresh()
         } else {
           toast.error(result.message || "Erro ao confirmar presença")
+          // Atualizar o status para exibir o card de indisponível
+          setRegistrationStatus({
+            canRegister: false,
+            reason: result.message || "Não é possível se inscrever neste evento"
+          })
         }
       } catch (error) {
         toast.error("Erro interno do servidor")

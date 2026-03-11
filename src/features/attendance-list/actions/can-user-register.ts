@@ -28,6 +28,7 @@ export const canUserRegister = cache(async (eventId: string) => {
       isPublished: true,
       exclusive_for_members: true,
       free_online: true,
+      format: true,
       attendance_list: {
         select: {
           attendee_type: true,
@@ -132,14 +133,18 @@ export const canUserRegister = cache(async (eventId: string) => {
   const canRegisterPresential = presentialVacanciesAvailable > 0 &&
     (!hasPresentialBrandLimit || companyPresentialCount < event.vacancies_per_brand)
 
+  // Só permite inscrição online se o evento não for exclusivamente presencial
+  const eventSupportsOnline = event.format !== 'PRESENCIAL'
   let canRegisterOnline = false
-  if (event.free_online) {
-    // Quando free_online = true, apenas verifica se há vagas online disponíveis
-    canRegisterOnline = onlineVacanciesAvailable > 0
-  } else {
-    // Quando free_online = false, verifica vagas online E limite da marca (apenas online)
-    canRegisterOnline = onlineVacanciesAvailable > 0 &&
-      (!hasPresentialBrandLimit || companyOnlineCount < event.vacancies_per_brand)
+  if (eventSupportsOnline) {
+    if (event.free_online) {
+      // Quando free_online = true, apenas verifica se há vagas online disponíveis
+      canRegisterOnline = onlineVacanciesAvailable > 0
+    } else {
+      // Quando free_online = false, verifica vagas online E limite da marca (apenas online)
+      canRegisterOnline = onlineVacanciesAvailable > 0 &&
+        (!hasPresentialBrandLimit || companyOnlineCount < event.vacancies_per_brand)
+    }
   }
 
   // Se não pode se inscrever em nenhum tipo
